@@ -1,45 +1,40 @@
 import React from 'react'
 import { uploadFile } from './test'
-import { graphql, compose } from 'react-apollo'
-
+import {Query, graphql, compose ,withApollo} from 'react-apollo'
 import { Layout, Icon } from 'antd';
 import CommonHeader from './common/header'
 import {asyncComponent} from './util/asyncComponent'
 import {Route } from 'react-router-dom'
 import {getMenu} from './graphql/index'
-
+import { assertIdValue } from 'apollo-cache-inmemory';
 
 const { Header, Content, Sider } = Layout;
-class App extends React.Component{
-    render(){
 
-        let {systemmenuList,loading}=this.props.getMenu
-          if(!systemmenuList){
-            systemmenuList=[]
-          }
-       
+
+class App extends React.Component{
+    render(show){
         return <div>
-                    {loading?("loading"):(
-                        <Layout>
-                            <Header>
-                                <CommonHeader menuData={systemmenuList} />
-                            </Header>
-                            <Content>
-                                {systemmenuList.map((item)=> <Route key={item.id} path={"/"+item.name+"/:topMenuId"} component={asyncComponent(()=>import('/modular'+item.component))} />)}
-                            </Content>                  
-                        </Layout>
-                    )}
+                <Query
+                    query={getMenu}
+                    variables={{
+                        parentid:'0'
+                    }}
+                >
+                    {({loading,data:{systemmenuList}})=>{
+                            return loading?("loading"):(
+                                <Layout>
+                                    <Header>
+                                        <CommonHeader menuData={systemmenuList} />
+                                    </Header>
+                                    <Content>
+                                        {systemmenuList.map((item)=> <Route key={item.id} path={"/"+item.name+"/:topMenuId"} component={asyncComponent(()=>import('/modular'+item.component))} />)}
+                                    </Content>                  
+                                </Layout>
+                            )
+                    }}
+                </Query>
             </div>
                     
     }
 }
-export default compose(
-    graphql(getMenu,{
-        name:"getMenu",
-        options:(props)=>({
-            variables:{
-                parentid:'0'
-            }
-        })
-    })
-)(App);
+export default App;

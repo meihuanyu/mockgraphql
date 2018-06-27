@@ -1,27 +1,24 @@
 import React from 'react'
 import { Tree } from 'antd';
 import {  graphql, compose } from 'react-apollo'
-import getMenu from 'graphql/getMenu'
-import {withApollo} from 'react-apollo'
-import gql from 'graphql-tag'
+import getMenu from '../../graphql/getMenu'
+import TopMenu from '../../common/topMenu'
 const TreeNode = Tree.TreeNode;
 
-const updateGame = gql`
-mutation updateGame($index: String!, $value: String!) {
-  updateGame(index: $index, value: $value) @client {
-    teamAScore
-    teamBScore
-    teamAName
-    teamBName
-  }
-}
-`
+
 
 class Demo extends React.Component {
   state = {
     treeData: [
     ],
   }
+  currentRows=[]
+  
+  dataSource={
+    ff:function(){
+        console.log('ffff')
+    }
+}
   componentWillMount=()=>{
     let {systemmenuList}=this.props
     const treeData=JSON.parse(JSON.stringify(systemmenuList))
@@ -30,12 +27,7 @@ class Demo extends React.Component {
     })
   }
   onLoadData = async (treeNode) => {
-    this.props.updateGame({
-      variables: {
-        index: 'teamAName',
-        value: 'xx'
-      }
-    })
+    
     const resData=await this.props.loadMore(treeNode.props.dataRef.id)
     return new Promise((resolve) => {
         treeNode.props.dataRef.children = JSON.parse(JSON.stringify(resData.data.systemmenuList));
@@ -57,52 +49,31 @@ class Demo extends React.Component {
       return <TreeNode  title={item.displayname} key={item.id} dataRef={item} />;
     });
   }
-  onSelect=(selectedKeys,e)=>{
-    const {selectedNodes}=e
-    let selectedNodesArr=[]
-    selectedNodes.forEach(((value)=>{
-      selectedNodesArr.push(value.props.dataRef)
-    }))
-    let {client:{cache}} =this.props
-    const data = {
-      currentNode: selectedNodesArr
+  
+  hindleOncheck=(keys,{checkedNodes})=>{
+    for(let i=0;i<checkedNodes.length;i++){
+      this.currentRows.push(checkedNodes[i].props.dataRef)
     }
-
-    cache.writeQuery(data)
-  }
-  clickggg = ()=>{    
-    let {client:{cache}} =this.props
-    const query=gql`
-    query GetCurrentGame {
-      currentGame @client {
-        teamAScore
-        teamBScore
-        teamAName
-      }
-    }
-  `
-    const previous = cache.readQuery({ query })
-    console.log(previous)
   }
   render() {
-    const { onSelect } =this.props
     return (
       <div>
+        <TopMenu menuData={this.props.topMenu} dataSouce={this.dataSource} />
         <Tree 
+        checkStrictly={true}
+        checkable
       multiple={true}
       loadData={this.onLoadData}
-      onSelect={onSelect}
+      onCheck={this.hindleOncheck}
       >
         {this.renderTreeNodes(this.state.treeData)}
       </Tree>
 
-        <button onClick={this.clickggg} value="gggg">ggg</button> 
       </div>
     );
   }
-}
+} 
 export default compose(
-  withApollo,
   graphql(getMenu,{
         options:(props)=>({
             variables:{
@@ -126,5 +97,18 @@ export default compose(
             }
           }
         }
+    }),
+    graphql(getMenu,{
+      options:(props)=>({
+          variables:{
+              parentid:'3'
+          }
+      }),
+      props({data}){
+        const {loading,systemmenuList}=data
+        return {
+          topMenu:systemmenuList
+        }
+      }
     })
 )(Demo)

@@ -12,6 +12,9 @@ import { ApolloClient } from 'apollo-client'
 import { HttpLink } from 'apollo-link-http'
 import { InMemoryCache } from 'apollo-cache-inmemory'
 import { ApolloLink } from 'apollo-link'
+
+import gql from 'graphql-tag'
+
 import App from './app'
 
 class Start extends Component {
@@ -21,8 +24,9 @@ class Start extends Component {
       currentGame: {
         __typename: 'currentGame',
         teamAScore: 0,
-        teamAScore: 0,
-        teamAName: 'Team A'
+        teamBScore: 0,
+        teamAName: 'Team A',
+        teamBName: 'Team B'
       }
     }
 
@@ -32,7 +36,22 @@ class Start extends Component {
       resolvers: {
         Mutation: {
           updateGame: (_, { index, value }, { cache }) => {
-            console.log(value)
+                const query=gql`
+            query GetCurrentGame {
+                currentGame @client {
+                    teamAName
+                }
+            }
+            `
+            const previous = cache.readQuery({ query })
+            const data = {
+              currentGame: {
+                ...previous.currentGame,
+                [index]: value
+              }
+            }
+
+            cache.writeQuery({ query, data })
           }
         }
       }
@@ -51,7 +70,7 @@ class Start extends Component {
     return (
       <ApolloProvider client={client}>
         <Router>
-            {/* <App/> */}
+            <App/>
         </Router>
       </ApolloProvider>
     );

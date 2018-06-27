@@ -3,8 +3,8 @@ import { Layout, Icon ,Menu} from 'antd';
 import {Link , Route} from 'react-router-dom'
 
 import { graphql, compose } from 'react-apollo';
-import getMenu from 'graphql/getMenu'
-import CreateRouter from 'createRouter'
+import getMenu from '../../graphql/getMenu'
+import CreateRouter from '../../createRouter'
 import gql from 'graphql-tag'
 
 const { Content, Sider ,Header } = Layout;
@@ -50,16 +50,6 @@ class System extends Component{
                 </Sider>
                 <Content>
                     <Layout>
-                        <Menu
-                            mode="horizontal"
-                        >
-                            <Menu.Item key="mail" onClick={this.mailClick}>
-                                <Icon type="mail" />Navigation One
-                            </Menu.Item>
-                            <Menu.Item key="alipay">
-                            <a href="https://ant.design" target="_blank" rel="noopener noreferrer">Navigation Four - Link</a>
-                            </Menu.Item>
-                        </Menu>
                         <Content>
                             <CreateRouter currentUrl={currentUrl} menuData={systemmenuList} />
                         </Content>

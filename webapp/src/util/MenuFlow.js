@@ -1,9 +1,12 @@
-
+import { graphql, compose ,withApollo} from 'react-apollo'
+import App from '../app'
 // 解析操作流程字符串的正则
 let flowReg = /([^\.])\.([^\,\(]+)(\(([^\)]*)\))?(\s*\,\s*)?/g;
 class MenuFlow{
     dataSource={}
-    constructor(oper,dataSource){
+    _this=null
+    constructor(oper,dataSource,compoent){
+        this._this=compoent
         const groupOper = {g: [], v: [], f: [], c: []};
         // 解析操作字符串
         let arr = null;
@@ -56,6 +59,11 @@ class MenuFlow{
         ds:this.ds,
         create:(xx)=>{
             console.log(xx)
+        },
+        show:(compoent)=>{
+            this._this.setState({
+                xx:"hhh"
+            })
         }    
     }
     g={

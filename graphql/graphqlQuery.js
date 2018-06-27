@@ -7,7 +7,6 @@ import {
 class Grouphqlquery extends util{
     async startSchema (data){
         const resData=await data();
-        console.log(resData)
         this.paramsObj=resData;
         this.tables=Object.keys(resData);
 

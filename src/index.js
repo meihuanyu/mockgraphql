@@ -7,7 +7,7 @@ const GraphqlRouter = require('../router')
 const app = new Koa()
 const router = new Router();
 
-const port = 4000
+const port = 4001
 
 app.use(bodyParser());
 app.use(KoaStatic(__dirname + '/public'));

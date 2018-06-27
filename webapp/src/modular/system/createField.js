@@ -16,7 +16,7 @@ class NormalLoginForm extends React.Component {
     this.props.form.validateFields(async (err, values) => {
       if (!err) {
         console.log(values)
-        var res=await cfetch('api/app/createField',{params:values});
+        var res=await cfetch('/api/app/createField',{params:values});
         console.log('Received values of form: ', res);
       }
     });
