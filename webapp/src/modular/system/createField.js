@@ -11,6 +11,18 @@ class NormalLoginForm extends React.Component {
       isShowObjectSelect:false,
       graphqlObj:[]
   }
+  modalParams={
+    onOk:()=>{
+      this.props.close()
+    }
+  }
+  componentDidMount(){
+    const {rModal}=this.props
+    rModal.setState({
+      modalProps:this.modalParams
+    })
+  }
+  
   handleSubmit =  (e) => {
     e.preventDefault();
     this.props.form.validateFields(async (err, values) => {

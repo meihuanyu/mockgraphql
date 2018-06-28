@@ -58,14 +58,14 @@ class Demo extends React.Component {
   render() {
     return (
       <div>
-        <TopMenu menuData={this.props.topMenu} dataSouce={this.dataSource} />
+        <TopMenu menuData={this.props.topMenu} dataSource={this.dataSource} />
         <Tree 
-        checkStrictly={true}
-        checkable
-      multiple={true}
-      loadData={this.onLoadData}
-      onCheck={this.hindleOncheck}
-      >
+          checkStrictly={true}
+          checkable
+          multiple={true}
+          loadData={this.onLoadData}
+          onCheck={this.hindleOncheck}
+          >
         {this.renderTreeNodes(this.state.treeData)}
       </Tree>
 

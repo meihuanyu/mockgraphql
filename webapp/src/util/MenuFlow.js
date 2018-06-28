@@ -1,17 +1,20 @@
 import { graphql, compose ,withApollo} from 'react-apollo'
 import App from '../app'
+import { Modal, Button } from 'antd';
+
 // 解析操作流程字符串的正则
 let flowReg = /([^\.])\.([^\,\(]+)(\(([^\)]*)\))?(\s*\,\s*)?/g;
 class MenuFlow{
     dataSource={}
     _this=null
-    constructor(oper,dataSource,compoent){
+    menu=null
+    constructor(menu,dataSource,compoent){
         this._this=compoent
         const groupOper = {g: [], v: [], f: [], c: []};
         // 解析操作字符串
         let arr = null;
         do{
-            arr = flowReg.exec(oper);
+            arr = flowReg.exec(menu.oper);
             if(arr != null){
                 // 正则匹配之后是类似这样的数组
                 // ["f.edit('baidu', '12')", "f", "edit", "('baidu', '12')", "'baidu', '12'"]
@@ -29,6 +32,7 @@ class MenuFlow{
         }while(arr != null);
         this.runOper(groupOper)
         this.dataSource=Object.assign({},this.dataSource,dataSource)
+        this.menu=menu
     }
     queue(arr) {
         var sequence = Promise.resolve()
@@ -60,10 +64,19 @@ class MenuFlow{
         create:(xx)=>{
             console.log(xx)
         },
-        show:(compoent)=>{
-            this._this.setState({
-                xx:"hhh"
-            })
+        show:(patch)=>{
+           return new Promise((resolve)=>{
+               const FlowData={
+                   dataSource:this._this.props.dataSource,
+                   gData:this.gData,
+                   menu:this.menu,
+                   resolve:resolve
+               }
+                this._this.setState({
+                    modalPatch:patch,
+                    flowData:FlowData
+                })
+           })
         }    
     }
     g={

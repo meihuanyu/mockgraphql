@@ -1,17 +1,18 @@
 import React from 'react'
 import MenuFlow from '../util/MenuFlow'
 import { Layout, Icon ,Menu ,Modal} from 'antd';
-
-
+import ShowModal from './ShowModal'
 class TopMenu extends React.Component{
     state={
-        xx:"gg"
+        modalPatch:'',
+        flowData:''
     }
     hindeClick=(item)=>{
-        new MenuFlow(item.oper,this.props.dataSource,this)
+        new MenuFlow(item,this.props.dataSource,this)
     }
     render(){
         let items=[]
+        const { modalPatch ,flowData}=this.state
         if(!this.props.menuData){
             return null
         }
@@ -23,12 +24,14 @@ class TopMenu extends React.Component{
                         {item.displayname}
                     </Menu.Item>
         })
-        return <Menu
-                    mode="horizontal"
-                >
-                    {items}
-                    <Menu.Item key={11}>{this.state.xx}</Menu.Item >
-                </Menu>
+        return <div>
+                    <Menu
+                            mode="horizontal"
+                        >
+                            {items}
+                    </Menu>
+                    {modalPatch?<ShowModal  component={modalPatch} menuFlowProps={flowData} upperCom={this} />:null}
+                </div>
     }
 }
 export default TopMenu
