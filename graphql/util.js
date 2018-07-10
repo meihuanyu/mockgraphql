@@ -60,6 +60,7 @@ class Grouphqlquery{
             args:args,
             async resolve(root,params,option){
                 const sql=_this.toSql('update',params,tableName)
+                console.log(sql)
                 let xx=await db.query(sql);
                 return  xx[0];
             }
@@ -99,8 +100,6 @@ class Grouphqlquery{
                     }
                 }
                 let sql ="INSERT INTO "+tableName+" ("+fields.toString()+") VALUES ("+values.toString()+")";
-
-                console.log(sql)
                 const res=await db.query(sql);
                 return {id:res.insertId}
             }
@@ -124,7 +123,6 @@ class Grouphqlquery{
             args:args,
             async resolve(root,params,option){
                 const sql=_this.toSql('query',params,tableName)
-                console.log(sql)
                 const res=await db.query(sql)
                 return  res[0];
             }

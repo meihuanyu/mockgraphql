@@ -46,7 +46,7 @@ class MenuFlow{
         for(let oper in opers){
             for(let i=0;i<opers[oper].length;i++){
                 const fun=opers[oper][i];
-                funArr.push(this[oper][fun.name].bind(this,fun.params.join()))
+                funArr.push(this[oper][fun.name].bind(this,...fun.params))
             }
             
         }
@@ -59,18 +59,22 @@ class MenuFlow{
         }
         return val;
     }
+    c={
+        ds:this.ds
+    }
     f={
         ds:this.ds,
         create:(xx)=>{
             console.log(xx)
         },
-        show:(patch)=>{
+        show:(patch,props)=>{
            return new Promise((resolve)=>{
                const FlowData={
                    dataSource:this._this.props.dataSource,
                    gData:this.gData,
                    menu:this.menu,
-                   resolve:resolve
+                   resolve:resolve,
+                   ...props
                }
                 this._this.setState({
                     modalPatch:patch,
@@ -80,7 +84,13 @@ class MenuFlow{
         }    
     }
     g={
-        ds:this.ds,
+        ds:async function(name, ...args){
+            let val = this.dataSource[name];
+            if(typeof(val) === "function"){
+                return this.gData=await val.apply(this, args)
+            }
+            return this.gData=val;
+        },
         getRows:()=>{
             return new Promise((resolve)=>{
                 setTimeout(() => {

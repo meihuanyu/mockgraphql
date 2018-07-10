@@ -17,12 +17,16 @@ class ShowModal extends React.Component{
             patch:nextProps.component
         })
     }
-    closeModal=()=>{
+    closeModal=(status)=>{
+        if(status=='next'){
+            this.props.upperCom.state.flowData.resolve()
+        }
         //改变上一层topmenu的状态
         this.props.upperCom.setState({
             modalPatch: "",
             flowData:""
         });
+        
     }
     render(){
         const _this=this

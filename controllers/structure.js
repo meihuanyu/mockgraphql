@@ -1,7 +1,17 @@
 import db from '../config/database'
 export const getTables = async function(ctx,next){
     const opts = ctx.request.body;
-    const sql='select id,tablename from graphql_table';
+    const sql='select id,tablename,descinfo from graphql_table';
+    const res=await db.query(sql);
+    if(res){
+        ctx.body={
+            success:true,
+            data:res
+        }
+    }
+}
+export const getFields = async function(ctx,next){
+    const sql='select * from graphql_field where relationtableid='+ctx.query.id;
     const res=await db.query(sql);
     if(res){
         ctx.body={
@@ -42,7 +52,7 @@ export const createField=async function(ctx,next){
 }
 export const createTable=async function(ctx,next){
     const opts = ctx.query;
-    const sql="insert into graphql_table (tablename) values('"+opts.tablename+"')"
+    const sql="insert into graphql_table (tablename,descinfo) values('"+opts.tablename+"','"+opts.descinfo+"')"
     const insertres=await db.query(sql);
     const res =await _createTable(opts.tablename,insertres.insertId)
     if(res){

@@ -1,23 +1,23 @@
 import gql from 'graphql-tag'
 
 export default gql`
-  mutation systemmenuCreate(
+  mutation systemmenuUpdate(
     $displayname: String!
     $name: String!
-    $parentid: String!
     $component: String
     $oper: String
+    $id:Int
   ) {
-    systemmenuCreate(
+    systemmenuUpdate(
         displayname: $displayname
         name: $name
-        parentid: $parentid
         component: $component
         oper: $oper
+        id:$id
     ) {
+        id
         displayname
         name
-        parentid
         component
         oper
     }

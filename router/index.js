@@ -5,13 +5,14 @@ import {
 } from 'graphql';
 // 引入 type 
 import graphqlSchema from '../graphql/start'
-import {getTables,createField,createTable,querySchme} from '../controllers/structure'
+import {getTables,createField,createTable,getFields,querySchme} from '../controllers/structure'
 
 const router = require('koa-router')()
 
 router.get('/app/getTables',getTables);
 router.get('/app/createTable',createTable);
 router.get('/app/createField',createField);
+router.get('/app/getFields',getFields);
 
 
 router.post('/graphql', async (ctx, next) => {

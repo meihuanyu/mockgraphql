@@ -1,19 +1,27 @@
 import React from 'react';
 import { Form, Icon, Input, Button, Checkbox,Select ,Radio ,Switch} from 'antd';
 import cfetch from '../../util/cFetch'
+import BaseModal from '../../common/BaseModal'
+
 const Option = Select.Option;
 const FormItem = Form.Item;
 const RadioGroup = Radio.Group;
 
-class NormalLoginForm extends React.Component {
+class NormalLoginForm extends BaseModal {
   state={
       tables:[],
       isShowObjectSelect:false,
       graphqlObj:[]
   }
-  modalParams={
-    onOk:()=>{
-      this.props.close()
+  modalProps={
+    onOk:async ()=>{
+      this.props.form.validateFields(async (err, values) => {
+        if (!err) {
+          var res=await cfetch('/api/app/createField',{params:values});
+          this.props.close('next')
+        }
+      });
+    
     }
   }
   componentDidMount(){
@@ -23,16 +31,6 @@ class NormalLoginForm extends React.Component {
     })
   }
   
-  handleSubmit =  (e) => {
-    e.preventDefault();
-    this.props.form.validateFields(async (err, values) => {
-      if (!err) {
-        console.log(values)
-        var res=await cfetch('/api/app/createField',{params:values});
-        console.log('Received values of form: ', res);
-      }
-    });
-  }
   hanldeOnchengeTable =(field)=>{
     let tables=this.state.tables;
     let _graphqlObj=[]
@@ -179,12 +177,6 @@ class NormalLoginForm extends React.Component {
            )
           
         }
-        
-        <FormItem>
-          <Button type="primary" htmlType="submit" className="login-form-button">
-           创建字段
-          </Button>
-        </FormItem>
       </Form>
     );
   }

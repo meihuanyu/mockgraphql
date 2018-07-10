@@ -5,12 +5,20 @@ import {  graphql, compose } from 'react-apollo'
 import {Table} from 'antd'
 
 class User extends Component {
-
     state={
-        tableData:[]
+        tableData:[],
+        selectedRowKeys:[]
+    }
+
+    
+    getRows=()=>{
+        let tempArr=[]
+        this.state.tableData.map(item=>{
+            tempArr[item.id]=item
+        })
+        return this.state.selectedRowKeys.map(item=>tempArr[item])
     }
     componentDidMount(){
-        console.log('xxxx')
         this.loaderTable();
     }
     loaderTable=async ()=>{
@@ -20,8 +28,10 @@ class User extends Component {
             tableData:data
         })
     }
-    
-
+    onSelectChange = (selectedRowKeys) => {
+        console.log('selectedRowKeys changed: ', selectedRowKeys);
+        this.setState({ selectedRowKeys });
+    }
     dataSource={
         currentRows:this.getRows,
         reload:async ()=>{
@@ -31,18 +41,21 @@ class User extends Component {
     render(){
           const columns = [{
             title: '表名称',
-            dataIndex: 'tablename',
-            key: 'tablename',
+            dataIndex: 'tablename'
           }, {
             title: '描述',
-            dataIndex: 'descinfo',
-            key: 'age',
+            dataIndex: 'descinfo'
           }];
-        console.log(this.state.tableData)
+        const { loading, selectedRowKeys } = this.state;
+        const rowSelection = {
+          selectedRowKeys,
+          hideDefaultSelections: true,
+          onChange: this.onSelectChange,
+        };
         return <div>
             <TopMenu menuData={this.props.topMenu} dataSource={this.dataSource} />
             
-            <Table dataSource={this.state.tableData} columns={columns} />
+            <Table rowSelection={rowSelection} dataSource={this.state.tableData} columns={columns} rowKey="id"/>
         </div>
     }
 }
@@ -61,4 +74,3 @@ export default compose(
       }
     })
 )(User)
-

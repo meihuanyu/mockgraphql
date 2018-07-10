@@ -1,20 +1,23 @@
 import React from 'react';
 import { Form, Icon, Input, Button, Checkbox,Select ,Radio ,Switch} from 'antd';
 import cfetch from '../../util/cFetch'
+import BaseModal from '../../common/BaseModal'
+
 const Option = Select.Option;
 const FormItem = Form.Item;
 const RadioGroup = Radio.Group;
 
-class NormalLoginForm extends React.Component {
-  handleSubmit =  (e) => {
-    e.preventDefault();
-    this.props.form.validateFields(async (err, values) => {
-      if (!err) {
-        console.log(values)
-        var res=await cfetch('api/app/createTable',{params:values});
-        console.log('Received values of form: ', res);
-      }
-    });
+class NormalLoginForm extends BaseModal {
+  modalProps={
+    onOk:async ()=>{
+      this.props.form.validateFields(async (err, values) => {
+        if (!err) {
+          var res=await cfetch('api/app/createTable',{params:values});
+          this.props.close('next')
+        }
+      });
+    
+    }
   }
   render() {
     const { getFieldDecorator } = this.props.form;
@@ -37,10 +40,12 @@ class NormalLoginForm extends React.Component {
             <Input/>
           )}
         </FormItem>
-        <FormItem>
-          <Button type="primary" htmlType="submit" className="login-form-button">
-            创建表
-          </Button>
+        <FormItem {...formItemLayout} label="描述">
+          {getFieldDecorator('descinfo', {
+            rules: [{ required: true, message: 'Please input your 描述!' }],
+          })(
+            <Input/>
+          )}
         </FormItem>
       </Form>
     );

@@ -8,6 +8,7 @@ query systemmenuList($parentid:String){
       id
       component
       oper
+      parentid
     }   
    }
 `

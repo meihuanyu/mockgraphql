@@ -13,12 +13,10 @@ class Demo extends React.Component {
     ],
   }
   currentRows=[]
-  
-  dataSource={
-    ff:function(){
-        console.log('ffff')
-    }
-}
+  bug_temp_caese_key=100
+  getRows=()=>{
+    return this.currentRows
+  }
   componentWillMount=()=>{
     let {systemmenuList}=this.props
     const treeData=JSON.parse(JSON.stringify(systemmenuList))
@@ -41,21 +39,37 @@ class Demo extends React.Component {
     return data.map((item) => {
       if (item.children) {
         return (
-          <TreeNode title={item.displayname} key={item.id} dataRef={item}>
+          <TreeNode title={item.displayname} key={item.key?item.key:item.id} dataRef={item}>
             {this.renderTreeNodes(item.children)}
           </TreeNode>
         );
       }
-      return <TreeNode  title={item.displayname} key={item.id} dataRef={item} />;
+      return <TreeNode  title={item.displayname} key={item.key?item.key:item.id} dataRef={item} />;
     });
   }
   
   hindleOncheck=(keys,{checkedNodes})=>{
+    this.currentRows=[]
     for(let i=0;i<checkedNodes.length;i++){
       this.currentRows.push(checkedNodes[i].props.dataRef)
     }
   }
+  dataSource={
+    currentRows:this.getRows,
+    reload:async ()=>{
+      this.bug_temp_caese_key++
+      const {data:{systemmenuList}}=await this.props.refetch()
+      const treeData=JSON.parse(JSON.stringify(systemmenuList))
+      for(let i=0;i<treeData.length;i++){
+        treeData[i].key=treeData[i].id+"x"+this.bug_temp_caese_key
+      }
+      this.setState({
+        treeData:treeData
+      })
+    }
+  }
   render() {
+    console.log(this.props)
     return (
       <div>
         <TopMenu menuData={this.props.topMenu} dataSource={this.dataSource} />
@@ -81,10 +95,11 @@ export default compose(
             }
         }),
         props({data}){
-          let {loading,systemmenuList,fetchMore} =data
+          let {loading,systemmenuList,fetchMore,refetch} =data
           return {
             loading,
             systemmenuList,
+            refetch,
             loadMore(id){
               return fetchMore({
                 variables: {
@@ -101,7 +116,7 @@ export default compose(
     graphql(getMenu,{
       options:(props)=>({
           variables:{
-              parentid:'3'
+              parentid:props.currentMenu.id
           }
       }),
       props({data}){
