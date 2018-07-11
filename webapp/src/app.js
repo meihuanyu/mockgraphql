@@ -8,6 +8,7 @@ import {Route } from 'react-router-dom'
 import {getMenu} from './graphql/index'
 import { assertIdValue } from 'apollo-cache-inmemory';
 
+
 const { Header, Content, Sider } = Layout;
 
 
@@ -27,7 +28,7 @@ class App extends React.Component{
                                         <CommonHeader menuData={systemmenuList} />
                                     </Header>
                                     <Content>
-                                        {systemmenuList.map((item)=> <Route key={item.id} path={"/"+item.name+"/:topMenuId"} component={asyncComponent(()=>import('/modular'+item.component))} />)}
+                                        {systemmenuList.map((item)=> <Route key={item.id} path={"/web/"+item.name+"/:topMenuId"} component={asyncComponent(()=>import('/modular'+item.component))} />)}
                                     </Content>                  
                                 </Layout>
                             )

@@ -20,6 +20,37 @@ export const getFields = async function(ctx,next){
         }
     }
 }
+export const updateFields = async function(ctx,next){
+    const req=ctx.query
+    let sql ="UPDATE graphql_field SET fieldname='"+req.fieldname+"' , fieldtype='"+req.fieldtype+"' , issingleorlist="+req.issingleorlist+" , relationtableid="+req.relationtableid+" , isdeleteindex="+req.isdeleteindex+" , isqueryindex="+req.isqueryindex+" , isupdateindex="+req.isupdateindex+" , isupdate="+req.isupdate+" WHERE id="+ctx.query.id;
+    const res=await db.query(sql);
+    
+    if(res){
+        ctx.body={
+            success:true,
+            data:res
+        }
+    }
+}
+
+export const deleteFields = async function(ctx,next){
+    let sql ="delete  from graphql_field where id="+ctx.query.id;
+    const res=await db.query(sql);
+    if(ctx.query.fieldtype=='graphqlObj'){
+
+    }else{
+        await db.query("alter table "+ctx.query.table+" drop "+ctx.query.fieldname)
+        console.log('删除字段成功'+ctx.query.fieldname)
+    }
+
+
+    if(res){
+        ctx.body={
+            success:true,
+            data:res
+        }
+    }
+}
 
 export const createField=async function(ctx,next){
     const opts = ctx.query;
@@ -46,7 +77,8 @@ export const createField=async function(ctx,next){
     const res=await db.query(sql);
     if(res){
         ctx.body={
-            success:true
+            success:true,
+            data:res
         }
     }
 }
@@ -93,4 +125,20 @@ const _addField = async function(field,type,tableid){
     }
     const sql="alter table "+tableName+" add "+field+" "+type+"("+num+");"
     return db.query(sql)
+}
+
+const toWhereSql=function(obj){
+    let tempArr=[]
+    const keys=Object.keys(obj)
+    for(let i=0; i<keys.length;i++){
+        if(keys[i]!='id' && keys[i]){
+            if(obj[keys[i]]*1==obj[keys[i]] || obj[keys[i]]=="null"){
+                tempArr.push(keys[i]+"="+obj[keys[i]])
+            }else{
+                tempArr.push(keys[i]+"='"+obj[keys[i]]+"'")
+            }
+        }
+    }
+
+    return tempArr.join(' , ')
 }

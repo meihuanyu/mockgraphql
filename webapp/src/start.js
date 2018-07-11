@@ -16,6 +16,7 @@ import { ApolloLink } from 'apollo-link'
 import gql from 'graphql-tag'
 
 import App from './app'
+import Login from './common/Login'
 
 class Start extends Component {
   render() {
@@ -56,9 +57,23 @@ class Start extends Component {
         }
       }
     })
+
+    const authMiddleware = new ApolloLink((operation, forward) => {
+      // add the authorization to the headers
+      operation.setContext({
+        headers: {
+          authorization: localStorage.getItem('token') || null,
+        } 
+      });
+    
+      return forward(operation);
+    })
+
+    
     const client = new ApolloClient({
       link: ApolloLink.from([
         stateLink,
+        authMiddleware,
         new HttpLink({
           uri: '/api/graphql'
         })
@@ -70,7 +85,11 @@ class Start extends Component {
     return (
       <ApolloProvider client={client}>
         <Router>
-            <App/>
+          <div>
+              <Route path="/web" component={App}></Route>
+              
+              <Route path="/login" component={Login}></Route> 
+          </div>
         </Router>
       </ApolloProvider>
     );

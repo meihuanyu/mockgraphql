@@ -1,6 +1,8 @@
 import React ,{Component} from 'react';
 import TopMenu from '../../common/topMenu'
 import getMenu from '../../graphql/getMenu'
+import userList from '../../graphql/userList'
+
 import {  graphql, compose } from 'react-apollo'
 import {Table} from 'antd'
 
@@ -8,17 +10,6 @@ class User extends Component {
 
     state={
         tableData:[]
-    }
-    componentDidMount(){
-        console.log('xxxx')
-        this.loaderTable();
-    }
-    loaderTable=async ()=>{
-        let response=await fetch('/api/app/getTables')
-        let {data} = await response.json();
-        this.setState({
-            tableData:data
-        })
     }
     
 
@@ -31,18 +22,18 @@ class User extends Component {
     render(){
           const columns = [{
             title: '表名称',
-            dataIndex: 'tablename',
-            key: 'tablename',
+            dataIndex: 'accountnumber',
+            key: 'accountnumber',
           }, {
             title: '描述',
-            dataIndex: 'descinfo',
-            key: 'age',
+            dataIndex: 'username',
+            key: 'username',
           }];
-        console.log(this.state.tableData)
+         
         return <div>
             <TopMenu menuData={this.props.topMenu} dataSource={this.dataSource} />
             
-            <Table dataSource={this.state.tableData} columns={columns} />
+            <Table dataSource={this.props.userList} columns={columns} rowKey="id" />
         </div>
     }
 }
@@ -59,6 +50,13 @@ export default compose(
           topMenu:systemmenuList
         }
       }
-    })
+    }),
+    graphql(userList,{
+        props({data}){
+          const {loading,userList}=data
+          return {
+            userList:userList
+          }
+        }})
 )(User)
 

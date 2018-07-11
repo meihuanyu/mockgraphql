@@ -12,7 +12,7 @@ const Header=({menuData})=>(
         >
             {menuData.map((item)=>
                     <Menu.Item key={item.id}>
-                        <Link  to={'/'+item.name+"/"+item.id}>
+                        <Link  to={'/web/'+item.name+"/"+item.id}>
                             {item.displayname}
                         </Link>
                     </Menu.Item>
