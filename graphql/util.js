@@ -128,8 +128,10 @@ class Grouphqlquery{
             }
         }
     }
-
-    toGrahqlField(table,type){
+    /*
+    * name 在 graphqlObj里是上一层的表名称
+    */ 
+    toGrahqlField(table,type,name){
         let fields={}
         for(let i=0;i<table.length;i++){
             if(table[i].fieldtype=='graphqlObj'){
@@ -142,7 +144,7 @@ class Grouphqlquery{
                 fields[_fieldname]={
                     type:_type,
                     resolve:async function(thisItem){
-                        const sql="select * from "+_fieldname+" where pid="+thisItem.id
+                        const sql="select * from "+_fieldname+" where "+(name+"id")+"="+thisItem.id
                         let xx=await db.query(sql);
                         if(_issingleorlist){
                             return  xx;
@@ -169,7 +171,7 @@ class Grouphqlquery{
         return fields;
     }
     toObjectType(table,type){
-        let _fields=this.toGrahqlField(this.paramsObj[table],type);
+        let _fields=this.toGrahqlField(this.paramsObj[table],type,table);
         return new GraphQLObjectType({
             name:type,
             fields:_fields
@@ -252,7 +254,7 @@ class Grouphqlquery{
         for(var i=0;i<obj.length;i++){
             let _fieldname=obj[i].fieldname
             //穿过来的值  1 不能使对象（graphqlobj）  2 有索引值    3 对应的key有传参
-            if(!obj[i].graphqlObj && obj[i][Indexes] && (!params || params[_fieldname])){
+            if(!obj[i].graphqlObj && obj[i][Indexes] && (!params || params[_fieldname]!=undefined)){
                 let value=params[_fieldname]
                 if(obj[i].fieldtype=="varchar"){
                     value="'"+value+"'";

@@ -21,15 +21,24 @@ class User extends Component {
     }
     render(){
           const columns = [{
-            title: '表名称',
+            title: '用户',
             dataIndex: 'accountnumber',
             key: 'accountnumber',
           }, {
+            title: '角色',
+            dataIndex: 'role',
+            key: 'role',
+          }, {
             title: '描述',
-            dataIndex: 'username',
-            key: 'username',
+            dataIndex: 'desc',
+            key: 'desc',
           }];
-         
+
+        const { loading, selectedRowKeys } = this.state;
+        const rowSelection = {
+            selectedRowKeys,
+            onChange: this.onSelectChange,
+        };
         return <div>
             <TopMenu menuData={this.props.topMenu} dataSource={this.dataSource} />
             

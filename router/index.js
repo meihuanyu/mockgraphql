@@ -7,6 +7,7 @@ import {
 import graphqlSchema from '../graphql/start'
 import {getTables,createField,createTable,getFields,updateFields,deleteFields,querySchme} from '../controllers/structure'
 import {login} from '../controllers/login'
+import {permissions} from '../controllers/user'
 
 const router = require('koa-router')()
 
@@ -19,8 +20,9 @@ router.get('/app/deleteFields',deleteFields);
 router.get('/login',login);
 
 
+router.use('/graphql',permissions)
+
 router.post('/graphql', async (ctx, next) => {
-  console.log(ctx)
   const schema= await graphqlSchema
   await graphqlKoa({schema: schema})(ctx, next) // 使用schema
 })

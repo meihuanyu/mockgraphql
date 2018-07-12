@@ -76,7 +76,9 @@ class Field extends BaseModal{
             let response=await cfetch('/api/app/updateFields',{params:this.state.tableData[index]})
             this.endEdit(index)
         }else{
-            var res=await cfetch('/api/app/createField',{params:this.state.tableData[index]});
+            let paramsObj=this.state.tableData[index]
+            paramsObj.tablename=this.props.gData[0].tablename
+            var res=await cfetch('/api/app/createField',{params:paramsObj});
             let  temp=this.state
             temp.tableData[index].isEdit=false
             temp.tableData[index].addEdit=false

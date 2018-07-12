@@ -61,7 +61,7 @@ export const createField=async function(ctx,next){
     if(opts.fieldtype=='graphqlObj'){
 
         //增加关系id
-        const addsql="alter table "+opts.graphqlobj+" add pid int(11);"
+        const addsql="alter table "+opts.fieldname+" add "+(opts.tablename+"id ")+"int(11);"
         const addres =await db.query(addsql)
 
         sql='INSERT INTO graphql_field (fieldname,fieldtype,relationtableid,issingleorlist) values('+
@@ -110,7 +110,7 @@ const _createTable=async function(tablename,tableid){
     let res=await db.query(sql);  
     //默认id状态
     const insertsql="INSERT INTO graphql_field  (fieldname,fieldtype,relationtableid,isdeleteindex,isqueryindex,isupdateindex,isupdate)"+ 
-    "values ('id','int',"+tableid+",1,1,1,0)"
+    "values ('id','int',"+tableid+",1,1,1,1)"
     res=await db.query(insertsql);
     return res
 }
