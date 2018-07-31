@@ -69,7 +69,6 @@ class Demo extends React.Component {
     }
   }
   render() {
-    console.log(this.props)
     return (
       <div>
         <TopMenu menuData={this.props.topMenu} dataSource={this.dataSource} />

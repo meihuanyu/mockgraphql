@@ -9,9 +9,16 @@ import {Table} from 'antd'
 class User extends Component {
 
     state={
-        tableData:[]
+        tableData:[],
+        selectedRowKeys:[]
     }
-    
+    getRows=()=>{
+      let tempArr=[]
+      this.props.userList.map(item=>{
+          tempArr[item.id]=item
+      })
+      return this.state.selectedRowKeys.map(item=>tempArr[item])
+  }
 
     dataSource={
         currentRows:this.getRows,
@@ -19,11 +26,19 @@ class User extends Component {
 
         }
     }
+    onSelectChange = (selectedRowKeys) => {
+      console.log('selectedRowKeys changed: ', selectedRowKeys);
+      this.setState({ selectedRowKeys });
+    }
     render(){
           const columns = [{
-            title: '用户',
+            title: '账号',
             dataIndex: 'accountnumber',
             key: 'accountnumber',
+          }, {
+            title: '用户',
+            dataIndex: 'username',
+            key: 'username',
           }, {
             title: '角色',
             dataIndex: 'role',
@@ -42,7 +57,7 @@ class User extends Component {
         return <div>
             <TopMenu menuData={this.props.topMenu} dataSource={this.dataSource} />
             
-            <Table dataSource={this.props.userList} columns={columns} rowKey="id" />
+            <Table rowSelection={rowSelection} dataSource={this.props.userList} columns={columns} rowKey="id" />
         </div>
     }
 }

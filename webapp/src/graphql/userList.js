@@ -5,6 +5,8 @@ export default gql`query userList{
         id
         accountnumber
         username
+        password
+        roleid
     }   
    }
 `

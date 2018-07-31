@@ -1,9 +1,6 @@
-class app{
-    eachRow =(arr)=>{
-        
-    }
 
- eachTree(data, callback, parent, level){
+
+export const eachTree=(data, callback, parent, level)=>{
     level = level || 0;
     for(var a = 0; a < data.length; a++){
         var node = data[a];
@@ -18,5 +15,6 @@ class app{
   
     }
   }
-}
-export default app
+  export const onlyReadToUpdate=(object)=>{
+    return JSON.parse(JSON.stringify(object))
+  }

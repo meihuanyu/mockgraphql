@@ -12,6 +12,7 @@ import { ApolloClient } from 'apollo-client'
 import { HttpLink } from 'apollo-link-http'
 import { InMemoryCache } from 'apollo-cache-inmemory'
 import { ApolloLink } from 'apollo-link'
+import { onError } from 'apollo-link-error'
 
 import gql from 'graphql-tag'
 
@@ -68,16 +69,21 @@ class Start extends Component {
     
       return forward(operation);
     })
+    const logoutLink = onError(({ networkError }) => {
+      if (networkError.statusCode === 401) {
+         window.location.href="/login"
+      };
+    })
+    const applink=ApolloLink.from([
+      stateLink,
+      authMiddleware,
+      new HttpLink({
+        uri: '/api/graphql'
+      })
+    ])
 
-    
     const client = new ApolloClient({
-      link: ApolloLink.from([
-        stateLink,
-        authMiddleware,
-        new HttpLink({
-          uri: '/api/graphql'
-        })
-      ]),
+      link: logoutLink.concat(applink),
       cache
     })
     
