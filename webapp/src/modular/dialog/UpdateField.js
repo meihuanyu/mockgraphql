@@ -23,8 +23,10 @@ class Field extends BaseModal{
     }
     loaderTable=async ()=>{
         let response=await cfetch('/api/app/getFields',{params:{id:this.props.gData[0].id}})
+        let tables=await cfetch('/api/app/getTables')
         this.setState({
-            tableData:response.data
+            tableData:response.data,
+            tables:tables.data
         })
     }
     onSelectChange = (selectedRowKeys) => {
@@ -46,6 +48,25 @@ class Field extends BaseModal{
     isYesOrNo=(text, col,index, name)=>{
         return <Switch disabled={!col.isEdit} defaultChecked={text==1} onChange={(check)=>this.changeState(check?1:0,index,name)}/>
     }
+    guanlian=(text, col,index, name)=>{
+        if(col.isEdit){
+            if(col.fieldtype==="graphqlObj"){
+                return <Select  defaultValue={text} style={{width:"100px"}} onChange={(value,option)=>this.changeState(value,index,'fieldrelationtablename')}> 
+                            {
+                                this.state.tables.map((item,index)=>{
+                                    return <Option key={item.id} value={item.tablename}>{item.tablename}</Option>
+                                })
+                            }
+                        </Select>
+            }else{
+                return text
+            }
+            
+        }else{
+            return text
+        }
+        
+    }
     isEditing=(record)=>{
         return record.isEdit
     }
@@ -57,7 +78,7 @@ class Field extends BaseModal{
     }
     objSingleOrList=(text, col, i)=>{
         if(col.fieldtype==="graphqlObj"){
-            return <Switch disabled={!col.isEdit} defaultChecked={text==1}/>
+            return <Switch disabled={!col.isEdit} defaultChecked={text==1} onChange={(checked)=>this.changeState(checked?1:0,i,"issingleorlist")}/>
         }
         return ""
     }
@@ -147,6 +168,10 @@ class Field extends BaseModal{
             title: '修改索引',
             dataIndex: 'isupdateindex',
             render:this.isYesOrNo
+          }, {
+            title: '关联对象',
+            dataIndex: 'fieldrelationtablename',
+            render:this.guanlian
           },
           {
             title: 'operation',

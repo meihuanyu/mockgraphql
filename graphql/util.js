@@ -60,7 +60,6 @@ class Grouphqlquery{
             args:args,
             async resolve(root,params,option){
                 const sql=_this.toSql('update',params,tableName)
-                console.log(sql)
                 let xx=await db.query(sql);
                 return  xx[0];
             }
@@ -92,11 +91,15 @@ class Grouphqlquery{
                     if(_fieldname=='id'){
                         continue
                     }
-                    fields.push(_fieldname)
                     if(table[i].fieldtype=='int'){
                         values.push(params[_fieldname])
+                        fields.push(_fieldname)
+                    }else if(table[i].fieldtype=='graphqlObj'){
+                        values.push(params[_fieldname])  
+                        fields.push(table[i].fieldrelationtablename+"id")
                     }else{
-                        values.push('"'+params[_fieldname]+'"')
+                        values.push('"'+params[_fieldname]+'"')                       
+                        fields.push(_fieldname)
                     }
                 }
                 let sql ="INSERT INTO "+tableName+" ("+fields.toString()+") VALUES ("+values.toString()+")";
@@ -137,19 +140,35 @@ class Grouphqlquery{
             if(table[i].fieldtype=='graphqlObj'){
                 //如果需要引用别的类型
                 const _this=this;
+
                 const _fieldname=table[i].fieldname
                 const _issingleorlist=table[i].issingleorlist
-                let _type=this.toObjectType(_fieldname,type+_fieldname)
-                _type=_issingleorlist?new GraphQLList(_type):_type
+                //查询tablename
+                const _RelationTableName=table[i].fieldrelationtablename;
+                
+                let _type=this.toObjectType(_RelationTableName,type+_RelationTableName);
+                _type=_issingleorlist?new GraphQLList(_type):_type;
                 fields[_fieldname]={
                     type:_type,
                     resolve:async function(thisItem){
-                        const sql="select * from "+_fieldname+" where "+(name+"id")+"="+thisItem.id
-                        let xx=await db.query(sql);
                         if(_issingleorlist){
-                            return  xx;
+                            const middleTale=name+"_"+_RelationTableName
+                            const queryMiddleSql="select "+(_RelationTableName+"id")+" from "+middleTale+" where "+(name+"id")+"="+thisItem.id
+                            let resIds=await db.query(queryMiddleSql);
+                            const ids=resIds.map(function(item){return item[_RelationTableName+"id"] })
+                            //如果没有查到id 返回空
+
+                            if(!ids.length){
+                                return []
+                            }
+                            const resSql="select * from "+_RelationTableName+" where "+_this.orToSql(ids)
+                            return  await db.query(resSql);
                         }else{
-                            return  xx[0];
+                            const RelationId=thisItem[_RelationTableName+"id"]
+                            const resSql="select * from "+_RelationTableName+" where id="+RelationId;
+                            const res=await db.query(resSql);
+                            return  res[0];
+                            return []
                         }
                     }
                 };
@@ -193,7 +212,7 @@ class Grouphqlquery{
         let  args={}
         for(var i=0;i<obj.length;i++){
             let _fieldname=obj[i].fieldname
-            if(!obj[i].graphqlObj && (!Indexes || obj[i][Indexes] || obj[i][Indexes+'index'])){
+            if(!Indexes || obj[i][Indexes] || obj[i][Indexes+'index']){
                 switch(obj[i].fieldtype){
                     case "id":
                         args[_fieldname]={
@@ -208,6 +227,12 @@ class Grouphqlquery{
                             }
                         break;
                     case "int":
+                        args[_fieldname]={
+                                name:_fieldname,
+                                type:GraphQLInt
+                            }
+                        break;
+                    case "graphqlObj":
                         args[_fieldname]={
                                 name:_fieldname,
                                 type:GraphQLInt
@@ -254,17 +279,31 @@ class Grouphqlquery{
         for(var i=0;i<obj.length;i++){
             let _fieldname=obj[i].fieldname
             //穿过来的值  1 不能使对象（graphqlobj）  2 有索引值    3 对应的key有传参
-            if(!obj[i].graphqlObj && obj[i][Indexes] && (!params || params[_fieldname]!=undefined)){
+            if(obj[i][Indexes] && (!params || params[_fieldname]!=undefined)){
                 let value=params[_fieldname]
                 if(obj[i].fieldtype=="varchar"){
                     value="'"+value+"'";
                     _where.push(_fieldname+"="+value)
+                }else if(obj[i].fieldtype=="graphqlobj"){
+                    _where.push(obj[i].fieldrelationtablename+"="+value)
                 }else{
                     _where.push(_fieldname+"="+value)
                 }
             }
         }
         return _where.join(joinkey?joinkey:' and ')
+    }
+
+    orToSql(arr,key="id"){
+        var _where=""
+        for(var i=0;i<arr.length;i++){
+            if(i==arr.length-1){
+                _where+=key+"="+arr[i]
+            }else{
+                _where+=key+"="+arr[i]+" or "
+            }
+        }
+        return _where
     }
 }
 

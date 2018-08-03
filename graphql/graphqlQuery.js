@@ -9,7 +9,6 @@ class Grouphqlquery extends util{
         const resData=await data();
         this.paramsObj=resData;
         this.tables=Object.keys(resData);
-
         let   query={}
         let   mutation={}
         for(let i=0;i<this.tables.length;i++){

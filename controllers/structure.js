@@ -59,20 +59,33 @@ export const createField=async function(ctx,next){
     //如果是对象 存入字段表 目标表增加关系id字段类型
     //如果不是对象 存入字段表 新增表的结构
     if(opts.fieldtype=='graphqlObj'){
+        const _tableName=opts['tablename'];
+        if(opts.issingleorlist=="1"){
+            //多对多关系 创建中转表
+            const _realtionTableName=opts['fieldrelationtablename'];
+            const middleTable=_tableName+"_"+_realtionTableName;
 
-        //增加关系id
-        const addsql="alter table "+opts.fieldname+" add "+(opts.tablename+"id ")+"int(11);"
-        const addres =await db.query(addsql)
+            const  createTableSql="CREATE TABLE IF NOT EXISTS `"+(middleTable)+"`("+
+                "`id` INT UNSIGNED AUTO_INCREMENT,`"+(_tableName+"id")+"` int(11) NOT NULL,`"+(_realtionTableName+"id")+"` int(11) NOT NULL,PRIMARY KEY ( `id` )"+
+                ")ENGINE=InnoDB DEFAULT CHARSET=utf8;"
+            await db.query(createTableSql);  
+        }else{
+            //单个
+            const addsql="alter table "+_tableName+" add "+(opts.fieldrelationtablename+"id ")+"int(11);"
+            await db.query(addsql)
+        }
 
-        sql='INSERT INTO graphql_field (fieldname,fieldtype,relationtableid,issingleorlist) values('+
-        "'"+opts.graphqlobj+"','"+opts.fieldtype+"',"+opts.relationtableid+",'"+opts.issingleorlist+"')";
+        //原表新增一个字段
+        const addFieldSql="alter table "+_tableName+" add "+ opts.fieldname+" int(11);"
+        await db.query(addFieldSql);  
 
+        //graphql_field表添加一个记录
+        sql='INSERT INTO graphql_field (fieldname,fieldtype,relationtableid,issingleorlist,fieldrelationtablename) values('+
+        "'"+opts.fieldname+"','"+opts.fieldtype+"',"+opts.relationtableid+","+opts.issingleorlist+",'"+opts.fieldrelationtablename+"')";
     }else{
         const addres =await _addField(opts.fieldname,opts.fieldtype,opts.relationtableid)
-
         sql='INSERT INTO graphql_field (fieldname,fieldtype,relationtableid,isdeleteindex,isqueryindex,isupdateindex,isupdate) values('+
-    "'"+opts.fieldname+"','"+opts.fieldtype+"',"+opts.relationtableid+","+opts.isdeleteindex+","+opts.isqueryindex+","+opts.isupdateindex+","+opts.isupdate+')';
-    
+        "'"+opts.fieldname+"','"+opts.fieldtype+"',"+opts.relationtableid+","+opts.isdeleteindex+","+opts.isqueryindex+","+opts.isupdateindex+","+opts.isupdate+')';
     }
     const res=await db.query(sql);
     if(res){
