@@ -35,7 +35,6 @@ xx.startSchema(querySchme).then(function(res){
 // router.use('/graphql',permissions)
 
 router.post('/graphql', async (ctx, next) => {
-  console.log(schema)
   await graphqlKoa({schema: schema})(ctx, next) // 使用schema
 })
 .get('/graphql', async (ctx, next) => {

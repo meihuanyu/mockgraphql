@@ -34,16 +34,40 @@ export const updateFields = async function(ctx,next){
 }
 
 export const deleteFields = async function(ctx,next){
+    const mainTable=ctx.query.table;
+    const fieldname=ctx.query.fieldname
+
+    if(ctx.query.fieldtype=='graphqlObj'){
+        //查对象 和 对象数组
+        if(ctx.query.issingleorlist){
+            const middleTable=ctx.query.fieldrelationtablename;
+            const middleTableName=mainTable+"_"+middleTable;
+            const resTable=await db.query("select * from graphql_table where tablename='"+middleTableName+"'");
+            
+            const middleId=resTable[0].id;
+            //删除table
+            db.query("DROP TABLE "+middleTableName)
+            console.log('删除中间表...'+middleTableName)
+
+            //删除fields
+            console.log("delete from graphql_field where relationtableid="+middleId)
+            db.query("delete from graphql_field where relationtableid="+middleId)
+            console.log("删除field表字段")
+
+            //删除table
+            db.query("delete from graphql_table where id="+middleId)
+            console.log('删除table表字段'+middleId)
+        }else{
+            await db.query("alter table "+mainTable+" drop "+fieldname+"id")
+            console.log('删除原表字段id'+fieldname)
+        }
+        
+    }
+    db.query("alter table "+mainTable+" drop "+fieldname)
+    console.log('删除原表字段'+fieldname)
+
     let sql ="delete  from graphql_field where id="+ctx.query.id;
     const res=await db.query(sql);
-    if(ctx.query.fieldtype=='graphqlObj'){
-
-    }else{
-        await db.query("alter table "+ctx.query.table+" drop "+ctx.query.fieldname)
-        console.log('删除字段成功'+ctx.query.fieldname)
-    }
-
-
     if(res){
         ctx.body={
             success:true,
@@ -61,14 +85,27 @@ export const createField=async function(ctx,next){
     if(opts.fieldtype=='graphqlObj'){
         const _tableName=opts['tablename'];
         if(opts.issingleorlist=="1"){
-            //多对多关系 创建中转表
+            //多对多关系 
             const _realtionTableName=opts['fieldrelationtablename'];
             const middleTable=_tableName+"_"+_realtionTableName;
-
+            //创建中转表
             const  createTableSql="CREATE TABLE IF NOT EXISTS `"+(middleTable)+"`("+
                 "`id` INT UNSIGNED AUTO_INCREMENT,`"+(_tableName+"id")+"` int(11) NOT NULL,`"+(_realtionTableName+"id")+"` int(11) NOT NULL,PRIMARY KEY ( `id` )"+
                 ")ENGINE=InnoDB DEFAULT CHARSET=utf8;"
-            await db.query(createTableSql);  
+            await db.query(createTableSql);
+            //把中间表放入 mock系统内
+            //添加到 graphql table
+            const desc=_tableName+"到"+_realtionTableName+"中转表";
+            const insertlTableSql="insert into graphql_table(tablename,descinfo,type) values('"+middleTable+"','"+desc+"',"+1+")"
+            const resTable=await db.query(insertlTableSql);
+            const tableid=resTable.insertId;
+
+            //添加到 graphql field
+            const insertFieldSql="INSERT INTO graphql_field  (fieldname,fieldtype,relationtableid,isdeleteindex,isqueryindex,isupdateindex,isupdate)"+ 
+                        "values ('id','int',"+tableid+",1,1,1,1),"+
+                        "('"+(_tableName+"id")+"','int',"+tableid+",1,1,1,1),"+
+                        "('"+(_realtionTableName+"id")+"','int',"+tableid+",1,1,1,1)"
+            await db.query(insertFieldSql);
         }else{
             //单个
             const addsql="alter table "+_tableName+" add "+(opts.fieldrelationtablename+"id ")+"int(11);"

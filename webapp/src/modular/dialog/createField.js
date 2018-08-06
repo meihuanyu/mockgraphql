@@ -15,6 +15,7 @@ class NormalLoginForm extends BaseModal {
   }
   modalProps={
     onOk:async ()=>{
+      console.log('xxx')
       this.props.form.validateFields(async (err, values) => {
         if (!err) {
           var res=await cfetch('/api/app/createField',{params:values});
