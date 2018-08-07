@@ -6,39 +6,22 @@ import { ApolloLink } from 'apollo-link'
 import { onError } from 'apollo-link-error'
 
 import gql from 'graphql-tag'
-
+import globalState from './globalState'
+const {Mutation,defaultState}=globalState
 const cache = new InMemoryCache()
-    const defaultState = {
-      currentGame: {
-        __typename: 'currentGame',
-        name:"xxxx"
-      }
-    }
+    // const defaultState = {
+    //   currentGame: {
+    //     __typename: 'currentGame',
+    //     name:{ __typename: '_currentGame'},
+    //     age:11
+    //   }
+    // }
 
     const stateLink = withClientState({
       cache,
       defaults: defaultState,
       resolvers: {
-        Mutation: {
-          updateGame: (_, { index, value }, { cache }) => {
-            const query=gql`
-              query GetCurrentGame {
-                  currentGame @client {
-                      name
-                  }
-              }
-              `
-            const previous = cache.readQuery({ query })
-            const data = {
-              currentGame: {
-                ...previous.currentGame,
-                [index]: value
-              }
-            }
-
-            cache.writeQuery({ query, data })
-          }
-        }
+        Mutation: Mutation
       }
     })
     const logoutLink = onError(({ networkError }) => {

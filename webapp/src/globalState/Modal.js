@@ -2,26 +2,19 @@ import gql from 'graphql-tag'
 
 class Modal{
     state={
-        __typename: 'modal',
-        modalPatch:"xxxx"
+        patch: true,
+        modalProps:{} 
     }
-    updateGame = (_, { index, value }, { cache }) => {
-        const query=gql`
-          query GetCurrentGame {
-              currentGame @client {
-                  name
-              }
-          }
-          `
-        const previous = cache.readQuery({ query })
-        const data = {
-          currentGame: {
-            ...previous.currentGame,
-            [index]: value
-          }
+    updateGame = (_, {params}, { cache }) => {
+        console.log(params)
+        const data={
+            Modal:{
+                patch:params.patch,
+                modalProps:12,
+                __typename: 'Modal'
+            }  
         }
-    
-        cache.writeQuery({ query, data })
+        cache.writeData({ data });
     }
 }
 export default Modal
