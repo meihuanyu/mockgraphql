@@ -3,21 +3,10 @@ import { graphql, compose } from 'react-apollo'
 
 import gql from 'graphql-tag'
 import client from './ApolloClient'
-import global,{runState,setGlobal,getGlobal} from './globalState'
+import {runState,setGlobal,getGlobal} from './globalState'
 
 
-const updateGame=gql`mutation updateGame($index: Episode!, $value: Episode!) {
-                        updateGame(index: $index, value: $value) @client {
-                            name
-                        }
-                    }`
-const xx="currentGame"
-const keys="name age "
-const getCurrentGame=gql`query {
-                            ${xx} @client {
-                                ${keys}
-                            }
-                        }`
+
 class NewGame extends Component {
   state = {
     created: false,
@@ -25,8 +14,12 @@ class NewGame extends Component {
   }
 
   createGame = () => {
-    runState('Modal','updateGame',{
-      patch:"/admin/php"
+    runState('Modal','update',{
+      patch:[
+        {cc:"cc",dd:"dd"},
+        {cc:"ggcc",dd:"hh"}
+      ],
+      modalProps:{ll:"ll"}
     })
   }
   updateName=()=>{
@@ -36,14 +29,14 @@ class NewGame extends Component {
   }
   render () {
     const { Modal,Test } = this.props
-    console.log(Test)
+    console.log(Modal)
     return (
       <div>
-          <button onClick={this.createGame}>updateGame</button>
-          <span>{Modal.patch}</span>
+          <button onClick={this.createGame}>xxxx</button>
+          {/* <span>{Modal.patch}</span> */}
           <br />
-          <button onClick={this.updateName}>updateGame</button>
-          <span>{Test.name}</span>
+          {/* <button onClick={this.updateName}>updateGame</button>
+          <span>{Test.name}</span> */}
       </div>
     )
   }
@@ -51,7 +44,7 @@ class NewGame extends Component {
 
 export default compose(
   graphql(setGlobal('Modal','updateGame'), {name: 'updateGame'}),
-  graphql(getGlobal('Modal'), {
+  graphql(getGlobal('Modal',"patch{cc dd} modalProps{ ll}"), {
     props: ({ data: { Modal, loading } }) => ({
       Modal,
       loading

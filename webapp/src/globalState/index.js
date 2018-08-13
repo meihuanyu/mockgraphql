@@ -19,23 +19,24 @@ for(var i=0;i<keys.length;i++){
     }
 }
 
+//生成matation
 export const setGlobal=function (objName,funName){
     const stateObj=new StateIndex[objName]()
     const keys=Object.keys(stateObj.state).join(" ")
 
-    const setTemp=gql`mutation ${objName+"_"+funName}($params: Episode!) {
+    const setTemp=gql`mutation ${objName+"_"+funName}($params: params!) {
         ${objName+"_"+funName}(params: $params) @client {
             ${keys}
         }
     }`
     return setTemp
 }
-export const getGlobal=function(objName){
+export const getGlobal=function(objName,keysTamp){
     const stateObj=new StateIndex[objName]()
-    const keys=Object.keys(stateObj.state).join(" ")
-    const getTemp=gql`query {
+    const keys=keysTamp?keysTamp:Object.keys(stateObj.state).join(" ")
+    const getTemp=gql`query {   
                             ${objName} @client {
-                                ${keys}
+                                ${keysTamp}
                             }}`
     return  getTemp                    
 }

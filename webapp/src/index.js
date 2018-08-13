@@ -7,5 +7,5 @@ import Start from './start';
 import registerServiceWorker from './registerServiceWorker';
 import 'antd/dist/antd.css'; 
 import Test from './test'
-ReactDOM.render(<Test />, document.getElementById('root'));
+ReactDOM.render(<Start />, document.getElementById('root'));
 registerServiceWorker();
