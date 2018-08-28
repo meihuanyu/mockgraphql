@@ -32,7 +32,7 @@ const cache = new InMemoryCache()
     const applink=ApolloLink.from([
       stateLink,
       new HttpLink({
-        uri: '/api/graphql'
+        uri: '/api/graphql/system'
       })
     ])
 
