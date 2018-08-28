@@ -34,17 +34,12 @@ xx.startSchema(querySchme).then(function(res){
 })
 // router.use('/graphql',permissions)
 
-<<<<<<< HEAD
 router.post('/graphql/:apikey', async (ctx, next) => {
   let xx=new graphqlQuery()
   const schemaData=await querySchme(ctx.captures[0])
   const temp_schema=await xx.startSchema(schemaData)
 
   await graphqlKoa({schema: temp_schema})(ctx, next) // 使用schema
-=======
-router.post('/graphql', async (ctx, next) => {
-  await graphqlKoa({schema: schema})(ctx, next) // 使用schema
->>>>>>> c58a6a2638cf773ca3b86bf2929d0f9c90fba72b
 })
 .get('/graphql', async (ctx, next) => {
   const schema= await graphqlSchema
