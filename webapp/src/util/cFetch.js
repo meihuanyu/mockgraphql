@@ -117,7 +117,11 @@ function cFetch(url, options) {
     const defaultOptions = {
         method: 'GET',
         credentials: "include",
-        redirect:'follow'
+        redirect:'follow',
+        headers:{
+            authorization:localStorage.token
+        }
+        
     };
 
     const opts = Object.assign({}, defaultOptions, {...options});

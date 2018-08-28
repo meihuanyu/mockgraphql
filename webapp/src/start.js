@@ -78,7 +78,7 @@ class Start extends Component {
       stateLink,
       authMiddleware,
       new HttpLink({
-        uri: '/api/graphql'
+        uri: '/api/graphql/system'
       })
     ])
 

@@ -34,17 +34,20 @@ xx.startSchema(querySchme).then(function(res){
 })
 // router.use('/graphql',permissions)
 
-router.post('/graphql', async (ctx, next) => {
-  console.log(schema)
-  await graphqlKoa({schema: schema})(ctx, next) // 使用schema
+router.post('/graphql/:apikey', async (ctx, next) => {
+  let xx=new graphqlQuery()
+  const schemaData=await querySchme(ctx.captures[0])
+  const temp_schema=await xx.startSchema(schemaData)
+
+  await graphqlKoa({schema: temp_schema})(ctx, next) // 使用schema
 })
 .get('/graphql', async (ctx, next) => {
   const schema= await graphqlSchema
   await graphqlKoa({schema: schema})(ctx, next) // 使用schema
 })
-.get('/graphiql', async (ctx, next) => {
+.get('/graphiql/:apikey', async (ctx, next) => {
   await graphiqlKoa({
-    endpointURL: '/api/graphql',
+    endpointURL: '/api/graphql/'+ctx.captures[0],
     passHeader: `'authorization': '${ctx.query.t}'`
   })(ctx, next) // 重定向到graphiql路由
 })

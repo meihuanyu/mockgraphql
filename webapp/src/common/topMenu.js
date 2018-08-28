@@ -1,7 +1,7 @@
 import React from 'react'
 import MenuFlow from '../util/MenuFlow'
 import { Layout, Icon ,Menu ,Modal} from 'antd';
-import ShowModal from './ShowModal'
+import ShowModal from './showModal'
 class TopMenu extends React.Component{
     state={
         modalPatch:'',

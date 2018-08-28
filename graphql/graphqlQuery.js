@@ -6,7 +6,7 @@ import {
   
 class Grouphqlquery extends util{
     async startSchema (data){
-        const resData=await data();
+        const resData=data;
         this.paramsObj=resData;
         this.tables=Object.keys(resData);
         let   query={}

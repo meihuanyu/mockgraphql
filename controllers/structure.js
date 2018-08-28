@@ -1,7 +1,12 @@
 import db from '../config/database'
 export const getTables = async function(ctx,next){
-    const opts = ctx.request.body;
-    const sql='select id,tablename,descinfo from graphql_table';
+    const usertoken=ctx.header.authorization
+    const user =await db.query('select id from user where token="'+usertoken+'"')
+    if(!user[0].id){
+        ctx.status=401
+    }
+    const project=await db.query('select * from project where userid='+user[0].id)
+    const sql='select id,tablename,descinfo from graphql_table where projectid='+project[0].id;
     const res=await db.query(sql);
     if(res){
         ctx.body={
@@ -106,9 +111,17 @@ export const createTable=async function(ctx,next){
         }
     }
 }
-export const querySchme=async function(ctx,next){
+export const querySchme=async function(apikey){
+    const queryProjectSql="select * from project where apikey='"+apikey+"'"
+    const resProject=await db.query(queryProjectSql)
     let res={};
-    const tablesql="select * from graphql_table";
+    let tablesql=""
+    if(apikey=='system'){
+        tablesql="select * from graphql_table";
+    }else{
+        tablesql="select * from graphql_table where projectid="+resProject[0].id;
+    }
+    
     const tables=await db.query(tablesql);
     for(let i=0;i<tables.length;i++){
         res[tables[i].tablename]=await db.query("select * from graphql_field where relationtableid="+tables[i].id)

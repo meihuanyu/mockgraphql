@@ -15,6 +15,7 @@ class Login extends React.Component{
                 if(response.success){
                     localStorage.token=response.token
                     localStorage.username=response.username
+                    localStorage.id=response.id
                     this.props.history.push('/web')
                 }
             }

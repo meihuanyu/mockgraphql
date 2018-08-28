@@ -3,6 +3,7 @@ import TopMenu from '../../common/topMenu'
 import getMenu from '../../graphql/getMenu'
 import {  graphql, compose } from 'react-apollo'
 import {Table} from 'antd'
+import cFetch from '../../util/cFetch';
 
 class User extends Component {
     state={
@@ -22,8 +23,7 @@ class User extends Component {
         this.loaderTable();
     }
     loaderTable=async ()=>{
-        let response=await fetch('/api/app/getTables')
-        let {data} = await response.json();
+        let {data}=await cFetch('/api/app/getTables')
         this.setState({
             tableData:data
         })
