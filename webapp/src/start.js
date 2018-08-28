@@ -19,8 +19,10 @@ import gql from 'graphql-tag'
 import App from './app'
 import Login from './common/Login'
 
+import client from './ApolloClient'
 class Start extends Component {
   render() {
+<<<<<<< HEAD
     const cache = new InMemoryCache()
     const defaultState = {
       currentGame: {
@@ -88,6 +90,8 @@ class Start extends Component {
     })
     
 
+=======
+>>>>>>> c58a6a2638cf773ca3b86bf2929d0f9c90fba72b
     return (
       <ApolloProvider client={client}>
         <Router>

@@ -111,7 +111,9 @@ class Field extends BaseModal{
         if(this.state.tableData[index].id){
             var res=await cfetch('/api/app/deleteFields',{params:{
                 id:this.state.tableData[index].id,
+                fieldtype:this.state.tableData[index].fieldtype,
                 fieldname:this.state.tableData[index].fieldname,
+                fieldrelationtablename:this.state.tableData[index].fieldrelationtablename,
                 table:this.props.gData[0].tablename
             }});
         }
