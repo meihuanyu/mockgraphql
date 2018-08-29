@@ -1,13 +1,14 @@
 import React from 'react'
 import { uploadFile } from './test'
 import {Query, graphql, compose ,withApollo} from 'react-apollo'
-import { Layout, Icon ,Row,Col,Spin  } from 'antd';
+import { Layout, Icon ,Row,Col,Spin,Menu,Dropdown,Button} from 'antd';
 import CommonHeader from './common/header'
 import {asyncComponent} from './util/asyncComponent'
 import {Route } from 'react-router-dom'
 import {getMenu} from './graphql/index'
 import { assertIdValue } from 'apollo-cache-inmemory';
 import cfetch from './util/cFetch'
+import ApolloClient from './ApolloClient'
 const { Header, Content, Sider } = Layout;
 
 
@@ -23,7 +24,27 @@ class App extends React.Component{
         var res=await cfetch("/api/aa");
         this.setState({resLoading:false});
     }
+    hanlderClose=()=>{
+        localStorage.removeItem("id");
+        localStorage.removeItem("token");
+        localStorage.removeItem("username");
+        window.location.href="/login"
+    }
     render(show){
+        const menu = (
+            <Menu>
+              <Menu.Item>
+                <a rel="noopener noreferrer" onClick={this.hanlderClose} href="#">退出</a>
+              </Menu.Item>
+              <Menu.Item>
+                <a rel="noopener noreferrer" href="http://www.taobao.com/">2nd menu item</a>
+              </Menu.Item>
+              <Menu.Item>
+                <a rel="noopener noreferrer" href="http://www.tmall.com/">3rd menu item</a>
+              </Menu.Item>
+            </Menu>
+          );
+          
         return <div>
                 <Query
                     query={getMenu}
@@ -52,8 +73,9 @@ class App extends React.Component{
                                                 <div onClick={this.graphqlApi} style={{color:"#fff",fontSize:"15px",cursor:"pointer"}}><Icon title="API文档" type="api" /></div>
                                             </Col>
                                             <Col span={3}>                                                
-
-                                                <div style={{color:"#fff"}}>用户：{localStorage.username}</div>
+                                                <Dropdown overlay={menu} placement="bottomLeft">
+                                                    <Button ghost >用户：{localStorage.username}</Button>
+                                                </Dropdown>
                                             </Col>
                                             </Row>
                                         </div>

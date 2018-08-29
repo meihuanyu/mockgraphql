@@ -9,13 +9,6 @@ import gql from 'graphql-tag'
 import globalState from './globalState'
 const {Mutation,defaultState}=globalState
 const cache = new InMemoryCache()
-    // const defaultState = {
-    //   currentGame: {
-    //     __typename: 'currentGame',
-    //     name:{ __typename: '_currentGame'},
-    //     age:11
-    //   }
-    // }
 
     const stateLink = withClientState({
       cache,
@@ -32,7 +25,10 @@ const cache = new InMemoryCache()
     const applink=ApolloLink.from([
       stateLink,
       new HttpLink({
-        uri: '/api/graphql/system'
+        uri: '/api/graphql/system',
+        headers:{
+          authorization:localStorage.token
+        }
       })
     ])
 

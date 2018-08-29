@@ -26,6 +26,12 @@ class Start extends Component {
       <ApolloProvider client={client}>
         <Router>
           <div>
+              <Route path="/" render={(props)=>{
+                if(props.location.pathname==='/'){
+                  props.history.push('/web')
+                }
+                return <span></span>
+              }}></Route>
               <Route path="/web" component={App}></Route>
               
               <Route path="/login" component={Login}></Route> 

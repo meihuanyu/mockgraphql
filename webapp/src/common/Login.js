@@ -1,12 +1,15 @@
 import React from 'react'
 import { Form, Icon, Input, Button, Radio, message, Spin} from 'antd';
 import cfetch from '../util/cFetch'
-
-const RadioButton = Radio.Button;
-const RadioGroup = Radio.Group;
+import ApolloClient from '../ApolloClient'
 const FormItem = Form.Item;
 
 class Login extends React.Component{
+    componentDidMount(){
+        if(localStorage.token){
+            // this.props.history.push('/web')
+        }
+    }
     handleSubmit = (e) => {
         e.preventDefault();
         this.props.form.validateFields(async (err, values) => {
@@ -16,7 +19,7 @@ class Login extends React.Component{
                     localStorage.token=response.token
                     localStorage.username=response.username
                     localStorage.id=response.id
-                    this.props.history.push('/web')
+                    window.location.href="/web"
                 }
             }
         });
