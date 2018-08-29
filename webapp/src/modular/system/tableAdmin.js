@@ -2,13 +2,14 @@ import React ,{Component} from 'react';
 import TopMenu from '../../common/topMenu'
 import getMenu from '../../graphql/getMenu'
 import {  graphql, compose } from 'react-apollo'
-import {Table} from 'antd'
+import {Table,Spin } from 'antd'
 import cFetch from '../../util/cFetch';
 
 class User extends Component {
     state={
         tableData:[],
-        selectedRowKeys:[]
+        selectedRowKeys:[],
+        tableLoging:true
     }
 
     
@@ -23,9 +24,11 @@ class User extends Component {
         this.loaderTable();
     }
     loaderTable=async ()=>{
+        this.setState({tableLoging:true})
         let {data}=await cFetch('/api/app/getTables')
         this.setState({
-            tableData:data
+            tableData:data,
+            tableLoging:false
         })
     }
     onSelectChange = (selectedRowKeys) => {
@@ -53,9 +56,12 @@ class User extends Component {
           onChange: this.onSelectChange,
         };
         return <div>
-            <TopMenu menuData={this.props.topMenu} dataSource={this.dataSource} />
-            
-            <Table rowSelection={rowSelection} dataSource={this.state.tableData} columns={columns} rowKey="id"/>
+            <Spin spinning={this.props.menuLoading}>
+                <TopMenu menuData={this.props.topMenu} dataSource={this.dataSource} />
+            </Spin>
+            <Spin spinning={this.state.tableLoging}>
+                <Table rowSelection={rowSelection} dataSource={this.state.tableData} columns={columns} rowKey="id"/>
+            </Spin>
         </div>
     }
 }
@@ -69,7 +75,8 @@ export default compose(
       props({data}){
         const {loading,systemmenuList}=data
         return {
-          topMenu:systemmenuList
+          topMenu:systemmenuList,
+          menuLoading:loading
         }
       }
     })

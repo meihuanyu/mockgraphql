@@ -33,7 +33,7 @@ router.get('/login',login);
 
 
 router.get('/aa',async (ctx)=>{
-  redis.del('system');  
+  redis.del('textx');  
   ctx.body={
     success:true
   }

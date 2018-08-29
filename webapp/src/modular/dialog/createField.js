@@ -46,8 +46,7 @@ class NormalLoginForm extends BaseModal {
     return field
   }
   componentWillMount=async ()=>{
-    let response=await fetch('/api/app/getTables')
-    let {data} = await response.json();
+    let {data}=await cfetch('/api/app/getTables')
     this.setState({ 
         tables:[...data]
     })   

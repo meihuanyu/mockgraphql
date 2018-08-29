@@ -2,14 +2,15 @@ import React from 'react'
 import BaseModal from '../../common/BaseModal'
 import {graphql,compose} from 'react-apollo'
 import systemmenuDelete from '../../graphql/systemmenuDelete'
-import {Table,Switch,Select,Button,Input  } from 'antd'
+import {Table,Switch,Select,Button,Input,Spin  } from 'antd'
 import cfetch from '../../util/cFetch'
 const Option=Select.Option
 
 class Field extends BaseModal{
     state={
         tableData:[],
-        selectedRowKeys:[]
+        selectedRowKeys:[],
+        loadding:true
     }
     modalProps={
         width:"1000px",
@@ -22,11 +23,13 @@ class Field extends BaseModal{
         this.loaderTable();
     }
     loaderTable=async ()=>{
+        this.setState({loadding:true})
         let response=await cfetch('/api/app/getFields',{params:{id:this.props.gData[0].id}})
         let tables=await cfetch('/api/app/getTables')
         this.setState({
             tableData:response.data,
-            tables:tables.data
+            tables:tables.data,
+            loadding:false
         })
     }
     onSelectChange = (selectedRowKeys) => {
@@ -205,7 +208,9 @@ class Field extends BaseModal{
         };
         return <div >
             <Button type="primary" onClick={this.newRow}>add</Button>
-            <Table rowSelection={rowSelection} dataSource={this.state.tableData} columns={columns} rowKey="id"/>
+            <Spin spinning={this.state.loadding}>
+                <Table rowSelection={rowSelection} dataSource={this.state.tableData} columns={columns} rowKey="id"/>
+            </Spin>
         </div>
     }
 }

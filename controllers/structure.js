@@ -139,7 +139,7 @@ export const createField=async function(ctx,next){
 }
 export const createTable=async function(ctx,next){
     const opts = ctx.query;
-    const sql="insert into graphql_table (tablename,descinfo) values('"+opts.tablename+"','"+opts.descinfo+"')"
+    const sql="insert into graphql_table (tablename,descinfo,projectid) values('"+opts.tablename+"','"+opts.descinfo+"',"+opts.projectid+")"
     const insertres=await db.query(sql);
     const res =await _createTable(opts.tablename,insertres.insertId)
     if(res){
