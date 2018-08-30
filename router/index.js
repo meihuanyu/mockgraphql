@@ -4,7 +4,6 @@ import {
   GraphQLObjectType
 } from 'graphql';
 // 引入 type 
-import graphqlSchema from '../graphql/start'
 import {getTables,createField,createTable,getFields,updateFields,deleteFields,querySchme} from '../controllers/structure'
 import {login} from '../controllers/login'
 import {permissions} from '../controllers/user'
@@ -12,7 +11,6 @@ import redis from '../config/redis'
 import db from '../config/database'
 import graphqlQuery from '../graphql/graphqlQuery';
 const router = require('koa-router')()
-let  schema=null
 async function isLogin(ctx,next){
   const usertoken=ctx.header.authorization
   const user =await db.query('select roleid from user where token="'+usertoken+'"')
@@ -33,7 +31,8 @@ router.get('/login',login);
 
 
 router.get('/aa',async (ctx)=>{
-  redis.del('textx');  
+  redis.del('textx'); 
+  redis.del('system');  
   ctx.body={
     success:true
   }
@@ -56,8 +55,8 @@ router.post('/graphql/:apikey', async (ctx, next) => {
   await graphqlKoa({schema: _schema})(ctx, next) // 使用schema
 })
 .get('/graphql', async (ctx, next) => {
-  const schema= await graphqlSchema
-  await graphqlKoa({schema: schema})(ctx, next) // 使用schema
+  // const schema= await graphqlSchema
+  // await graphqlKoa({schema: schema})(ctx, next) // 使用schema
 })
 .get('/graphiql/:apikey', async (ctx, next) => {
   await graphiqlKoa({
