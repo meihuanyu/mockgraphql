@@ -18,7 +18,7 @@ const cache = new InMemoryCache()
       }
     })
     const logoutLink = onError(({ networkError }) => {
-      if (networkError.statusCode === 401) {
+      if (networkError && networkError.statusCode === 401) {
          window.location.href="/login"
       };
     })
