@@ -1,15 +1,12 @@
 import BaseModal from '../../common/BaseModal'
 import React from 'react'
-import { Form, Icon, Input, Button, Checkbox,Select ,Radio ,Switch} from 'antd';
-import cfetch from '../../util/cFetch'
+import { Form, Input} from 'antd';
 import {  graphql, compose } from 'react-apollo'
 import systemmenuCreate from '../../graphql/systemmenuCreate'
 import systemmenuUpdate from '../../graphql/systemmenuUpdate'
 
 
-const Option = Select.Option;
 const FormItem = Form.Item;
-const RadioGroup = Radio.Group;
 class CreateMenu extends BaseModal{
     modalProps={
       onOk:()=>{
