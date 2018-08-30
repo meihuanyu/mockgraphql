@@ -5,9 +5,14 @@ import {
   } from 'graphql';
   
 class Grouphqlquery extends util{
+    async queryFun(resData){
+
+    }
     async startSchema (data){
-        const resData=data;
+        console.log(data)
+        const resData=data.fields;
         this.paramsObj=resData;
+        this.funs=data.tFuns;
         this.tables=Object.keys(resData);
         let   query={}
         let   mutation={}

@@ -17,8 +17,32 @@ class Grouphqlquery{
     constructor (params){
         this.paramsObj={};
         this.tables=[];
+        this.funs={}
         
         // return this.startSchema()
+    }
+    //params.type:single list delete create update
+    beforRunFun(params,tableName,type){
+        if(this.funs[tableName] && this.funs[tableName].befor){
+            const funName=this.funs[tableName].befor
+            // return require(`../functions/${funName}.js`)(params,tableName,type)
+        }else{
+            return params
+        }
+        
+    }
+    afterRunFun(params,tableName,res,type){
+        console.log('afterRunFun')
+        console.log(this.funs)
+        if(this.funs[tableName] && this.funs[tableName].after){
+            const funName=this.funs[tableName].after
+            console.log('runtest')
+            const _res=require(`../functions/${funName}.js`)(params,tableName,type,res)
+            console.log(_res)
+            return _res
+        }else{
+            return res
+        }
     }
     createRow(table){
         let _objectType= this.toObjectType(table,table+'create')
@@ -59,9 +83,10 @@ class Grouphqlquery{
             type:Type,
             args:args,
             async resolve(root,params,option){
+                params=_this.beforRunFun(params,tableName,'update')
                 const sql=_this.toSql('update',params,tableName)
-                let xx=await db.query(sql);
-                return  xx[0];
+                let res=await db.query(sql);
+                return  _this.afterRunFun(params,tableName,res[0],'update');
             }
         }
     }
@@ -71,9 +96,10 @@ class Grouphqlquery{
             type:Type,
             args:args,
             async resolve(root,params,option){
+                params=_this.beforRunFun(params,tableName,'delete')
                 const sql=_this.toSql('delete',params,tableName)
-                let xx=await db.query(sql);
-                return  xx[0];
+                let res=await db.query(sql);
+                return _this.afterRunFun(params,tableName,res[0],'delete');
             }
         }
     }
@@ -83,6 +109,7 @@ class Grouphqlquery{
             type:Type,
             args:args,
             async resolve(root,params,option){
+                params=_this.beforRunFun(params,tableName,'create')
                 const table=_this.paramsObj[tableName];
                 let fields=[]
                 let values=[]
@@ -104,7 +131,7 @@ class Grouphqlquery{
                 }
                 let sql ="INSERT INTO "+tableName+" ("+fields.toString()+") VALUES ("+values.toString()+")";
                 const res=await db.query(sql);
-                return {id:res.insertId}
+                return _this.afterRunFun(params,tableName,{id:res.insertId},'create');
             }
         }
     }
@@ -113,9 +140,12 @@ class Grouphqlquery{
         return {
             type:new GraphQLList(Type),
             args:args,
-            resolve(root,params,option){
+            async resolve(root,params,option){
+                params=_this.beforRunFun(params,tableName,'list')
+
                 const sql=_this.toSql('query',params,tableName)
-                return  db.query(sql);
+                const res=db.query(sql)                
+                return  _this.afterRunFun(params,tableName,res,'list');
             }
         }
     }
@@ -125,9 +155,10 @@ class Grouphqlquery{
             type:Type,
             args:args,
             async resolve(root,params,option){
+                params=_this.beforRunFun(params,tableName,'single')
                 const sql=_this.toSql('query',params,tableName)
                 const res=await db.query(sql)
-                return  res[0];
+                return _this.afterRunFun(params,tableName,res[0],'single');
             }
         }
     }
@@ -168,7 +199,6 @@ class Grouphqlquery{
                             const resSql="select * from "+_RelationTableName+" where id="+RelationId;
                             const res=await db.query(resSql);
                             return  res[0];
-                            return []
                         }
                     }
                 };
