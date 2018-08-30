@@ -151,7 +151,8 @@ export const createTable=async function(ctx,next){
 export const querySchme=async function(apikey){
     const queryProjectSql="select * from project where apikey='"+apikey+"'"
     const resProject=await db.query(queryProjectSql)
-    let res={};
+    let fields={};
+    let tFuns={};
     let tablesql=""
     if(apikey=='system'){
         tablesql="select * from graphql_table";
@@ -161,9 +162,19 @@ export const querySchme=async function(apikey){
     
     const tables=await db.query(tablesql);
     for(let i=0;i<tables.length;i++){
-        res[tables[i].tablename]=await db.query("select * from graphql_field where relationtableid="+tables[i].id)
+        fields[tables[i].tablename]=await db.query("select * from graphql_field where relationtableid="+tables[i].id)
+        let fData=await db.query(`select name,type from function where tableid=${tables[i].id}`)
+        for(let i=0;i<fData.length;i++){
+            if(fData[i].type=="befor"){
+                tFuns[tables[i].tablename]=Object.assign(tFuns[tables[i].tablename]?tFuns[tables[i].tablename]:{},{befor:fData[i].name})
+            }else if(fData[i].type=="after"){
+                tFuns[tables[i].tablename]=Object.assign(tFuns[tables[i].tablename]?tFuns[tables[i].tablename]:{},{after:fData[i].name})
+            }
+        }
+        
     }
-    return res;
+
+    return {tFuns,fields};
 }
 
 const _createTable=async function(tablename,tableid){
