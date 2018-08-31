@@ -24,7 +24,8 @@ class Grouphqlquery{
     }
     //params.type:single list delete create update
     beforRunFun(params,tableName,type){
-        if(this.funs[tableName] && this.funs[tableName].befor){
+        const obj= this.funs[tableName]
+        if(obj && obj[type].type==="befor" ){
             const funName=this.funs[tableName].befor
             // return require(`../functions/${funName}.js`)(params,tableName,type)
         }else{
@@ -33,9 +34,9 @@ class Grouphqlquery{
         
     }
     afterRunFun(params,tableName,res,type){
-        if(this.funs[tableName] && this.funs[tableName].after){
-            const funName=this.funs[tableName].after
-            const _res=require(`../functions/${funName}.js`)(params,tableName,type,res)
+        const obj= this.funs[tableName]
+        if(obj && obj[type].type==="after" ){
+            const _res=require(`../functions/${obj[type].name}.js`)(params,tableName,type,res)
             return _res
         }else{
             return res
