@@ -28,7 +28,6 @@ class Grouphqlquery extends util{
         }
     }
     async startSchema (data){
-      console.log(data)
         const resData=data.fields;
         this.paramsObj=resData;
         this.funs=data.tFuns;
@@ -41,12 +40,12 @@ class Grouphqlquery extends util{
 
             //创建新的api
             const tFun=this.funs[currKey]
-            // if(tFun && tFun.news){
-            //   const news=tFun.news
-            //   for(let i=0;i<news.length;i++){
-            //     query[currKey+news[i]]=this.newApi(currKey,news[i])
-            //   }
-            // }
+            if(tFun && tFun.news){
+              const news=tFun.news
+              for(let i=0;i<news.length;i++){
+                query[currKey+"_"+news[i]]=this.newApi(currKey,news[i])
+              }
+            }
             
 
             query[currKey+"List"] =  this.getQueryList(currKey)
