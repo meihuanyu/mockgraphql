@@ -1,11 +1,11 @@
 import db from '../config/database'
 export const getTables = async function(ctx,next){
     const usertoken=ctx.header.authorization
-    const user =await db.query('select id from user where token="'+usertoken+'"')
+    const user =await db.query('select id from system_user where token="'+usertoken+'"')
     if(!user[0].id){
         ctx.status=401
     }
-    const project=await db.query('select * from project where userid='+user[0].id)
+    const project=await db.query('select * from system_project where userid='+user[0].id)
     const sql='select id,tablename,descinfo from graphql_table where projectid='+project[0].id;
     const res=await db.query(sql);
     if(res){
@@ -37,16 +37,17 @@ export const updateFields = async function(ctx,next){
         }
     }
 }
-
+//wait for test
 export const deleteFields = async function(ctx,next){
-    const mainTable=ctx.query.table;
-    const fieldname=ctx.query.fieldname
-
-    if(ctx.query.fieldtype=='graphqlObj'){
+    const resField=await db.query("select * from graphql_field where id="+ctx.query.id)
+    const resTable=await db.query("select * from graphql_table where id="+resField[0].relationtableid)
+    const field=resField[0]
+    const table=resTable[0]
+    if(field.fieldtype=='graphqlObj'){
         //查对象 和 对象数组
-        if(ctx.query.issingleorlist){
-            const middleTable=ctx.query.fieldrelationtablename;
-            const middleTableName=mainTable+"_"+middleTable;
+        if(field.issingleorlist){
+            const middleTable=field.fieldrelationtablename;
+            const middleTableName=table.tablename+"_"+middleTable;
             const resTable=await db.query("select * from graphql_table where tablename='"+middleTableName+"'");
             
             const middleId=resTable[0].id;
@@ -54,7 +55,7 @@ export const deleteFields = async function(ctx,next){
             db.query("DROP TABLE "+middleTableName)
             console.log('删除中间表...'+middleTableName)
 
-            //删除fields
+            //删除关联表fields
             console.log("delete from graphql_field where relationtableid="+middleId)
             db.query("delete from graphql_field where relationtableid="+middleId)
             console.log("删除field表字段")
@@ -63,13 +64,13 @@ export const deleteFields = async function(ctx,next){
             db.query("delete from graphql_table where id="+middleId)
             console.log('删除table表字段'+middleId)
         }else{
-            await db.query("alter table "+mainTable+" drop "+fieldname+"id")
-            console.log('删除原表字段id'+fieldname)
+            await db.query("alter table "+table.tablename+" drop "+resField.fieldname+"id")
+            console.log('删除原表字段id'+resField.fieldname)
         }
         
     }
-    db.query("alter table "+mainTable+" drop "+fieldname)
-    console.log('删除原表字段'+fieldname)
+    db.query("alter table "+table.tablename+" drop "+resField.fieldname)
+    console.log('删除原表字段'+resField.fieldname)
 
     let sql ="delete  from graphql_field where id="+ctx.query.id;
     const res=await db.query(sql);
@@ -80,7 +81,7 @@ export const deleteFields = async function(ctx,next){
         }
     }
 }
-
+// no check
 export const createField=async function(ctx,next){
     const opts = ctx.query;
     let sql="";
@@ -125,7 +126,7 @@ export const createField=async function(ctx,next){
         sql='INSERT INTO graphql_field (fieldname,fieldtype,relationtableid,issingleorlist,fieldrelationtablename) values('+
         "'"+opts.fieldname+"','"+opts.fieldtype+"',"+opts.relationtableid+","+opts.issingleorlist+",'"+opts.fieldrelationtablename+"')";
     }else{
-        const addres =await _addField(opts.fieldname,opts.fieldtype,opts.relationtableid)
+        await _addField(opts.fieldname,opts.fieldtype,opts.relationtableid)
         sql='INSERT INTO graphql_field (fieldname,fieldtype,relationtableid,isdeleteindex,isqueryindex,isupdateindex,isupdate) values('+
         "'"+opts.fieldname+"','"+opts.fieldtype+"',"+opts.relationtableid+","+opts.isdeleteindex+","+opts.isqueryindex+","+opts.isupdateindex+","+opts.isupdate+')';
     }
@@ -139,7 +140,7 @@ export const createField=async function(ctx,next){
 }
 export const createTable=async function(ctx,next){
     const opts = ctx.query;
-    const sql="insert into graphql_table (tablename,descinfo,projectid) values('"+opts.tablename+"','"+opts.descinfo+"',"+opts.projectid+")"
+    const sql="insert into graphql_table (tablename,descinfo,projectid) values('"+(ctx.captures[0]+"_"+opts.tablename)+"','"+opts.descinfo+"',"+opts.projectid+")"
     const insertres=await db.query(sql);
     const res =await _createTable(opts.tablename,insertres.insertId)
     if(res){
@@ -149,11 +150,12 @@ export const createTable=async function(ctx,next){
     }
 }
 export const querySchme=async function(apikey){
-    const queryProjectSql="select * from project where apikey='"+apikey+"'"
+    const queryProjectSql="select * from system_project where apikey='"+apikey+"'"
     const resProject=await db.query(queryProjectSql)
     let fields={};
     let tFuns={};
-    let tablesql=""
+    let tablesql="";
+    const projectName=apikey
     if(apikey=='system'){
         tablesql="select * from graphql_table";
     }else{
@@ -162,19 +164,26 @@ export const querySchme=async function(apikey){
     
     const tables=await db.query(tablesql);
     for(let i=0;i<tables.length;i++){
-        fields[tables[i].tablename]=await db.query("select * from graphql_field where relationtableid="+tables[i].id)
-        let fData=await db.query(`select name,type from function where tableid=${tables[i].id}`)
-        for(let i=0;i<fData.length;i++){
-            if(fData[i].type=="befor"){
-                tFuns[tables[i].tablename]=Object.assign(tFuns[tables[i].tablename]?tFuns[tables[i].tablename]:{},{befor:fData[i].name})
-            }else if(fData[i].type=="after"){
-                tFuns[tables[i].tablename]=Object.assign(tFuns[tables[i].tablename]?tFuns[tables[i].tablename]:{},{after:fData[i].name})
-            }
+        const tableName=tables[i].tablename.split(projectName+"_")[1]
+        fields[tableName]=await db.query("select * from graphql_field where relationtableid="+tables[i].id)
+        let fData=await db.query(`select name,type from system_function where tableid=${tables[i].id}`)
+        let befor=""
+        let after=""
+        let news=[]
+        if(fData){
+            for(let i=0;i<fData.length;i++){
+                if(fData[i].type=="befor"){
+                    befor=fData[i].name
+                }else if(fData[i].type=="after"){
+                    after=fData[i].name
+                }else if(fData[i].type=="new"){
+                    news.push(fData[i].name)
+                }
+            }        
+            tFuns[tableName]={befor:befor,after:after,news:news}
         }
-        
     }
-
-    return {tFuns,fields};
+    return {tFuns,fields,projectName};
 }
 
 const _createTable=async function(tablename,tableid){
