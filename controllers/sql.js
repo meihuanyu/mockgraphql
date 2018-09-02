@@ -8,8 +8,9 @@ export const addData = async function(table_name,object){
         attributes.push(i); //属性
         values.push(object[i]); //值
     }
-    const sql = "INSERT INTO " + table_name + " (" + attributes.join(',') + ") " + "VALUES" + " (" + values.join(',') + ")"
-    let res = await db.query(sql);
+    const sql = "INSERT INTO " + table_name + " (" + attributes.join(',') + ") " + "VALUES (?,?)"
+    console.log(sql)
+    let res = await db.query(sql,values);
     return res
 }
 
@@ -32,6 +33,9 @@ export const deleteData = async function(table_name,where = '1=1',type = 'data')
 export const updateData = async function(table_name,object,where = '1=1'){
     var newAtts = []
     for (var i in object) {
+        if(typeof(object[i])=='string'){
+            object[i] = "'" + object[i] + "'"
+        }
         newAtts.push(i + "=" + object[i]); //属性
     }
     const sql ="UPDATE " + table_name + " SET " + newAtts.join(',') + "WHERE " + where;
@@ -40,7 +44,7 @@ export const updateData = async function(table_name,object,where = '1=1'){
 }
 
 //查
-//attributes: 要查询的结果，传 字符串 或 数组
+//attributes: 要查询的字段，传 字符串 或 数组
 //where: 查询条件，传 字符串
 export const getData = async function(table_name,attributes = '*',where = '1=1'){
     if (Array.isArray(attributes)){
