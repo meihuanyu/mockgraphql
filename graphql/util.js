@@ -18,12 +18,14 @@ class Grouphqlquery{
         this.paramsObj={};
         this.tables=[];
         this.funs={}
+        this.projectName=""
         
         // return this.startSchema()
     }
     //params.type:single list delete create update
     beforRunFun(params,tableName,type){
-        if(this.funs[tableName] && this.funs[tableName].befor){
+        const obj= this.funs[tableName]
+        if(obj && obj[type].type==="befor" ){
             const funName=this.funs[tableName].befor
             // return require(`../functions/${funName}.js`)(params,tableName,type)
         }else{
@@ -32,13 +34,9 @@ class Grouphqlquery{
         
     }
     afterRunFun(params,tableName,res,type){
-        console.log('afterRunFun')
-        console.log(this.funs)
-        if(this.funs[tableName] && this.funs[tableName].after){
-            const funName=this.funs[tableName].after
-            console.log('runtest')
-            const _res=require(`../functions/${funName}.js`)(params,tableName,type,res)
-            console.log(_res)
+        const obj= this.funs[tableName]
+        if(obj && obj[type].type==="after" ){
+            const _res=require(`../functions/${obj[type].name}.js`)(params,tableName,type,res)
             return _res
         }else{
             return res
@@ -175,6 +173,7 @@ class Grouphqlquery{
                 const _fieldname=table[i].fieldname
                 const _issingleorlist=table[i].issingleorlist
                 //查询tablename
+                const projectName_RelationTable=this.projectName+"_"+table[i].fieldrelationtablename
                 const _RelationTableName=table[i].fieldrelationtablename;
                 
                 let _type=this.toObjectType(_RelationTableName,type+_RelationTableName);
@@ -183,7 +182,7 @@ class Grouphqlquery{
                     type:_type,
                     resolve:async function(thisItem){
                         if(_issingleorlist){
-                            const middleTale=name+"_"+_RelationTableName
+                            const middleTale=_this.projectName+"_"+name+"_"+_RelationTableName
                             const queryMiddleSql="select "+(_RelationTableName+"id")+" from "+middleTale+" where "+(name+"id")+"="+thisItem.id
                             let resIds=await db.query(queryMiddleSql);
                             const ids=resIds.map(function(item){return item[_RelationTableName+"id"] })
@@ -192,11 +191,11 @@ class Grouphqlquery{
                             if(!ids.length){
                                 return []
                             }
-                            const resSql="select * from "+_RelationTableName+" where "+_this.orToSql(ids)
+                            const resSql="select * from "+projectName_RelationTable+" where "+_this.orToSql(ids)
                             return  await db.query(resSql);
                         }else{
                             const RelationId=thisItem[_RelationTableName+"id"]
-                            const resSql="select * from "+_RelationTableName+" where id="+RelationId;
+                            const resSql="select * from "+projectName_RelationTable+" where id="+RelationId;
                             const res=await db.query(resSql);
                             return  res[0];
                         }
@@ -276,15 +275,17 @@ class Grouphqlquery{
 
     toSql(type,params,tableName){
         let sql=""
+        const tableName_project=tableName
+        tableName=`${this.projectName}_${tableName}`
         if(type=="query"){
-            let _where=this.toWhereSql(tableName,'isqueryindex',params)
+            let _where=this.toWhereSql(tableName_project,'isqueryindex',params)
             sql= "select * from "+tableName+(_where?" where "+_where:"");
         }else if(type=='update'){
-            const setDatas=this.toWhereSql(tableName,'isupdate',params,',');
-            const _where=this.toWhereSql(tableName,'isupdateindex',params);
+            const setDatas=this.toWhereSql(tableName_project,'isupdate',params,',');
+            const _where=this.toWhereSql(tableName_project,'isupdateindex',params);
             sql ="UPDATE "+tableName+" SET "+setDatas+" WHERE "+_where;
         }else if(type=='delete'){
-            const _where=this.toWhereSql(tableName,'isdeleteindex',params);
+            const _where=this.toWhereSql(tableName_project,'isdeleteindex',params);
             sql ="delete  from "+tableName+" where "+_where;
         }
         return sql

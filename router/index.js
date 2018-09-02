@@ -13,7 +13,7 @@ import graphqlQuery from '../graphql/graphqlQuery';
 const router = require('koa-router')()
 async function isLogin(ctx,next){
   const usertoken=ctx.header.authorization
-  const user =await db.query('select roleid from user where token="'+usertoken+'"')
+  const user =await db.query('select roleid from system_user where token="'+usertoken+'"')
   if(!user[0] || !user[0].roleid){
       ctx.status=401
   }
