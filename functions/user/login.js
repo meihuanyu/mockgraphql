@@ -1,6 +1,6 @@
 
 import md5 from 'md5'
-import db from '../config/database'
+import db from '../../config/database'
 module.exports =async function(params,tableName,name){
     const sql="select * from textx_user where username='"+params.username+"' and password="+params.password
     const res=await db.query(sql)
@@ -18,7 +18,8 @@ module.exports =async function(params,tableName,name){
             msg:"成功",
             id:res[0].id,
             username:res[0].username,
-            token:token
+            token:token,
+            uuid:res[0].uuid
         }
     }
 }

@@ -3,7 +3,7 @@ import db from '../config/database'
 import md5 from 'md5'
 export const  login=async function (ctx,next){
     
-    const sql="select * from user where accountnumber='"+ctx.query.accountnumber+"' and password="+ctx.query.password
+    const sql="select * from system_user where accountnumber='"+ctx.query.accountnumber+"' and password="+ctx.query.password
     const res=await db.query(sql)
     if(res.length==0){
         ctx.body={
@@ -12,7 +12,7 @@ export const  login=async function (ctx,next){
         }
     }else{
         const token=md5(ctx.query.accountnumber+ctx.query.password)
-        const updatesql="update user set token='"+token+"' where id="+res[0].id
+        const updatesql="update system_user set token='"+token+"' where id="+res[0].id
         db.query(updatesql)
         ctx.body={
             success:true,
