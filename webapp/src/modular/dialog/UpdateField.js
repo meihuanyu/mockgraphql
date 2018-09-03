@@ -97,7 +97,8 @@ class Field extends BaseModal{
     }
     save=async (index)=>{
         if(this.state.tableData[index].id){
-            let response=await cfetch('/api/app/updateFields',{params:this.state.tableData[index]})
+            let _params=this.state.tableData[index]
+            let response=await cfetch('/api/app/updateFields',{params:_params})
             this.endEdit(index)
         }else{
             let paramsObj=this.state.tableData[index]
@@ -135,6 +136,7 @@ class Field extends BaseModal{
             issingleorlist:0,
             isupdate:1,
             isupdateindex:0,
+            istype:1,
             addEdit:true,
             relationtableid:this.props.gData[0].id
         }
@@ -160,23 +162,27 @@ class Field extends BaseModal{
           }, {
             title: '删除索引',
             dataIndex: 'isdeleteindex',
-            render:this.isYesOrNo
+            render:(text, col, i)=>this.isYesOrNo(text,col,i,"isdeleteindex")
           }, {
             title: '搜索索引',
             dataIndex: 'isqueryindex',
-            render:this.isYesOrNo
-          }, {
-            title: '单个或多个',
-            dataIndex: 'issingleorlist',
-            render:this.objSingleOrList
+            render:(text, col, i)=>this.isYesOrNo(text,col,i,"isqueryindex")
           }, {
             title: '修改索引',
             dataIndex: 'isupdateindex',
-            render:this.isYesOrNo
+            render:(text, col, i)=>this.isYesOrNo(text,col,i,"isupdateindex")
+          }, {
+            title: '是否返回',
+            dataIndex: 'istype',
+            render:(text, col, i)=>this.isYesOrNo(text,col,i,"istype")
           }, {
             title: '关联对象',
             dataIndex: 'fieldrelationtablename',
             render:this.guanlian
+          }, {
+            title: '单个或多个',
+            dataIndex: 'issingleorlist',
+            render:this.objSingleOrList
           },
           {
             title: 'operation',
