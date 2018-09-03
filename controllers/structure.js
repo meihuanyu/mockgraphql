@@ -1,4 +1,5 @@
 import db from '../config/database'
+import {addData} from '../controllers/sql'
 export const getTables = async function(ctx,next){
     const usertoken=ctx.header.authorization
     const user =await db.query('select id from system_user where token="'+usertoken+'"')
@@ -30,7 +31,7 @@ export const getFields = async function(ctx,next){
 }
 export const updateFields = async function(ctx,next){
     const req=ctx.query
-    let sql ="UPDATE graphql_field SET fieldname='"+req.fieldname+"' , fieldtype='"+req.fieldtype+"' , issingleorlist="+req.issingleorlist+" , relationtableid="+req.relationtableid+" , isdeleteindex="+req.isdeleteindex+" , isqueryindex="+req.isqueryindex+" , isupdateindex="+req.isupdateindex+" , isupdate="+req.isupdate+" WHERE id="+ctx.query.id;
+    let sql ="UPDATE graphql_field SET fieldname='"+req.fieldname+"' , fieldtype='"+req.fieldtype+"' , issingleorlist="+req.issingleorlist+" , relationtableid="+req.relationtableid+" , isdeleteindex="+req.isdeleteindex+" , isqueryindex="+req.isqueryindex+" , isupdateindex="+req.isupdateindex+" , istype="+req.istype+" , isupdate="+req.isupdate+" WHERE id="+ctx.query.id;
     const res=await db.query(sql);
     
     if(res){
@@ -86,12 +87,14 @@ export const deleteFields = async function(ctx,next){
 export const createField=async function(ctx,next){
     const opts = ctx.query;
     let sql="";
+    let res=""
     const resTable=await db.query("select * from graphql_table where id="+opts.relationtableid)
     const resProject=await db.query("select * from system_project where id="+resTable[0].projectid)
 
     const projectName=resProject[0].apikey
     const ProjectName_tableName=projectName+"_"+opts['tablename'];
 
+    const {fieldname,fieldtype,relationtableid,isdeleteindex,isupdateindex,isupdate,isqueryindex,issingleorlist,fieldrelationtablename,istype}=opts;
     //存入字段表
     //如果是对象 存入字段表 目标表增加关系id字段类型
     //如果不是对象 存入字段表 新增表的结构
@@ -115,11 +118,12 @@ export const createField=async function(ctx,next){
             const tableid=resTable.insertId;
             console.log('insert中专表到graphql_table')
             //添加到 graphql field
-            const insertFieldSql="INSERT INTO graphql_field  (fieldname,fieldtype,relationtableid,isdeleteindex,isqueryindex,isupdateindex,isupdate)"+ 
-                        "values ('id','int',"+tableid+",1,1,1,1),"+
-                        "('"+(_tableName+"id")+"','int',"+tableid+",1,1,1,1),"+
-                        "('"+(_realtionTableName+"id")+"','int',"+tableid+",1,1,1,1)"
-            await db.query(insertFieldSql);
+            await addData('graphql_field',[
+                {fieldname:"id",                   fieldtype:"int",relationtableid:tableid,isdeleteindex:1,isqueryindex:1,isupdateindex:1,isupdate:1},
+                {fieldname:_tableName+"id",        fieldtype:"int",relationtableid:tableid,isdeleteindex:1,isqueryindex:1,isupdateindex:1,isupdate:1},
+                {fieldname:_realtionTableName+"id",fieldtype:"int",relationtableid:tableid,isdeleteindex:1,isqueryindex:1,isupdateindex:1,isupdate:1}
+            ])
+
             console.log('INSERT 到 graphql_field')
         }else{
             //单个
@@ -132,14 +136,11 @@ export const createField=async function(ctx,next){
         await db.query(addFieldSql);  
         console.log("原表新增字段")
         //graphql_field表添加一个记录
-        sql='INSERT INTO graphql_field (fieldname,fieldtype,relationtableid,issingleorlist,fieldrelationtablename) values('+
-        "'"+opts.fieldname+"','"+opts.fieldtype+"',"+opts.relationtableid+","+opts.issingleorlist+",'"+opts.fieldrelationtablename+"')";
+        res=await addData('graphql_field',{fieldname,fieldtype,relationtableid,issingleorlist,fieldrelationtablename,istype})
     }else{
         await _addField(opts.fieldname,opts.fieldtype,opts.relationtableid)
-        sql='INSERT INTO graphql_field (fieldname,fieldtype,relationtableid,isdeleteindex,isqueryindex,isupdateindex,isupdate) values('+
-        "'"+opts.fieldname+"','"+opts.fieldtype+"',"+opts.relationtableid+","+opts.isdeleteindex+","+opts.isqueryindex+","+opts.isupdateindex+","+opts.isupdate+')';
+        res=await addData('graphql_field',{fieldname,fieldtype,relationtableid,isdeleteindex,isupdateindex,isqueryindex,isupdate,istype})
     }
-    const res=await db.query(sql);
     if(res){
         ctx.body={
             success:true,
