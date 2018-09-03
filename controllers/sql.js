@@ -4,12 +4,31 @@ import db from '../config/database'
 export const addData = async function(table_name,object){
     var attributes = []
     var values = []
-    for (var i in object) {
-        attributes.push(i); //属性
-        values.push(object[i]); //值
+    var zhanwei=[]
+
+    if(Array.isArray(object)){
+        
+        for(let i=0;i<object.length;i++){
+            let temp_zw=[]
+            for(let key in object[i]){
+                values.push(object[i][key])
+                temp_zw.push("?")
+            }
+            zhanwei.push("("+temp_zw.join()+")")
+        }
+        attributes=Object.keys(object[0])
+    }else{
+        let temp_zw=[]
+        for(let key in object){
+            values.push(object[key])
+            temp_zw.push("?")
+        }
+        zhanwei.push("("+temp_zw.join()+")")
+        attributes=Object.keys(object)
     }
-    const sql = "INSERT INTO " + table_name + " (" + attributes.join(',') + ") " + "VALUES (?,?)"
+    const sql = "INSERT INTO " + table_name + " (" + attributes.join(',') + ") " + "VALUES "+zhanwei.join()
     console.log(sql)
+    console.log(values)
     let res = await db.query(sql,values);
     return res
 }
