@@ -23,7 +23,7 @@ class Grouphqlquery extends util{
           type:_objectType,
           args:args,
           async resolve(root,params,option){
-              return require(`../functions/${name}.js`)(params,table,name)
+              return require(`../functions/${table}/${name}.js`)(params,table,name)
           }
         }
     }
@@ -43,7 +43,12 @@ class Grouphqlquery extends util{
             if(tFun && tFun.news){
               const news=tFun.news
               for(let i=0;i<news.length;i++){
-                query[currKey+"_"+news[i]]=this.newApi(currKey,news[i])
+                if(news[i].isquery==1){
+                  mutation[currKey+"_"+news[i].name]=this.newApi(currKey,news[i].name)
+                }else if(news[i].isquery==2){
+                  query[currKey+"_"+news[i].name]=this.newApi(currKey,news[i].name)
+                }
+                
               }
             }
             
