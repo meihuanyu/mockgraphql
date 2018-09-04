@@ -215,7 +215,7 @@ class Field extends BaseModal{
         return <div >
             <Button type="primary" onClick={this.newRow}>add</Button>
             <Spin spinning={this.state.loadding}>
-                <Table rowSelection={rowSelection} dataSource={this.state.tableData} columns={columns} rowKey="id"/>
+                <Table pagination={false} rowSelection={rowSelection} dataSource={this.state.tableData} columns={columns} rowKey="id"/>
             </Spin>
         </div>
     }
