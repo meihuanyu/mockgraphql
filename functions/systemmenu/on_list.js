@@ -13,9 +13,10 @@ module.exports =async function(params,tableName,root){
         values.push(ids[i])
     }
     
-    let sql=`select * from system_systemmenu where parentid=${parentid} and ${_where.join('or')}`;
+    let sql=`select * from system_systemmenu where parentid=${parentid} and (${_where.join('or')})`;
     if(roleid==1){
         sql=`select * from system_systemmenu where parentid=${parentid}`
     }
+    console.log(sql)
     return await db.query(sql,values)
 }
