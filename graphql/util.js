@@ -12,6 +12,7 @@ import {
   } from 'graphql';
   
 import db from '../config/database'
+import {addData} from '../controllers/sql'
 
 class Grouphqlquery{
     constructor (params){
@@ -25,9 +26,9 @@ class Grouphqlquery{
     //params.type:single list delete create update
     beforRunFun(params,tableName,type){
         const obj= this.funs[tableName]
-        if(obj && obj[type].type==="befor" ){
-            const funName=this.funs[tableName].befor
-            // return require(`../functions/${funName}.js`)(params,tableName,type)
+        
+        if(obj[type] && obj[type].type==="befor"){
+            return  require(`../functions/${tableName}/${obj[type].name}.js`)(params,tableName,type)
         }else{
             return params
         }
@@ -35,10 +36,23 @@ class Grouphqlquery{
     }
     afterRunFun(params,tableName,res,type){
         const obj= this.funs[tableName]
-        if(obj && obj[type].type==="after" ){
-            const _res=require(`../functions/${obj[type].name}.js`)(params,tableName,type,res)
+        if(obj[type] && obj[type].type==="after" ){
+            const _res=require(`../functions/${tableName}/${obj[type].name}.js`)(params,tableName,type,res)
             return _res
         }else{
+            let delete_keys=[]
+            for(let key in this.paramsObj[tableName]){
+                if(!this.paramsObj[tableName][key].istype){
+                    delete_keys.push(key)
+                }
+            }
+            if(Array.isArray(res)){
+                for(let i=0;i<res.length;i++){
+                    for(let i=0;i<delete_keys.length;i++){
+                        delete res[i][delete_keys[i]]
+                    }
+                }
+            }           
             return res
         }
     }
@@ -81,10 +95,20 @@ class Grouphqlquery{
             type:Type,
             args:args,
             async resolve(root,params,option){
-                params=_this.beforRunFun(params,tableName,'update')
-                const sql=_this.toSql('update',params,tableName)
-                let res=await db.query(sql);
-                return  _this.afterRunFun(params,tableName,res[0],'update');
+                params=await _this.beforRunFun(params,tableName,root)
+                const obj= _this.funs[tableName]
+        
+                if(obj.update && obj.update.type==="on"){
+                    return  require(`../functions/${tableName}/${obj.update.name}.js`)(params,tableName,root)
+                }
+                const tableName_project=_this.projectName+"_"+tableName
+                const setDatas=_this.toWhereSql1(tableName,'isupdate',params);
+                const _where=_this.toWhereSql1(tableName,'isupdateindex',params);
+                
+                const sql ="UPDATE "+tableName_project+" SET "+setDatas.fields.join()+" WHERE "+_where.fields.join();
+                let res=await db.query(sql,[...setDatas.values,..._where.values]);
+                
+                return  _this.afterRunFun(params,tableName,res[0],root);
             }
         }
     }
@@ -94,10 +118,15 @@ class Grouphqlquery{
             type:Type,
             args:args,
             async resolve(root,params,option){
-                params=_this.beforRunFun(params,tableName,'delete')
+                params=await _this.beforRunFun(params,tableName,root)
+                const obj= _this.funs[tableName]
+                if(obj.delete && obj.delete.type==="on"){
+                    return  require(`../functions/${tableName}/${obj.delete.name}.js`)(params,tableName,root)
+                }
                 const sql=_this.toSql('delete',params,tableName)
                 let res=await db.query(sql);
-                return _this.afterRunFun(params,tableName,res[0],'delete');
+                
+                return _this.afterRunFun(params,tableName,res[0],root);
             }
         }
     }
@@ -107,29 +136,13 @@ class Grouphqlquery{
             type:Type,
             args:args,
             async resolve(root,params,option){
-                params=_this.beforRunFun(params,tableName,'create')
-                const table=_this.paramsObj[tableName];
-                let fields=[]
-                let values=[]
-                for(let i=0;i<table.length;i++){
-                    let _fieldname=table[i].fieldname
-                    if(_fieldname=='id'){
-                        continue
-                    }
-                    if(table[i].fieldtype=='int'){
-                        values.push(params[_fieldname])
-                        fields.push(_fieldname)
-                    }else if(table[i].fieldtype=='graphqlObj'){
-                        values.push(params[_fieldname])  
-                        fields.push(table[i].fieldrelationtablename+"id")
-                    }else{
-                        values.push('"'+params[_fieldname]+'"')                       
-                        fields.push(_fieldname)
-                    }
+                params=await  _this.beforRunFun(params,tableName,root)
+                const obj= _this.funs[tableName]
+                if(obj.create && obj.create.type==="on"){
+                    return  require(`../functions/${tableName}/${obj.create.name}.js`)(params,tableName,root)
                 }
-                let sql ="INSERT INTO "+tableName+" ("+fields.toString()+") VALUES ("+values.toString()+")";
-                const res=await db.query(sql);
-                return _this.afterRunFun(params,tableName,{id:res.insertId},'create');
+                const res=await addData(_this.projectName+"_"+tableName,params)
+                return _this.afterRunFun(params,tableName,{id:res.insertId},root);
             }
         }
     }
@@ -139,11 +152,15 @@ class Grouphqlquery{
             type:new GraphQLList(Type),
             args:args,
             async resolve(root,params,option){
-                params=_this.beforRunFun(params,tableName,'list')
+                params=await  _this.beforRunFun(params,tableName,root)
+                const obj= _this.funs[tableName]
+                if(obj.list && obj.list.type==="on"){
+                    return  require(`../functions/${tableName}/${obj.list.name}.js`)(params,tableName,root)
+                }
 
                 const sql=_this.toSql('query',params,tableName)
                 const res=db.query(sql)                
-                return  _this.afterRunFun(params,tableName,res,'list');
+                return  _this.afterRunFun(params,tableName,res,root);
             }
         }
     }
@@ -153,10 +170,15 @@ class Grouphqlquery{
             type:Type,
             args:args,
             async resolve(root,params,option){
-                params=_this.beforRunFun(params,tableName,'single')
-                const sql=_this.toSql('query',params,tableName)
-                const res=await db.query(sql)
-                return _this.afterRunFun(params,tableName,res[0],'single');
+                params=await _this.beforRunFun(params,tableName,root)
+                const obj= this.funs[tableName]
+                if(obj.single && obj.single.type==="on"){
+                    return  require(`../functions/${tableName}/${obj.single.name}.js`)(params,tableName,root)
+                }else{
+                    const sql=_this.toSql('query',params,tableName)
+                    const res=await db.query(sql)
+                }
+                return _this.afterRunFun(params,tableName,res[0],root);
             }
         }
     }
@@ -252,7 +274,7 @@ class Grouphqlquery{
                     case "varchar":
                         args[_fieldname]={
                                 name:_fieldname,
-                                type:GraphQLString
+                                type:table=="system"?new GraphQLList(GraphQLString):GraphQLString
                             }
                         break;
                     case "int":
@@ -280,29 +302,18 @@ class Grouphqlquery{
         if(type=="query"){
             let _where=this.toWhereSql(tableName_project,'isqueryindex',params)
             sql= "select * from "+tableName+(_where?" where "+_where:"");
-        }else if(type=='update'){
-            const setDatas=this.toWhereSql(tableName_project,'isupdate',params,',');
-            const _where=this.toWhereSql(tableName_project,'isupdateindex',params);
-            sql ="UPDATE "+tableName+" SET "+setDatas+" WHERE "+_where;
         }else if(type=='delete'){
             const _where=this.toWhereSql(tableName_project,'isdeleteindex',params);
             sql ="delete  from "+tableName+" where "+_where;
         }
         return sql
     }
-    toUpdateSql(params){
-        const keys=Object.keys(params);
-        let setDatas=[]
-        for(let i=0;i<keys.length;i++){
-            setDatas.push(keys[i]+"='"+params[keys[i]]+"'")
-        }
-        return setDatas.join(",");
-    }
+    
     //通用 转换 where sql
     //table 表名称
     //Indexes 这里和toarg不一样  不传不会去生成
     //params 可选参数  与key对应 生成where
-
+    //待废弃
     toWhereSql(table,Indexes,params={},joinkey){
         const obj=this.paramsObj[table]
         //默认带上id
@@ -324,7 +335,22 @@ class Grouphqlquery{
         }
         return _where.join(joinkey?joinkey:' and ')
     }
-
+    toWhereSql1(table,Indexes,params={}){
+        const obj=this.paramsObj[table]
+        //默认带上id
+        let  values=[]
+        let  fields=[]
+        for(var i=0;i<obj.length;i++){
+            //穿过来的值  1 不能使对象（graphqlobj）  2 有索引值    3 对应的key有传参
+            if(obj[i][Indexes]){
+                let _fieldname=obj[i].fieldname
+                values.push(params[_fieldname])
+                fields.push(`${_fieldname}=?`)   
+            }
+        }
+        return {values,fields}
+    }
+    
     orToSql(arr,key="id"){
         var _where=""
         for(var i=0;i<arr.length;i++){
