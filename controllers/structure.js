@@ -19,6 +19,15 @@ export const getTables = async function(ctx,next){
         }
     }
 }
+export const query_grant= async function(ctx,query){
+    const res= await db.query(`select * from d_menugrant where rid=${ctx.roleid}`)
+    if(res){
+        ctx.body={
+            success:true,
+            data:res
+        }
+    }
+}
 export const getFields = async function(ctx,next){
     const sql='select * from graphql_field where relationtableid='+ctx.query.id;
     const res=await db.query(sql);
@@ -184,7 +193,7 @@ export const querySchme=async function(apikey){
             let temp={}
             for(let i=0;i<fData.length;i++){
                if(fData[i].isnew){
-                    news.push(fData[i].name)
+                    news.push({name:fData[i].name,isquery:fData[i].isnew})
                }else{
                     temp[fData[i].oper]={type:fData[i].type,name:fData[i].name}
                }
@@ -193,7 +202,6 @@ export const querySchme=async function(apikey){
             tFuns[tableName]={...temp,news}
         }
     }
-    console.log(tFuns)
     return {tFuns,fields,projectName};
 }
 
