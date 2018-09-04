@@ -7,6 +7,13 @@ export const getTables = async function(ctx,next){
         ctx.status=401
     }
     const project=await db.query('select * from system_project where userid='+user[0].id)
+    if(!project[0]){
+        ctx.body={
+            success:true,
+            data:[]
+        }
+        return false
+    }
     const sql='select id,tablename,descinfo from graphql_table where projectid='+project[0].id;
     let res=await db.query(sql);
     for(let i=0;i<res.length;i++){
@@ -20,7 +27,7 @@ export const getTables = async function(ctx,next){
     }
 }
 export const query_grant= async function(ctx,query){
-    const res= await db.query(`select * from d_menugrant where rid=${ctx.roleid}`)
+    const res= await db.query(`select * from d_menugrant where rid=${ctx.query.roleid}`)
     if(res){
         ctx.body={
             success:true,
