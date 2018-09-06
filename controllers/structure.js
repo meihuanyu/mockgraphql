@@ -166,9 +166,11 @@ export const createField=async function(ctx,next){
 }
 export const createTable=async function(ctx,next){
     const opts = ctx.query;
-    const sql="insert into graphql_table (tablename,descinfo,projectid) values('"+(ctx.captures[0]+"_"+opts.tablename)+"','"+opts.descinfo+"',"+opts.projectid+")"
+    const project=await db.query('select * from system_project where id='+opts.projectid)
+    const qianzui=project[0].apikey;
+    const sql="insert into graphql_table (tablename,descinfo,projectid) values('"+(qianzui+"_"+opts.tablename)+"','"+opts.descinfo+"',"+opts.projectid+")"
     const insertres=await db.query(sql);
-    const res =await _createTable(opts.tablename,insertres.insertId)
+    const res =await _createTable(qianzui+"_"+opts.tablename,insertres.insertId)
     if(res){
         ctx.body={
             success:true
