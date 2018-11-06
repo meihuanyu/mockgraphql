@@ -20,8 +20,12 @@ import App from './app'
 import Login from './common/Login'
 
 import client from './ApolloClient'
+import Test from './test'
+
 class Start extends Component {
+  
   render() {
+    console.log('xxx')
     return (
       <ApolloProvider client={client}>
         <Router>
@@ -35,6 +39,7 @@ class Start extends Component {
               <Route path="/web" component={App}></Route>
               
               <Route path="/login" component={Login}></Route> 
+              <Route path="/test" component={Test}></Route> 
           </div>
         </Router>
       </ApolloProvider>
