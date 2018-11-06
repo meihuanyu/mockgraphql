@@ -4,6 +4,7 @@ import { HttpLink } from 'apollo-link-http'
 import { InMemoryCache } from 'apollo-cache-inmemory'
 import { ApolloLink } from 'apollo-link'
 import { onError } from 'apollo-link-error'
+import { createUploadLink } from 'apollo-upload-client';
 
 import gql from 'graphql-tag'
 import globalState from './globalState'
@@ -23,17 +24,17 @@ const cache = new InMemoryCache()
       };
     })
     const applink=ApolloLink.from([
-      stateLink,
-      new HttpLink({
-        uri: '/api/graphql/system',
-        headers:{
-          authorization:localStorage.token
-        }
-      })
+      stateLink
     ])
 
     const client = new ApolloClient({
-      link: logoutLink.concat(applink),
+      link: logoutLink.concat(
+        stateLink.concat(
+          createUploadLink(
+            {uri: '/api/graphql/system',headers:{authorization:localStorage.token}}
+          )
+        )
+      ),
       cache
     })
 export default client

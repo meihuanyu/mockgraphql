@@ -13,7 +13,7 @@ import {
   
 import db from '../config/database'
 import {addData} from '../controllers/sql'
-
+import { GraphQLUpload } from 'apollo-upload-server'
 class Grouphqlquery{
     constructor (params){
         this.paramsObj={};
@@ -287,6 +287,12 @@ class Grouphqlquery{
                         args[_fieldname]={
                                 name:_fieldname,
                                 type:GraphQLInt
+                            }
+                        break;
+                    case "upload":
+                        args[_fieldname]={
+                                name:_fieldname,
+                                type:GraphQLUpload
                             }
                         break;
                 }

@@ -8,11 +8,7 @@ const app = new Koa()
 const router = new Router();
 
 const port = 4001
-// import("./../functions/test.js").then(function(){
-//     console.log('xxx')
-// // })
-// const hhh=require(`./../functions/${xx}.js`)
-// hhh()
+
 
 app.use(bodyParser());
 app.use(KoaStatic(__dirname + '/public'));

@@ -11,6 +11,8 @@ import redis from '../config/redis'
 import db from '../config/database'
 import {addData} from '../controllers/sql'
 import graphqlQuery from '../graphql/graphqlQuery';
+import { apolloUploadKoa } from 'apollo-upload-server'
+
 const router = require('koa-router')()
 async function isLogin(ctx,next){
   const usertoken=ctx.header.authorization
@@ -57,7 +59,7 @@ router.get('/aa',async (ctx)=>{
 
 // router.use('/graphql',permissions)
 router.use('/graphql',isLogin)
-
+.use(apolloUploadKoa({ maxFileSize: 10000000, maxFiles: 10 }))
 
 router.post('/graphql/:apikey', async (ctx, next,xx) => {
   let schemaData="" 
