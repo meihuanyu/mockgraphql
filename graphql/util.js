@@ -92,11 +92,6 @@ class Grouphqlquery{
             args:args,
             async resolve(root,params,option){
                 params=await _this.beforRunFun(params,tableName,root)
-                const obj= _this.funs[tableName]
-        
-                if(obj.update && obj.update.type==="on"){
-                    return  require(`../functions/${tableName}/${obj.update.name}.js`)(params,tableName,root)
-                }
                 const tableName_project=_this.projectName+"_"+tableName
                 const setDatas=_this.toWhereSql1(tableName,'isupdate',params);
                 const _where=_this.toWhereSql1(tableName,'isupdateindex',params);
@@ -115,10 +110,6 @@ class Grouphqlquery{
             args:args,
             async resolve(root,params,option){
                 params=await _this.beforRunFun(params,tableName,root)
-                const obj= _this.funs[tableName]
-                if(obj.delete && obj.delete.type==="on"){
-                    return  require(`../functions/${tableName}/${obj.delete.name}.js`)(params,tableName,root)
-                }
                 const sql=_this.toSql('delete',params,tableName)
                 let res=await db.query(sql);
                 
@@ -133,10 +124,6 @@ class Grouphqlquery{
             args:args,
             async resolve(root,params,option){
                 params=await  _this.beforRunFun(params,tableName,root)
-                const obj= _this.funs[tableName]
-                if(obj.create && obj.create.type==="on"){
-                    return  require(`../functions/${tableName}/${obj.create.name}.js`)(params,tableName,root)
-                }
                 const res=await addData(_this.projectName+"_"+tableName,params)
                 return _this.afterRunFun(params,tableName,{id:res.insertId},root);
             }
@@ -149,11 +136,6 @@ class Grouphqlquery{
             args:args,
             async resolve(root,params,option){
                 params=await  _this.beforRunFun(params,tableName,root)
-                const obj= _this.funs[tableName]
-                if(obj.list && obj.list.type==="on"){
-                    return  require(`../functions/${tableName}/${obj.list.name}.js`)(params,tableName,root)
-                }
-
                 const sql=_this.toSql('query',params,tableName)
                 const res=db.query(sql)                
                 return  _this.afterRunFun(params,tableName,res,root);
@@ -167,13 +149,6 @@ class Grouphqlquery{
             args:args,
             async resolve(root,params,option){
                 params=await _this.beforRunFun(params,tableName,root)
-                const obj= this.funs[tableName]
-                if(obj.single && obj.single.type==="on"){
-                    return  require(`../functions/${tableName}/${obj.single.name}.js`)(params,tableName,root)
-                }else{
-                    const sql=_this.toSql('query',params,tableName)
-                    const res=await db.query(sql)
-                }
                 return _this.afterRunFun(params,tableName,res[0],root);
             }
         }

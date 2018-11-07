@@ -198,19 +198,20 @@ export const querySchme=async function(apikey){
         let befor=""
         let after=""
         let news=[]
+        let types=[]
         if(fData){
-            let temp={}
             for(let i=0;i<fData.length;i++){
                if(fData[i].isnew){
                     news.push({name:fData[i].name,isquery:fData[i].isnew})
                }else{
-                    temp[fData[i].oper]={type:fData[i].type,name:fData[i].name}
+                    types.push({type:fData[i].type,name:fData[i].name,oper:fData[i].oper})
                }
             } 
             //class:{ list :{type:"xxx",name:"ggg"}}       
-            tFuns[tableName]={...temp,news}
+            tFuns[tableName]={types,news}
         }
     }
+    console.log(tFuns)
     return {tFuns,fields,projectName};
 }
 
