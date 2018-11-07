@@ -37,7 +37,7 @@ class System extends Component{
         this.props.currentNode.refetch().then(console.log)
     }
     render(){
-        let {systemmenuList,loading}=this.props.getMenu
+        let {systemmenu_list,loading}=this.props.getMenu
         const currentUrl=this.props.match.url;
         const systemDom=loading?(<div>loading</div>):(
             <Layout>
@@ -45,13 +45,13 @@ class System extends Component{
                     <Menu 
                     mode="inline"
                     >
-                        {this.renderTreeNodes(systemmenuList)}
+                        {this.renderTreeNodes(systemmenu_list)}
                     </Menu>
                 </Sider>
                 <Content>
                     <Layout>
                         <Content>
-                            <CreateRouter currentUrl={currentUrl} menuData={systemmenuList} />
+                            <CreateRouter currentUrl={currentUrl} menuData={systemmenu_list} />
                         </Content>
                     </Layout>
                 </Content>

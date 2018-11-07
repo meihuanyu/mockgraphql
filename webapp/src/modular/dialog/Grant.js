@@ -34,8 +34,8 @@ class Grant extends BaseModal {
   }
   currentRows=[]
   componentWillMount=async ()=>{
-    let {systemmenuList}=this.props
-    const treeData=JSON.parse(JSON.stringify(systemmenuList))
+    let {systemmenu_list}=this.props
+    const treeData=JSON.parse(JSON.stringify(systemmenu_list))
     const roleid=this.props.gData[0].id
     const {data}=await cFetch('/api/app/query_grant',{params:{roleid}})
     this.setState({
@@ -47,7 +47,7 @@ class Grant extends BaseModal {
     
     const resData=await this.props.loadMore(treeNode.props.dataRef.id)
     return new Promise((resolve) => {
-        treeNode.props.dataRef.children = JSON.parse(JSON.stringify(resData.data.systemmenuList));
+        treeNode.props.dataRef.children = JSON.parse(JSON.stringify(resData.data.systemmenu_list));
         this.setState({
           treeData: [...this.state.treeData],
         });
@@ -96,10 +96,10 @@ export default compose(
             }
         }),
         props({data}){
-          let {loading,systemmenuList,fetchMore,refetch} =data
+          let {loading,systemmenu_list,fetchMore,refetch} =data
           return {
             loading,
-            systemmenuList,
+            systemmenu_list,
             refetch,
             loadMore(id){
               return fetchMore({
@@ -107,7 +107,7 @@ export default compose(
                   parentid: id,
                 },
                 updateQuery(previousResult, { fetchMoreResult }){
-                  return fetchMoreResult.systemmenuList
+                  return fetchMoreResult.systemmenu_list
                 }
               })
             }

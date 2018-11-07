@@ -59,9 +59,9 @@ export default compose(
           }
       }),
       props({data}){
-        const {loading,systemmenuList}=data
+        const {loading,systemmenu_list}=data
         return {
-          topMenu:systemmenuList
+          topMenu:systemmenu_list
         }
       }
     }),

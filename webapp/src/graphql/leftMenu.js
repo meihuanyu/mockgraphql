@@ -2,7 +2,7 @@ import gql from 'graphql-tag'
 
 export default gql`
 query xxx($parentid:String){
-  systemmenuList(parentid:$parentid) {
+  systemmenu_list(parentid:$parentid) {
       displayname
       name
       id

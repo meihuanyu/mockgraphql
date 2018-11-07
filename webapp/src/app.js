@@ -52,7 +52,8 @@ class App extends React.Component{
                         parentid:'0'
                     }}
                 >
-                    {({loading,data:{systemmenuList}})=>{
+                    {({loading,data:{systemmenu_list}})=>{
+                            console.log(systemmenu_list)
                             return loading?("loading"):(
                                 <Layout>
                                     <Header>
@@ -60,7 +61,7 @@ class App extends React.Component{
                                             <Row gutter={16}>
                                             
                                             <Col span={19}>
-                                                <CommonHeader menuData={systemmenuList} />
+                                                <CommonHeader menuData={systemmenu_list} />
                                             </Col>
                                             <Col span={1}>  
                                                 <div onClick={this.reslApi} style={{color:"#fff",fontSize:"15px",cursor:"pointer"}}>
@@ -81,7 +82,7 @@ class App extends React.Component{
                                         </div>
                                     </Header>
                                     <Content>
-                                        {systemmenuList.map((item)=> <Route key={item.id} path={"/web/"+item.name+"/:topMenuId"} component={asyncComponent(()=>import('/modular'+item.component))} />)}
+                                        {systemmenu_list.map((item)=> <Route key={item.id} path={"/web/"+item.name+"/:topMenuId"} component={asyncComponent(()=>import('/modular'+item.component))} />)}
                                     </Content>                  
                                 </Layout>
                             )
