@@ -21,9 +21,12 @@
     "koa-router": "^7.4.0",
     "koa-static": "^4.0.2",
     "mysql-pro": "^1.0.1",
-    "webpack": "^4.8.3"
+    "webpack": "^4.8.3",
+    "shortid": "^2.2.13"
   },
   "dependencies": {
+    "apollo-upload-client": "^9.1.0",
+    "apollo-upload-server": "^7.1.0",
     "babel-loader": "^7.1.4",
     "babel-preset-latest": "^6.24.1",
     "ioredis": "^4.0.0",
