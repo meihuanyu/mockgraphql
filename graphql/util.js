@@ -1,14 +1,10 @@
 import {
-    graphql,
-    GraphQLSchema,
     GraphQLObjectType,
     GraphQLString,
     GraphQLID,
     GraphQLList,
     GraphQLNonNull,
-    isOutputType,
-    GraphQLInt,
-    GraphQLInputObjectType
+    GraphQLInt
   } from 'graphql';
   
 import db from '../config/database'

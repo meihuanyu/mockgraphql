@@ -1,21 +1,10 @@
 import util from './util'
 import {
-    graphql,
     GraphQLSchema,
     GraphQLObjectType,
-    GraphQLString,
-    GraphQLID,
-    GraphQLList,
-    GraphQLNonNull,
-    isOutputType,
-    GraphQLInt,
-    GraphQLInputObjectType
   } from 'graphql';
   
 class Grouphqlquery extends util{
-    async queryFun(resData){
-
-    }
     newApi(table,name){
         let _objectType= this.toObjectType(table,table+name)
         const args=this.toArgs(table,'isqueryindex')
