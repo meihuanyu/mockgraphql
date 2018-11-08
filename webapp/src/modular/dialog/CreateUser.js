@@ -5,7 +5,7 @@ import BaseModal from '../../common/BaseModal'
 import {  graphql, compose } from 'react-apollo'
 import userCreate from '../../graphql/userCreate'
 import userUpdate from '../../graphql/userUpdate'
-import userroleList from '../../graphql/userroleList'
+import userrole_list from '../../graphql/userrole_list'
 import {onlyReadToUpdate} from '../../util/appliction'
 
 const Option = Select.Option;
@@ -33,9 +33,9 @@ class NormalLoginForm extends BaseModal {
     }
   }
   componentWillMount=async ()=>{
-    const {data:{userroleList}}=await this.props.userroleList.refetch()
+    const {data:{userrole_list}}=await this.props.userrole_list.refetch()
     this.setState({
-        roles:userroleList
+        roles:userrole_list
     })
   }
   render() {
@@ -112,5 +112,5 @@ const WrappedNormalLoginForm = Form.create({
 export default compose(
     graphql(userUpdate,{name:"userUpdate"}),
     graphql(userCreate,{name:"userCreate"}),
-    graphql(userroleList,{name:"userroleList"})
+    graphql(userrole_list,{name:"userrole_list"})
 )(WrappedNormalLoginForm);

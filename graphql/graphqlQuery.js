@@ -7,13 +7,13 @@ import {
   
 class Grouphqlquery extends util{
     newApi(table,name,oper){
-        let _objectType= this.toObjectType(table,table+name)
+        let _objectType= this.toObjectType(table,table+oper)
         const args=this.toArgs(table,'isqueryindex')
         return  {
           type:oper==='list'?new GraphQLList(_objectType):_objectType,
           args:args,
           async resolve(root,params,option){
-              return require(`../functions/${table}/${name}.js`)(params,table,name,root)
+              return require(`../functions/${table}/${name}.js`)(params,table,oper,root)
           }
         }
     }
@@ -34,10 +34,12 @@ class Grouphqlquery extends util{
                 if(tFun.news){
                   const news=tFun.news
                   for(let i=0;i<news.length;i++){
-                    if(news[i].isquery==1){
-                      mutation[currKey+"_"+news[i].name]=this.newApi(currKey,news[i].name,news[i].oper)
-                    }else if(news[i].isquery==2){
-                      query[currKey+"_"+news[i].name]=this.newApi(currKey,news[i].name,news[i].oper)
+                    const { isnew,oper,alias,type } = news[i]
+                    const api_name=alias?alias:currKey+"_"+news[i].oper
+                    if(isnew==1){
+                      mutation[api_name]=this.newApi(currKey,api_name,oper)
+                    }else if(isnew==2){
+                      query[api_name]=this.newApi(currKey,api_name,oper)
                     }
                     
                   }
@@ -45,20 +47,21 @@ class Grouphqlquery extends util{
                 if(tFun.types){
                   const oTypes=tFun.types.filter(item=>item.type==='original')
                   for(let i=0;i<oTypes.length;i++){
+                      const api_name=oTypes[i].alias?oTypes[i].alias:currKey+'_'+oTypes[i].oper
                       if(oTypes[i].oper==='list'){
-                        query[currKey+oTypes[i].name] =  this.getQueryList(currKey)
+                        query[api_name] =  this.getQueryList(currKey)
 
                       }else if(oTypes[i].oper==='single'){
-                        query[currKey+oTypes[i].name] =  this.getSingleRow(currKey)
+                        query[api_name] =  this.getSingleRow(currKey)
 
                       }else if(oTypes[i].oper==='create'){
-                        mutation[currKey+oTypes[i].name] =  this.createRow(currKey)   
+                        mutation[api_name] =  this.createRow(currKey)   
 
                       }else if(oTypes[i].oper==='delete'){
-                        mutation[currKey+oTypes[i].name] =  this.deleteRow(currKey)   
+                        mutation[api_name] =  this.deleteRow(currKey)   
 
                       }else if(oTypes[i].oper==='update'){
-                        mutation[currKey+oTypes[i].name] =  this.updateRow(currKey)   
+                        mutation[api_name] =  this.updateRow(currKey)   
                       }
                   }
                 }
