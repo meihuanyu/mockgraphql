@@ -30,43 +30,35 @@ class Grouphqlquery extends util{
 
             //创建新的api
             const tFun=this.funs[currKey]
-            if(tFun){
-                if(tFun.news){
-                  const news=tFun.news
-                  for(let i=0;i<news.length;i++){
-                    const { isnew,oper,alias,type } = news[i]
-                    const api_name=alias?alias:currKey+"_"+news[i].oper
-                    if(isnew==1){
-                      mutation[api_name]=this.newApi(currKey,api_name,oper)
-                    }else if(isnew==2){
-                      query[api_name]=this.newApi(currKey,api_name,oper)
-                    }
-                    
-                  }
-                }
-                if(tFun.types){
-                  const oTypes=tFun.types.filter(item=>item.type==='original')
-                  for(let i=0;i<oTypes.length;i++){
-                      const api_name=oTypes[i].alias?oTypes[i].alias:currKey+'_'+oTypes[i].oper
-                      if(oTypes[i].oper==='list'){
-                        query[api_name] =  this.getQueryList(currKey)
-
-                      }else if(oTypes[i].oper==='single'){
-                        query[api_name] =  this.getSingleRow(currKey)
-
-                      }else if(oTypes[i].oper==='create'){
-                        mutation[api_name] =  this.createRow(currKey)   
-
-                      }else if(oTypes[i].oper==='delete'){
-                        mutation[api_name] =  this.deleteRow(currKey)   
-
-                      }else if(oTypes[i].oper==='update'){
-                        mutation[api_name] =  this.updateRow(currKey)   
-                      }
-                  }
-                }
-            }
             
+            for(let i=0;i<tFun.length;i++){
+              const {oper,alias,type} = tFun[i]
+              const api_name=alias?alias:currKey+'_'+oper
+              if(type == 'original'){
+                if(oper==='list'){
+                  query[api_name] =  this.getQueryList(currKey)
+  
+                }else if(oper==='single'){
+                  query[api_name] =  this.getSingleRow(currKey)
+  
+                }else if(oper==='create'){
+                  mutation[api_name] =  this.createRow(currKey)   
+  
+                }else if(oper==='delete'){
+                  mutation[api_name] =  this.deleteRow(currKey)   
+  
+                }else if(oper==='update'){
+                  mutation[api_name] =  this.updateRow(currKey)   
+                }
+              }else if(type == 'new'){
+                if(oper === 'list' || oper === 'single'){
+                  query[api_name]=this.newApi(currKey,api_name,oper)
+                }else{
+                  mutation[api_name]=this.newApi(currKey,api_name,oper)
+                }
+              }
+              
+            }
             
         }
         return new GraphQLSchema({

@@ -194,24 +194,9 @@ export const querySchme=async function(apikey){
     for(let i=0;i<tables.length;i++){
         const tableName=tables[i].tablename.split(projectName+"_")[1]
         fields[tableName]=await db.query("select * from graphql_field where relationtableid="+tables[i].id)
-        let fData=await db.query(`select alias,type,isnew,oper from system_function where tableid=${tables[i].id}`)
-        let befor=""
-        let after=""
-        let news=[]
-        let types=[]
-        if(fData){
-            for(let i=0;i<fData.length;i++){
-                const {isnew,oper,alias,type} = fData[i]
-               if(isnew){
-                    news.push({oper,isnew,alias})
-               }else{
-                    types.push({type,oper})
-               }
-            } 
-            tFuns[tableName]={types,news}
-        }
+        let fData=await db.query(`select alias,type,oper from system_function where tableid=${tables[i].id}`)
+        tFuns[tableName]=fData
     }
-    console.log(tFuns)
     return {tFuns,fields,projectName};
 }
 
