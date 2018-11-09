@@ -5,7 +5,7 @@ import systemmenuDelete from '../../graphql/systemmenuDelete'
 class Delete extends BaseModal{
     modalProps={
         onOk:async ()=>{
-          const {systemmenuDelete,dataSource,gData,systemmenuUpdate,close} = this.props
+          const {systemmenuDelete,dataSource,gData,systemmenu_update,close} = this.props
           const res=await systemmenuDelete({
             variables:{
                 id:gData[0].id

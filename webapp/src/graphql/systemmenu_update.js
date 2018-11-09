@@ -1,14 +1,14 @@
 import gql from 'graphql-tag'
 
 export default gql`
-  mutation systemmenuUpdate(
+  mutation systemmenu_update(
     $displayname: String!
     $name: String!
     $component: String
     $oper: String
     $id:Int
   ) {
-    systemmenuUpdate(
+    systemmenu_update(
         displayname: $displayname
         name: $name
         component: $component

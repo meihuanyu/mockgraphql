@@ -14,7 +14,7 @@ class User extends Component {
     }
     getRows=()=>{
       let tempArr=[]
-      this.props.userList.map(item=>{
+      this.props.user_list.map(item=>{
           tempArr[item.id]=item
       })
       return this.state.selectedRowKeys.map(item=>tempArr[item])
