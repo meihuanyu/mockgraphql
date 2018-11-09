@@ -5,7 +5,7 @@ import {
 } from 'graphql';
 // 引入 type 
 import {getTables,createField,createTable,getFields,updateFields,deleteFields,querySchme,query_grant} from '../controllers/structure'
-import { create_funs , delete_fun , update_fun , query_fun } from '../controllers/funs'
+import { create_funs , delete_funs , update_funs , query_funs } from '../controllers/funs'
 import {login} from '../controllers/login'
 import {permissions} from '../controllers/user'
 import redis from '../config/redis'
@@ -37,7 +37,7 @@ router.get('/app/query_grant',query_grant);
 
 router.get('/app/query_funs',query_funs);
 router.get('/app/delete_funs',delete_funs);
-router.get('/app/delete_funs',delete_funs);
+router.get('/app/update_funs',update_funs);
 router.get('/app/create_funs',create_funs);
 
 router.get('/login',login);
@@ -65,6 +65,7 @@ router.get('/aa',async (ctx)=>{
 });
 
 // router.use('/graphql',permissions)
+// 加入上传中间件
 router.use('/graphql',isLogin)
 .use(apolloUploadKoa({ maxFileSize: 10000000, maxFiles: 10 }))
 

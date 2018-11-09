@@ -1,6 +1,6 @@
 import db from '../config/database'
 
-export const query_fun=async (ctx)=>{
+export const query_funs=async (ctx)=>{
     const sql = `select * from system_function where tableid=? order by type DESC`
     const res = await db.query(sql,[ctx.query.id])
     if(res){
@@ -12,7 +12,7 @@ export const query_fun=async (ctx)=>{
   }
 
 
-export const delete_fun=async (ctx)=>{
+export const delete_funs=async (ctx)=>{
     const sql = `delete from system_function where id=?`
     const res = await db.query(sql,[ctx.query.id])
     if(res){
@@ -23,7 +23,7 @@ export const delete_fun=async (ctx)=>{
     }
   }
 
-export const update_fun=async (ctx)=>{
+export const update_funs=async (ctx)=>{
     const { id, alias, oper, type } = ctx.query
     const sql = `update system_function set alias=? ,oper=? ,type=?   where id=?`
     const res = await db.query(sql,[alias , oper , type , id])
@@ -35,7 +35,7 @@ export const update_fun=async (ctx)=>{
     }
   }
 
-export const create_fun=async (ctx)=>{
+export const create_funs=async (ctx)=>{
     const { alias, oper, type ,tableid} = ctx.query
     const sql = `insert into  system_function(alias , oper ,type ,tableid) values (? , ? , ? ,?)`
     const res = await db.query(sql,[alias , oper , type , tableid])
