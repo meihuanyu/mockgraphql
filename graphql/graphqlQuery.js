@@ -1,8 +1,14 @@
 import util from './util'
+
 import {
+  GraphQLInputObjectType,
     GraphQLSchema,
     GraphQLObjectType,
-    GraphQLList
+    GraphQLString,
+    GraphQLID,
+    GraphQLList,
+    GraphQLNonNull,
+    GraphQLInt
   } from 'graphql';
   
 class Grouphqlquery extends util{
@@ -61,6 +67,35 @@ class Grouphqlquery extends util{
             }
             
         }
+
+        query.testgg={
+            type:new GraphQLObjectType({
+              name:'testctype',
+              fields:{
+                aa:{
+                  type:GraphQLString
+                },bb:{
+                  type:GraphQLString
+                }
+              }
+            })  ,
+            args:{
+              ap:{
+                name:'ap',
+                type:new GraphQLInputObjectType({
+                  name:"apxxx",
+                  fields:()=>({
+                    description: { type: GraphQLString }
+                  })
+                })
+              }
+            },
+            async resolve(root,params,option){
+                console.log(params)
+                return  {}
+            }
+        }
+
         return new GraphQLSchema({
             query: new GraphQLObjectType({
               name: 'Queries',
