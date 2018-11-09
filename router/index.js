@@ -5,6 +5,7 @@ import {
 } from 'graphql';
 // 引入 type 
 import {getTables,createField,createTable,getFields,updateFields,deleteFields,querySchme,query_grant} from '../controllers/structure'
+import { create_funs , delete_fun , update_fun , query_fun } from '../controllers/funs'
 import {login} from '../controllers/login'
 import {permissions} from '../controllers/user'
 import redis from '../config/redis'
@@ -34,12 +35,18 @@ router.get('/app/updateFields',updateFields);
 router.get('/app/deleteFields',deleteFields);
 router.get('/app/query_grant',query_grant);
 
+router.get('/app/query_funs',query_funs);
+router.get('/app/delete_funs',delete_funs);
+router.get('/app/delete_funs',delete_funs);
+router.get('/app/create_funs',create_funs);
+
 router.get('/login',login);
 
 
 router.get('/tt',function(){
   
-  addData('textx_info',{aihao:"tex1",pid:3})
+  redis.del('system'); 
+  redis.del('textx'); 
   // db.query("insert into textx_info (aihao,pid) values(?,?),(?,?)",["哈哈哈",1,"pupu",2])
 
 })
