@@ -95,6 +95,7 @@ class Grouphqlquery{
                 const tableName_project=_this.projectName+"_"+tableName
                 const setDatas=_this.toWhereSql1(tableName,'isupdate',params);
                 const _where=_this.toWhereSql1(tableName,'isupdateindex',params);
+                //过滤传过来为空的参数 ， 防止数据库以后数据制空
                 let filterData=[]
                 let filterValue=[]
                 for(let i=0;i<setDatas.values.length;i++){
@@ -104,8 +105,7 @@ class Grouphqlquery{
                     }
                 }
                 const sql ="UPDATE "+tableName_project+" SET "+filterData.join()+" WHERE "+_where.fields.join();
-                console.log(sql)
-                console.log([...filterValue,..._where.values])
+                
                 let res=await db.query(sql,[...filterValue,..._where.values]);
                 
                 return  _this.afterRunFun(params,tableName,res[0],root);
