@@ -156,19 +156,19 @@ class Field extends BaseModal{
             render:this.selectType
           },
           , {
-            title: '是否修改',
+            title: '修改参数',
             dataIndex: 'isupdate',
             render:(text, col, i)=>this.isYesOrNo(text,col,i,"isupdate")
           }, {
-            title: '删除索引',
+            title: '删除参数',
             dataIndex: 'isdeleteindex',
             render:(text, col, i)=>this.isYesOrNo(text,col,i,"isdeleteindex")
           }, {
-            title: '搜索索引',
+            title: '搜索参数',
             dataIndex: 'isqueryindex',
             render:(text, col, i)=>this.isYesOrNo(text,col,i,"isqueryindex")
           }, {
-            title: '修改索引',
+            title: '修改参数',
             dataIndex: 'isupdateindex',
             render:(text, col, i)=>this.isYesOrNo(text,col,i,"isupdateindex")
           }, {
