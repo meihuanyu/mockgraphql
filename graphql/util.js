@@ -4,7 +4,8 @@ import {
     GraphQLID,
     GraphQLList,
     GraphQLNonNull,
-    GraphQLInt
+    GraphQLInt,
+    GraphQLInputObjectType
   } from 'graphql';
   
 import db from '../config/database'
@@ -15,14 +16,16 @@ class Grouphqlquery{
         this.paramsObj={};
         this.tables=[];
         this.funs={}
+        this.args={}
         this.projectName=""
-        
+        this.query={}
+        this.mutation={}
         // return this.startSchema()
     }
     //params.type:single list delete create update
     beforRunFun(params,tableName,type){
         const obj= this.funs[tableName]
-        
+        console.log(this.query)
         if(obj[type] && obj[type].type==="befor"){
             return  require(`../functions/${tableName}/${obj[type].name}.js`)(params,tableName,type)
         }else{
@@ -54,31 +57,31 @@ class Grouphqlquery{
     }
     createRow(table){
         let _objectType= this.toObjectType(table,table+'create')
-        const args=this.toArgs(table)
+        const args=this.toArgs(table,'create')
         let _query= this.createRowOper(table,_objectType,args)
         return _query;
     }
     deleteRow(table){
         let _objectType= this.toObjectType(table,table+'delete')
-        const args=this.toArgs(table,'isdeleteindex')
+        const args=this.toArgs(table,'delete')
         let _query= this.deleteRowOper(table,_objectType,args)
         return _query;
     }
     updateRow(table){
         const _objectType= this.toObjectType(table,table+'update')
-        const args=this.toArgs(table,'isupdate')
+        const args=this.toArgs(table,'update')
         const _query= this.updateRowOper(table,_objectType,args)
         return _query;
     }
     getQueryList(table){
         let _objectType= this.toObjectType(table,table+'list')
-        const args=this.toArgs(table,'isqueryindex')
+        const args=this.toArgs(table,'list')
         let _query= this.queryTableOper(table,_objectType,args)
         return _query;
     }
     getSingleRow(table){
         let _objectType= this.toObjectType(table,table)
-        const args=this.toArgs(table,'isqueryindex')
+        const args=this.toArgs(table,'single')
         let _query= this.querySingleOper(table,_objectType,args)
         return _query
     }
@@ -134,6 +137,9 @@ class Grouphqlquery{
             async resolve(root,params,option){
                 params=await  _this.beforRunFun(params,tableName,root)
                 const res=await addData(_this.projectName+"_"+tableName,params)
+                
+                const gObjs=_this.paramsObj[tableName].map(item=>item.fieldtype==='graphqlObj')
+                
                 return _this.afterRunFun(params,tableName,{id:res.insertId},root);
             }
         }
@@ -238,40 +244,45 @@ class Grouphqlquery{
     //table 表名称
     //Indexes 验证Indexes索引 是否需要生产args参数 ps：如果参数为空 默认生成所有
     toArgs(table,Indexes){
-        const obj=this.paramsObj[table]
+        const obj=this.args[table]
+        if(!obj) return {}
         //默认带上id
         let  args={}
+        let _this=this
         for(var i=0;i<obj.length;i++){
-            let _fieldname=obj[i].fieldname
-            if(!Indexes || obj[i][Indexes] || obj[i][Indexes+'index']){
-                switch(obj[i].fieldtype){
+            let _name=obj[i].name
+            if(obj[i]['is'+Indexes]){
+                switch(obj[i].type){
                     case "id":
-                        args[_fieldname]={
-                                name:_fieldname,
+                        args[_name]={
+                                name:_name,
                                 type:new GraphQLNonNull(GraphQLID)
                             }
                         break;
                     case "varchar":
-                        args[_fieldname]={
-                                name:_fieldname,
+                        args[_name]={
+                                name:_name,
                                 type:table=="system"?new GraphQLList(GraphQLString):GraphQLString
                             }
                         break;
                     case "int":
-                        args[_fieldname]={
-                                name:_fieldname,
+                        args[_name]={
+                                name:_name,
                                 type:GraphQLInt
                             }
                         break;
                     case "graphqlObj":
-                        args[_fieldname]={
-                                name:_fieldname,
-                                type:GraphQLInt
+                        args[_name]={
+                                name:_name,
+                                type:new GraphQLInputObjectType({
+                                    name:_name+Indexes.split('is')[1].split('index')[0],
+                                    fields:_this.toArgs(obj[i].fieldrelationtablename,Indexes)
+                                })
                             }
                         break;
                     case "upload":
-                        args[_fieldname]={
-                                name:_fieldname,
+                        args[_name]={
+                                name:_name,
                                 type:GraphQLUpload
                             }
                         break;

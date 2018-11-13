@@ -182,22 +182,31 @@ export const querySchme=async function(apikey){
     const resProject=await db.query(queryProjectSql)
     let fields={};
     let tFuns={};
+    let tArgs={}
     let tablesql="";
+
     const projectName=apikey
     if(apikey=='system'){
         tablesql="select * from graphql_table";
     }else{
         tablesql="select * from graphql_table where projectid=0 or projectid="+resProject[0].id;
     }
-    console.log(tablesql)
     const tables=await db.query(tablesql);
     for(let i=0;i<tables.length;i++){
-        const tableName=tables[i].tablename.split(projectName+"_")[1]
+        const _name=tables[i].tablename
+        /** 用apikey 过滤表名    判断原始表o 过滤*/
+        const tableName=_name[0]+_name[1]=='o_'?_name.split("o_")[1]:_name.split(projectName+"_")[1]
+        
+        //查询对应的方法
         fields[tableName]=await db.query("select * from graphql_field where relationtableid="+tables[i].id)
         let fData=await db.query(`select alias,type,oper from system_function where tableid=${tables[i].id}`)
         tFuns[tableName]=fData
+
+        //查询对应的参数
+        tArgs[tableName]=await db.query('select * from system_arg where tableid=?',[tables[i].id])
     }
-    return {tFuns,fields,projectName};
+
+    return {tFuns,fields,projectName,tArgs};
 }
 
 const _createTable=async function(tablename,tableid){
@@ -222,20 +231,4 @@ const _addField = async function(field,type,tableid){
     }
     const sql="alter table "+tableName+" add "+field+" "+type+"("+num+");"
     return db.query(sql)
-}
-
-const toWhereSql=function(obj){
-    let tempArr=[]
-    const keys=Object.keys(obj)
-    for(let i=0; i<keys.length;i++){
-        if(keys[i]!='id' && keys[i]){
-            if(obj[keys[i]]*1==obj[keys[i]] || obj[keys[i]]=="null"){
-                tempArr.push(keys[i]+"="+obj[keys[i]])
-            }else{
-                tempArr.push(keys[i]+"='"+obj[keys[i]]+"'")
-            }
-        }
-    }
-
-    return tempArr.join(' , ')
 }
