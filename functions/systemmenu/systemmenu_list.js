@@ -2,7 +2,6 @@
 import md5 from 'md5'
 import db from '../../config/database'
 module.exports =async function(params,tableName,name,root){
-    console.log(root)
     const roleid=root.ctx.roleid
     const menu=await db.query("select * from d_menugrant where rid=?",[roleid])
     const ids=menu.map(item=>item.mid)
@@ -19,6 +18,5 @@ module.exports =async function(params,tableName,name,root){
         sql=`select * from system_systemmenu where parentid=${parentid}`
     }
     const res=await db.query(sql,values)
-    console.log(res)
     return res
 }
