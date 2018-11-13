@@ -1,8 +1,8 @@
 import gql from 'graphql-tag'
 
 export default gql`
-query permissionsList($roleid:Int){
-    permissionsList(roleid:$roleid) {
+query permissions_list($roleid:Int){
+    permissions_list(roleid:$roleid) {
         table_update
         table_add
         table_query

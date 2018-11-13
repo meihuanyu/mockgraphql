@@ -23,9 +23,9 @@ class Inject extends BaseModal{
      }
      componentWillMount=async ()=>{
          const {getPermissions,permissionsCreate,gData} =this.props
-         const {data:{permissionsList}}=await getPermissions.refetch()
+         const {data:{permissions_list}}=await getPermissions.refetch()
          if(true){
-            const data=JSON.parse(JSON.stringify(permissionsList))
+            const data=JSON.parse(JSON.stringify(permissions_list))
             this.setState({ 
                 tableData:data
             })
