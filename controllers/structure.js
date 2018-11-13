@@ -14,7 +14,7 @@ export const getTables = async function(ctx,next){
         }
         return false
     }
-    const sql='select id,tablename,descinfo from graphql_table where projectid='+project[0].id;
+    const sql='select id,tablename,descinfo from graphql_table where projectid=0 or projectid='+project[0].id;
     let res=await db.query(sql);
     for(let i=0;i<res.length;i++){
         res[i].tablename=res[i].tablename.split(res[i].tablename.split("_")[0]+"_")[1]
@@ -187,9 +187,9 @@ export const querySchme=async function(apikey){
     if(apikey=='system'){
         tablesql="select * from graphql_table";
     }else{
-        tablesql="select * from graphql_table where projectid="+resProject[0].id;
+        tablesql="select * from graphql_table where projectid=0 or projectid="+resProject[0].id;
     }
-    
+    console.log(tablesql)
     const tables=await db.query(tablesql);
     for(let i=0;i<tables.length;i++){
         const tableName=tables[i].tablename.split(projectName+"_")[1]
