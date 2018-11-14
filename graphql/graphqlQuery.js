@@ -68,7 +68,34 @@ class Grouphqlquery extends util{
             
         }
 
-        
+        this.mutation.testgg={
+          type:new GraphQLObjectType({
+            name:'testctype',
+            fields:{
+              aa:{
+                type:GraphQLString
+              },bb:{
+                type:GraphQLString
+              }
+            }
+          })  ,
+          args:{
+            ap:{
+              name:'ap',
+              type:new GraphQLList(new GraphQLInputObjectType({
+                name:"apxxx",
+                fields:{
+                  description: { type: GraphQLString }
+                }
+              }))
+            }
+          },
+          async resolve(root,params,option){
+              console.log(params)
+              return  {}
+          }
+      }
+
 
         return new GraphQLSchema({
             query: new GraphQLObjectType({
