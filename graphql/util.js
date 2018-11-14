@@ -14,7 +14,6 @@ import { GraphQLUpload } from 'apollo-upload-server'
 class Grouphqlquery{
     constructor (params){
         this.paramsObj={};
-        this.tables=[];
         this.funs={}
         this.args={}
         this.projectName=""
@@ -25,7 +24,6 @@ class Grouphqlquery{
     //params.type:single list delete create update
     beforRunFun(params,tableName,type){
         const obj= this.funs[tableName]
-        console.log(this.query)
         if(obj[type] && obj[type].type==="befor"){
             return  require(`../functions/${tableName}/${obj[type].name}.js`)(params,tableName,type)
         }else{
@@ -136,11 +134,47 @@ class Grouphqlquery{
             args:args,
             async resolve(root,params,option){
                 params=await  _this.beforRunFun(params,tableName,root)
-                const res=await addData(_this.projectName+"_"+tableName,params)
                 
-                const gObjs=_this.paramsObj[tableName].map(item=>item.fieldtype==='graphqlObj')
+                let resTable = {}
+                const argNames=_this.args[tableName].map(item=>item.name)
+                const gObjs= _this.paramsObj[tableName].filter(item=>{return item.fieldtype==='graphqlObj' && argNames.indexOf(item.fieldname)!==-1})
                 
-                return _this.afterRunFun(params,tableName,{id:res.insertId},root);
+                //判断表前缀
+                const realTableName=_this.projectName
+
+                for(let i=0; i<gObjs.length;i++){
+                    const cuurtName=gObjs[i].fieldrelationtablename
+                    //过滤出 create的方法
+                    const fun  = _this.funs[cuurtName].filter(item=>item.oper==='create')
+                    
+                    //目前不能指定 默认oper是唯一的 
+                    if(fun.length){
+                        //list有关联中间表
+                        if(gObjs[i].issingleorlist){
+                            resTable=await addData(realTableName+"_"+tableName,params)
+
+                            const {alias , type , oper} = fun[0]
+                            const funName=alias?alias:cuurtName+'_'+oper
+
+                            const resCur=await _this.mutation[funName].resolve(root,params[gObjs[i].fieldname])
+
+                            const transferTableName=realTableName+'_'+tableName+'_'+cuurtName
+                            db.query(`insert into ${transferTableName} (${tableName+'id'},${cuurtName+'id'})  values (?,?)`,[resTable.insertId,resCur.id])
+                        }else{
+                            const {alias , type , oper} = fun[0]
+                            const funName=alias?alias:cuurtName+'_'+oper
+                            const resCur=await _this.mutation[funName].resolve(root,params[gObjs[i].fieldname])
+                            params[cuurtName+'id'] = resCur.id
+                            resTable=await addData(realTableName+"_"+tableName,params)
+                        }
+                        
+                    }
+                }
+                if(!gObjs.length){
+                    resTable=await addData(realTableName+"_"+tableName,params)
+                }
+
+                return _this.afterRunFun(params,tableName,{id:resTable.insertId},root);
             }
         }
     }
@@ -168,6 +202,110 @@ class Grouphqlquery{
             }
         }
     }
+    /**
+     * 中间表关联删除
+     *
+     * @param {*} _issingleorlist
+     * @param {*} _RelationTableName
+     * @param {*} name
+     * @returns
+     * @memberof Grouphqlquery
+     */
+    deleteLinkResolve(_issingleorlist,_RelationTableName,name){
+        const _this=this;
+        let create_args={}
+        create_args[_RelationTableName+'id']={
+            name:_RelationTableName+'id',
+            type:GraphQLInt
+        }
+        return {
+            type:new GraphQLObjectType({
+                name:_RelationTableName+'_'+name,
+                fields:{
+                  id:{
+                    type:GraphQLInt
+                  }
+                }
+              })  ,
+              args:create_args,
+              async resolve(root,params,option){
+                  //返回
+                  let resObj={}
+                  //过滤出 create的方法
+                  const fun  = _this.funs[_RelationTableName].filter(item=>item.oper==='delete')
+
+                  if(fun[0]){
+                        const {alias , type , oper} = fun[0]
+                        const funName=alias?alias:_RelationTableName+'_'+oper  
+                        resObj=await _this.mutation[funName].resolve(root,params[_RelationTableName],option)
+                  }else{
+                      console.log('没有对应的方法'+_RelationTableName+"_delete")
+                      return {}
+                  }
+                  if(_issingleorlist){
+                        const middleTale=_this.projectName+"_"+name+"_"+_RelationTableName
+                        const delSql=`delete from ${middleTale} where ${_RelationTableName+'id'}=?`
+                        db.query(delSql)
+                    }else{
+                      
+                  }
+                  return resObj
+              }
+        }
+    }
+    createLinkResolve(_issingleorlist,_RelationTableName,name){
+        const _this=this;
+        let create_args={}
+        create_args[name+'id']={
+            name:name+'id',
+            type:GraphQLInt                    
+        }
+        create_args[_RelationTableName]={
+            name:name,
+            type:new GraphQLInputObjectType({
+                name:name+'_'+_RelationTableName,
+                fields:_this.toArgs(_RelationTableName,'create',name)
+            })
+        }
+                
+        return {
+            type:new GraphQLObjectType({
+                name:_RelationTableName+'id',
+                fields:{
+                  id:{
+                    type:GraphQLInt
+                  }
+                }
+              })  ,
+              args:create_args,
+              async resolve(root,params,option){
+                  //返回
+                  let resObj={}
+                  //过滤出 create的方法
+                  const fun  = _this.funs[_RelationTableName].filter(item=>item.oper==='create')
+
+                  if(fun[0]){
+                        const {alias , type , oper} = fun[0]
+                        const funName=alias?alias:_RelationTableName+'_'+oper  
+                        resObj=await _this.mutation[funName].resolve(root,params[_RelationTableName],option)
+                  }else{
+                      console.log('没有对应的方法'+_RelationTableName+"_create")
+                      return {}
+                  }
+                  if(_issingleorlist){
+                        const middleTale=_this.projectName+"_"+name+"_"+_RelationTableName
+                        const createMiddleSql= `insert into ${middleTale} (${name+'id'},${_RelationTableName+'id'}) values (${params[name+'id']},${resObj.id})`
+                        console.log(createMiddleSql)
+                        return await db.query(createMiddleSql);
+                  }else{
+                    const realTable=_this.projectName+"_"+name
+                    const updateSql= `update ${realTable} set ${_RelationTableName+'id'}=${resObj.id} where id=${params[name+'id']}`
+                    console.log(updateSql)
+                    return await db.query(updateSql);
+                  }
+              }
+        }
+    }
     /*
     * name 在 graphqlObj里是上一层的表名称
     */ 
@@ -179,16 +317,33 @@ class Grouphqlquery{
                 const _this=this;
 
                 const _fieldname=table[i].fieldname
+                //是否是多表
                 const _issingleorlist=table[i].issingleorlist
-                //查询tablename
+                //项目名_关联表名
                 const projectName_RelationTable=this.projectName+"_"+table[i].fieldrelationtablename
+                //关联表名
                 const _RelationTableName=table[i].fieldrelationtablename;
-                
+                //根据关联表名 去找对应的type
                 let _type=this.toObjectType(_RelationTableName,type+_RelationTableName);
+                //根据多表判断 是list还是 deatil
                 _type=_issingleorlist?new GraphQLList(_type):_type;
+
+
+                /**
+                 * 在此生成关联表的craete 和 delete
+                 */
+                
+                this.mutation[`add_${_RelationTableName}_link_${name}`]=this.createLinkResolve(_issingleorlist,_RelationTableName,name)
+                this.mutation[`del_${_RelationTableName}_link_${name}`]=this.deleteLinkResolve(_issingleorlist,_RelationTableName,name)
+
+                 /**
+                 * 在此生成关联表的craete 和 delete   end
+                 */
+
                 fields[_fieldname]={
                     type:_type,
                     resolve:async function(thisItem){
+                        //中转表查询
                         if(_issingleorlist){
                             const middleTale=_this.projectName+"_"+name+"_"+_RelationTableName
                             const queryMiddleSql="select "+(_RelationTableName+"id")+" from "+middleTale+" where "+(name+"id")+"="+thisItem.id
@@ -240,12 +395,19 @@ class Grouphqlquery{
         }
         return args
     }
-    //通用 转换arg
-    //table 表名称
-    //Indexes 验证Indexes索引 是否需要生产args参数 ps：如果参数为空 默认生成所有
-    toArgs(table,Indexes){
+    /**
+     *通用 生成arg
+     *
+     * @param {String} table    表名称
+     * @param {String} Indexes  参数类型过滤
+     * @param {String} tempName 如果是graphql 递归下去的名称
+     * @returns {}
+     * @memberof Grouphqlquery
+     */
+    toArgs(table,Indexes,tempName){
         const obj=this.args[table]
         if(!obj) return {}
+        
         //默认带上id
         let  args={}
         let _this=this
@@ -272,11 +434,12 @@ class Grouphqlquery{
                             }
                         break;
                     case "graphqlObj":
+                        const typeName=tempName?tempName+'_'+_name:_name
                         args[_name]={
-                                name:_name,
+                                name:obj[i].relationtablename,
                                 type:new GraphQLInputObjectType({
-                                    name:_name+Indexes.split('is')[1].split('index')[0],
-                                    fields:_this.toArgs(obj[i].fieldrelationtablename,Indexes)
+                                    name:typeName,
+                                    fields:_this.toArgs(obj[i].relationtablename,Indexes,typeName)
                                 })
                             }
                         break;
@@ -291,7 +454,14 @@ class Grouphqlquery{
         }
         return args
     }
-
+    getRelationTable(table,name){
+        let fields={}
+        for(let i=0;i<this.paramsObj[table].length;i++){
+            
+            fields[this.paramsObj[table][i].fieldname]=this.paramsObj[table][i]
+        }
+        return fields[name]
+    }
     toSql(type,params,tableName){
         let sql=""
         const tableName_project=tableName
