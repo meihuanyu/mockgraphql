@@ -10,3 +10,6 @@
      isnew       1 mation 2 query
      isOn        是否开启
      alias       别名
+
+# 短期计划
+## 默认user表  默认的一些借口 jwt的登录方式
