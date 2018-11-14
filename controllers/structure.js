@@ -14,7 +14,7 @@ export const getTables = async function(ctx,next){
         }
         return false
     }
-    const sql='select id,tablename,descinfo from graphql_table where projectid=0 or projectid='+project[0].id;
+    const sql='select id,tablename,descinfo from graphql_table where  projectid='+project[0].id;
     let res=await db.query(sql);
     for(let i=0;i<res.length;i++){
         res[i].tablename=res[i].tablename.split(res[i].tablename.split("_")[0]+"_")[1]
@@ -184,29 +184,33 @@ export const querySchme=async function(apikey){
     let tFuns={};
     let tArgs={}
     let tablesql="";
-
+    let tables={}
     const projectName=apikey
     if(apikey=='system'){
         tablesql="select * from graphql_table";
     }else{
-        tablesql="select * from graphql_table where projectid=0 or projectid="+resProject[0].id;
+        tablesql="select * from graphql_table where projectid="+resProject[0].id;
     }
-    const tables=await db.query(tablesql);
-    for(let i=0;i<tables.length;i++){
-        const _name=tables[i].tablename
-        /** 用apikey 过滤表名    判断原始表o 过滤*/
-        const tableName=_name[0]+_name[1]=='o_'?_name.split("o_")[1]:_name.split(projectName+"_")[1]
+    const tableData=await db.query(tablesql);
+    for(let i=0;i<tableData.length;i++){
+        const _name=tableData[i].tablename
+        /** 用apikey 过滤表名   */
+        const tableName=_name.split(projectName+"_")[1]
+        
+        //查询对应的字段
+        fields[tableName]=await db.query("select * from graphql_field where relationtableid="+tableData[i].id)
         
         //查询对应的方法
-        fields[tableName]=await db.query("select * from graphql_field where relationtableid="+tables[i].id)
-        let fData=await db.query(`select alias,type,oper from system_function where tableid=${tables[i].id}`)
-        tFuns[tableName]=fData
+        tFuns[tableName]=await db.query(`select alias,type,oper from system_function where tableid=${tableData[i].id}`)
 
         //查询对应的参数
-        tArgs[tableName]=await db.query('select * from system_arg where tableid=?',[tables[i].id])
+        tArgs[tableName]=await db.query('select * from system_arg where tableid=?',[tableData[i].id])
+
+        //对应表格
+        tables[tableName] = tableData[i]
     }
 
-    return {tFuns,fields,projectName,tArgs};
+    return {tFuns,fields,projectName,tArgs,tables};
 }
 
 const _createTable=async function(tablename,tableid){
