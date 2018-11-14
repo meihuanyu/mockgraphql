@@ -20,17 +20,24 @@ export const addData = async function(table_name,object){
     }else{
         let temp_zw=[]
         for(let key in object){
-            values.push(object[key])
-            temp_zw.push("?")
+            if(typeof(object[key])!=='object'){
+                values.push(object[key])
+                temp_zw.push("?")
+                attributes.push(key)
+            }
         }
         zhanwei.push("("+temp_zw.join()+")")
-        attributes=Object.keys(object)
     }
     const sql = "INSERT INTO " + table_name + " (" + attributes.join(',') + ") " + "VALUES "+zhanwei.join()
     console.log(sql)
     console.log(values)
-    let res = await db.query(sql,values);
-    return res
+    try {
+        let res = await db.query(sql,values);
+        return res
+    } catch (error) {
+        console.error(error)
+        return {}
+    }
 }
 
 //删
