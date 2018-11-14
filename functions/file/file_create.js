@@ -9,8 +9,8 @@ module.exports =async function(params,tableName,root){
     const { createReadStream, filename, mimetype, capacitor } = _file
     const stream = createReadStream()
     const { id, path } = await storeFS({ stream, filename })
-    
-    return {id, path,filename,capacitor.bytesWritten}
+    console.log({id, path,filename})
+    return {id, path,filename}
 }
 const UPLOAD_DIR = './uploads'
 
