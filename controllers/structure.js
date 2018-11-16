@@ -228,8 +228,10 @@ export const querySchme=async function(apikey){
         tComFuns[api_name] = commonFunArr[i]
     }
     //查询对应的参数
-    const argsArr = await db.query('select * from system_arg where '+orToSql(tIds,'tableid'))
-    let _argsObj = arrToObj(argsArr,'tableid')
+    const argsArr = await db.query(`select  a.*,t.tablename relationtablename from system_arg a left join graphql_table t on a.relationid=t.id where (${orToSql(tIds,'a.tableid')})`)
+    let _argsObj = arrToObj(argsArr.map(item=>{
+        item.relationtablename=item.relationtablename?item.relationtablename.split(projectName+"_")[1]:"";
+        return item}),'tableid')
 
     for(let i=0;i<tableData.length;i++){
         const _name=tableData[i].tablename
