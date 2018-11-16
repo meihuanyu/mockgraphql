@@ -1,12 +1,17 @@
 import db from '../config/database'
 import {addData} from '../controllers/sql'
+var jwt = require('jsonwebtoken');
+
 export const getTables = async function(ctx,next){
-    const usertoken=ctx.header.authorization
-    const user =await db.query('select id from system_user where token="'+usertoken+'"')
-    if(!user[0].id){
-        ctx.status=401
+    const token=ctx.header.authorization
+    var decoded 
+    try {
+        decoded = jwt.verify(token, '123qwe');
+    } catch(err) {
+          ctx.status=401
+          return false
     }
-    const project=await db.query('select * from system_project where userid='+user[0].id)
+    const project=await db.query('select * from system_project where userid='+decoded.id)
     if(!project[0]){
         ctx.body={
             success:true,

@@ -13,16 +13,18 @@ import db from '../config/database'
 import {addData} from '../controllers/sql'
 import graphqlQuery from '../graphql/graphqlQuery';
 import { apolloUploadKoa } from 'apollo-upload-server'
-
+var jwt = require('jsonwebtoken');
 const router = require('koa-router')()
 async function isLogin(ctx,next){
-  const usertoken=ctx.header.authorization
-  const user =await db.query('select * from system_user where token="'+usertoken+'"')
-  if(!user[0] || !user[0].roleid){
+  const token=ctx.header.authorization
+  try {
+    var decoded = jwt.verify(token, '123qwe');
+  } catch(err) {
       ctx.status=401
+      return false
   }
-  ctx.roleid=user[0]?user[0].roleid:""
-  ctx.user=user
+  ctx.roleid=decoded.roleid
+  ctx.user=decoded
   await next()
 }
 
@@ -47,26 +49,13 @@ router.get('/tt',function(){
   
   redis.del('system'); 
   redis.del('textx'); 
-  // db.query("insert into textx_info (aihao,pid) values(?,?),(?,?)",["哈哈哈",1,"pupu",2])
 
 })
-router.get('/aa',async (ctx)=>{
-  const usertoken=ctx.header.authorization
-  const user =await db.query('select id from system_user where token="'+usertoken+'"')
-  if(!user[0].id){
-      ctx.status=401
-  }
-  const project=await db.query('select * from system_project where userid='+user[0].id)
-  const apis=project.map(item=>item.apikey)
-  redis.del(apis); 
-  ctx.body={
-    success:true
-  }
-});
-
 // router.use('/graphql',permissions)
-// 加入上传中间件
+
+
 router.use('/graphql',isLogin)
+// 上传中间件
 .use(apolloUploadKoa({ maxFileSize: 10000000, maxFiles: 10 }))
 
 router.post('/graphql/:apikey', async (ctx, next,xx) => {
