@@ -41,7 +41,7 @@ export const query_grant= async function(ctx,query){
     }
 }
 export const getFields = async function(ctx,next){
-    const sql='select * from graphql_field where relationtableid='+ctx.query.id;
+    const sql='select f.*,t.tablename fieldrelationtablename from graphql_field f left join graphql_table t on f.graprelationid=t.id  where relationtableid='+ctx.query.id;
     const res=await db.query(sql);
     if(res){
         ctx.body={
@@ -201,7 +201,7 @@ export const querySchme=async function(apikey){
     const tIds = tableData.map(item=>item.id)
 
     //查询对应的字段  转换成对象 id:[{},{}]
-    const fieldsArr=await db.query("select * from graphql_field where "+orToSql(tIds,'relationtableid'))
+    const fieldsArr=await db.query("select f.*,t.tablename fieldrelationtablename from graphql_field f left join graphql_table t on f.graprelationid=t.id where "+orToSql(tIds,'f.relationtableid'))
     let  _fieldsObj = arrToObj(fieldsArr,'relationtableid')
 
     //查询对应的方法
