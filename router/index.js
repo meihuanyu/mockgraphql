@@ -6,6 +6,7 @@ import {
 // 引入 type 
 import {getTables,createField,createTable,getFields,updateFields,deleteFields,querySchme,query_grant} from '../controllers/structure'
 import { create_funs , delete_funs , update_funs , query_funs } from '../controllers/funs'
+import { create_args , delete_args , update_args , query_args ,import_args} from '../controllers/args'
 import {login} from '../controllers/login'
 import {permissions} from '../controllers/user'
 import redis from '../config/redis'
@@ -41,6 +42,12 @@ router.get('/app/query_funs',query_funs);
 router.get('/app/delete_funs',delete_funs);
 router.get('/app/update_funs',update_funs);
 router.get('/app/create_funs',create_funs);
+
+router.get('/app/query_args',query_args);
+router.get('/app/delete_args',delete_args);
+router.get('/app/update_args',update_args);
+router.get('/app/create_args',create_args);
+router.get('/app/import_args',import_args);
 
 router.get('/login',login);
 
