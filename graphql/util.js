@@ -16,26 +16,41 @@ class Grouphqlquery{
         this.paramsObj={};
         this.funs={}
         this.args={}
+        this.tComFuns={}
         this.projectName=""
         this.query={}
         this.mutation={}
         // return this.startSchema()
     }
-    //params.type:single list delete create update
-    beforRunFun(params,tableName,type){
-        const obj= this.funs[tableName]
-        if(obj[type] && obj[type].type==="befor"){
-            return  require(`../functions/${tableName}/${obj[type].name}.js`)(params,tableName,type)
-        }else{
-            return params
-        }
-        
+    clearRequire(_path){
+        var path = require('path');
+        var pwd = path.resolve();
+        pwd += _path;
+        delete require.cache[pwd]; 
     }
-    afterRunFun(params,tableName,res,type){
-        const obj= this.funs[tableName]
-        if(obj[type] && obj[type].type==="after" ){
-            const _res=require(`../functions/${tableName}/${obj[type].name}.js`)(params,tableName,type,res)
-            return _res
+    //params.type:single list delete create update
+    async beforRunFun(params,tableName,type,api){
+        const obj= this.funs
+        const comObj = this.tComFuns
+        if(comObj[api] && comObj[api].type=='befor'){
+            //刷新 require的缓存
+            this.clearRequire("\\commonFun\\" +comObj[api].funName+ ".js")
+            params =  await require(`../commonFun/${comObj[api].funName}.js`)(params,tableName,type)
+        }
+        if(obj[api] && obj[api]==="befor"){
+            params =  await require(`../functions/${tableName}/${api}.js`)(params,tableName,type)
+        }
+        return params
+    }
+    async afterRunFun(params,tableName,res,type,api){
+        const obj= this.funs
+        const comObj = this.tComFuns
+        if(comObj[api] && comObj[api].type=='after'){
+            res =  await require(`../commonFun/${api}.js`)(params,tableName,type,res)
+        }
+        if(obj[api] && obj[api].type==="after" ){
+            res=await require(`../functions/${tableName}/${api}.js`)(params,tableName,type,res)
+
         }else{
             let delete_keys=[]
             for(let key in this.paramsObj[tableName]){
@@ -53,46 +68,46 @@ class Grouphqlquery{
             return res
         }
     }
-    createRow(table){
+    createRow(table,api){
         let _objectType= this.toObjectType(table,table+'create')
         const args=this.toArgs(table,'create')
-        let _query= this.createRowOper(table,_objectType,args)
+        let _query= this.createRowOper(table,_objectType,args,api)
         return _query;
     }
-    deleteRow(table){
+    deleteRow(table,api){
         let _objectType= this.toObjectType(table,table+'delete')
         const args=this.toArgs(table,'delete')
-        let _query= this.deleteRowOper(table,_objectType,args)
+        let _query= this.deleteRowOper(table,_objectType,args,api)
         return _query;
     }
-    updateRow(table){
+    updateRow(table,api){
         const _objectType= this.toObjectType(table,table+'update')
         const args=this.toArgs(table,'update')
-        const _query= this.updateRowOper(table,_objectType,args)
+        const _query= this.updateRowOper(table,_objectType,args,api)
         return _query;
     }
-    getQueryList(table){
+    getQueryList(table,api){
         let _objectType= this.toObjectType(table,table+'list')
         const args=this.toArgs(table,'list')
-        let _query= this.queryTableOper(table,_objectType,args)
+        let _query= this.queryTableOper(table,_objectType,args,api)
         return _query;
     }
-    getSingleRow(table){
+    getSingleRow(table,api){
         let _objectType= this.toObjectType(table,table)
         const args=this.toArgs(table,'single')
-        let _query= this.querySingleOper(table,_objectType,args)
+        let _query= this.querySingleOper(table,_objectType,args,api)
         return _query
     }
 
     
     
-    updateRowOper(tableName,Type,args){
+    updateRowOper(tableName,Type,args,api){
         const _this=this
         return {
             type:Type,
             args:args,
             async resolve(root,params,option){
-                params=await _this.beforRunFun(params,tableName,root)
+                params=await _this.beforRunFun(params,tableName,root,api)
                 const tableName_project=_this.projectName+"_"+tableName
                 const setDatas=_this.toWhereSql1(tableName,'isupdate',params);
                 const _where=_this.toWhereSql1(tableName,'isupdateindex',params);
@@ -113,27 +128,27 @@ class Grouphqlquery{
             }
         }
     }
-    deleteRowOper(tableName,Type,args){
+    deleteRowOper(tableName,Type,args,api){
         const _this=this;
         return {
             type:Type,
             args:args,
             async resolve(root,params,option){
-                params=await _this.beforRunFun(params,tableName,root)
+                params=await _this.beforRunFun(params,tableName,root,api)
                 const sql=_this.toSql('delete',params,tableName)
                 let res=await db.query(sql);
                 
-                return _this.afterRunFun(params,tableName,res[0],root);
+                return _this.afterRunFun(params,tableName,res[0],root,api);
             }
         }
     }
-    createRowOper(tableName,Type,args){
+    createRowOper(tableName,Type,args,api){
         const _this=this;
         return {
             type:Type,
             args:args,
             async resolve(root,params,option){
-                params=await  _this.beforRunFun(params,tableName,root)
+                params=await  _this.beforRunFun(params,tableName,root,api)
                 
                 let resTable = {}
                 const argNames=_this.args[tableName].map(item=>item.name)
@@ -174,31 +189,31 @@ class Grouphqlquery{
                     resTable=await addData(realTableName+"_"+tableName,params)
                 }
 
-                return _this.afterRunFun(params,tableName,{id:resTable.insertId},root);
+                return _this.afterRunFun(params,tableName,{id:resTable.insertId},root,api);
             }
         }
     }
-    queryTableOper(tableName,Type,args){
+    queryTableOper(tableName,Type,args,api){
         let _this=this;
         return {
             type:new GraphQLList(Type),
             args:args,
             async resolve(root,params,option){
-                params=await  _this.beforRunFun(params,tableName,root)
+                params=await  _this.beforRunFun(params,tableName,root,api)
                 const sql=_this.toSql('query',params,tableName)
                 const res=db.query(sql)                
-                return  _this.afterRunFun(params,tableName,res,root);
+                return  _this.afterRunFun(params,tableName,res,root,api);
             }
         }
     }
-    querySingleOper(tableName,Type,args){
+    querySingleOper(tableName,Type,args,api){
         let _this=this;
         return {
             type:Type,
             args:args,
             async resolve(root,params,option){
-                params=await _this.beforRunFun(params,tableName,root)
-                return _this.afterRunFun(params,tableName,res[0],root);
+                params=await _this.beforRunFun(params,tableName,root,api)
+                return _this.afterRunFun(params,tableName,res[0],root,api);
             }
         }
     }
