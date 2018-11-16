@@ -178,7 +178,6 @@ export const createTable=async function(ctx,next){
     }
 }
 export const querySchme=async function(apikey){
-    console.log(new Date().getTime())
     const queryProjectSql="select * from system_project where apikey='"+apikey+"'"
     const resProject=await db.query(queryProjectSql)
     let fields={};
@@ -186,6 +185,7 @@ export const querySchme=async function(apikey){
     let tArgs={}
     let tablesql="";
     let tables={}
+    let tComFuns={}
     const projectName=apikey
     if(apikey=='system'){
         tablesql="select * from graphql_table";
@@ -198,9 +198,30 @@ export const querySchme=async function(apikey){
     //查询对应的字段  转换成对象 id:[{},{}]
     const fieldsArr=await db.query("select * from graphql_field where "+orToSql(tIds,'relationtableid'))
     let  _fieldsObj = arrToObj(fieldsArr,'relationtableid')
+
     //查询对应的方法
-    const funsArr = await db.query(`select alias,type,oper,tableid from system_function where `+orToSql(tIds,'tableid'))
-    let _funsObj = arrToObj(funsArr,'tableid')
+    const funsArr = await db.query(`select id,alias,type,oper,tableid from system_function where `+orToSql(tIds,'tableid'))   
+    for(let i=0; i<funsArr.length;i++){
+        const {oper,alias,tableid} = funsArr[i]
+        const index = tIds.indexOf(tableid)
+        const tableName = tableData[index].tablename.split(projectName+"_")[1]
+        if(!tableName){ continue}
+        const api_name=alias?alias:tableName+'_'+oper
+        funsArr[i].tablename=tableName
+        tFuns[api_name] = funsArr[i]
+    }
+    //查询对应公共方法
+    const fIds = funsArr.map(item=>item.id)
+    const commonFunArr = await db.query(`SELECT mf.id,mf.dcription,mf.funName,mf.type,cf.oper,cf.alias,cf.tableid FROM  system_common_function mf,system_common_link_fun clf,system_function cf  where clf.id=mf.id and clf.fid=cf.id and (${orToSql(fIds,'cf.id')})`)
+    for(let i=0; i < commonFunArr.length;i++){
+        const {oper,alias,tableid} = commonFunArr[i]
+        const index = tIds.indexOf(tableid)
+        const tableName = tableData[index].tablename.split(projectName+"_")[1]
+        if(!tableName){ continue}
+        const api_name=alias?alias:tableName+'_'+oper
+        commonFunArr[i].tablename=tableName
+        tComFuns[api_name] = commonFunArr[i]
+    }
     //查询对应的参数
     const argsArr = await db.query('select * from system_arg where '+orToSql(tIds,'tableid'))
     let _argsObj = arrToObj(argsArr,'tableid')
@@ -213,18 +234,14 @@ export const querySchme=async function(apikey){
 
         //对应的字段
         fields[tableName]=_fieldsObj[_id]
-        
-        //查询对应的方法
-        tFuns[tableName]=_funsObj[_id]
 
-        //查询对应的参数
+        //对应的参数
         tArgs[tableName]=_argsObj[_id]
 
         //对应表格
         tables[tableName] = tableData[i]
     }
-    console.log(new Date().getTime())
-    return {tFuns,fields,projectName,tArgs,tables};
+    return {tFuns,fields,projectName,tArgs,tables,tComFuns};
 }
 // 数组转对象数组 以arr的一个对象内的key 为最终返回的key
 const arrToObj = function (arr,key){

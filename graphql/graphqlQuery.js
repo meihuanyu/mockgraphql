@@ -24,50 +24,39 @@ class Grouphqlquery extends util{
         }
     }
     async startSchema (data){
-        const resData=data.fields;
-        this.paramsObj=resData;
+        this.paramsObj=data.fields;
         this.funs=data.tFuns;
+        this.tComFuns=data.tComFuns;
         this.projectName=data.projectName
         this.args=data.tArgs
-        this.tables=Object.keys(resData);
-        for(let i=0;i<this.tables.length;i++){
-            const currKey=this.tables[i]
+        const funNames = Object.keys(this.funs)
+        for(let i=0;i<funNames.length;i++){
+            const {oper,type,tablename} = this.funs[funNames[i]]
+            const api_name=funNames[i]
+            if(type == 'original'){
+              if(oper==='list'){
+                this.query[api_name] =  this.getQueryList(tablename,api_name)
 
-            //创建新的api
-            const tFun=this.funs[currKey]
-            
-            for(let i=0;i<tFun.length;i++){
-              const {oper,alias,type} = tFun[i]
-              
-              const api_name=alias?alias:currKey+'_'+oper
-              if(type == 'original'){
-                if(oper==='list'){
-                  this.query[api_name] =  this.getQueryList(currKey)
-  
-                }else if(oper==='single'){
-                  this.query[api_name] =  this.getSingleRow(currKey)
-  
-                }else if(oper==='create'){
-                  this.mutation[api_name] =  this.createRow(currKey)   
-  
-                }else if(oper==='delete'){
-                  this.mutation[api_name] =  this.deleteRow(currKey)   
-  
-                }else if(oper==='update'){
-                  this.mutation[api_name] =  this.updateRow(currKey)   
-                }
-              }else if(type == 'new'){
-                if(oper === 'list' || oper === 'single'){
-                  this.query[api_name]=this.newApi(currKey,api_name,oper)
-                }else{
-                  this.mutation[api_name]=this.newApi(currKey,api_name,oper)
-                }
+              }else if(oper==='single'){
+                this.query[api_name] =  this.getSingleRow(tablename,api_name)
+
+              }else if(oper==='create'){
+                this.mutation[api_name] =  this.createRow(tablename,api_name)  
+
+              }else if(oper==='delete'){
+                this.mutation[api_name] =  this.deleteRow(tablename,api_name)  
+
+              }else if(oper==='update'){
+                this.mutation[api_name] =  this.updateRow(tablename,api_name)  
               }
-              
+            }else if(type == 'new'){
+              if(oper === 'list' || oper === 'single'){
+                this.query[api_name]=this.newApi(tablename,api_name,oper)
+              }else{
+                this.mutation[api_name]=this.newApi(tablename,api_name,oper)
+              }
             }
-            
         }
-
         this.mutation.testgg={
           type:new GraphQLObjectType({
             name:'testctype',
