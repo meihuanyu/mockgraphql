@@ -59,12 +59,14 @@ export const deleteData = async function(table_name,where = '1=1',type = 'data')
 export const updateData = async function(table_name,object,where = '1=1'){
     var newAtts = []
     for (var i in object) {
-        if(typeof(object[i])=='string'){
-            object[i] = "'" + object[i] + "'"
+        if(i!=='id' && object[i]!=="null"){
+            if(typeof(object[i])=='string'){
+                object[i] = "'" + object[i] + "'"
+            }
+            newAtts.push(i + "=" + object[i]); //属性
         }
-        newAtts.push(i + "=" + object[i]); //属性
     }
-    const sql ="UPDATE " + table_name + " SET " + newAtts.join(',') + "WHERE " + where;
+    const sql ="UPDATE " + table_name + " SET " + newAtts.join(',') + " WHERE " + where;
     let res=await db.query(sql);
     return res
 }
