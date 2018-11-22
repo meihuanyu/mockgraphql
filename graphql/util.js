@@ -9,7 +9,7 @@ import {
   } from 'graphql';
   
 import db from '../config/database'
-import {addData} from '../controllers/sql'
+import {addData , updateData} from '../controllers/sql'
 import { GraphQLUpload } from 'apollo-upload-server'
 class Grouphqlquery{
     constructor (params){
@@ -109,21 +109,9 @@ class Grouphqlquery{
             async resolve(root,params,option){
                 params=await _this.beforRunFun(params,tableName,root,api)
                 const tableName_project=_this.projectName+"_"+tableName
-                const setDatas=_this.toWhereSql1(tableName,'isupdate',params);
-                const _where=_this.toWhereSql1(tableName,'isupdateindex',params);
-                //过滤传过来为空的参数 ， 防止数据库以后数据制空
-                let filterData=[]
-                let filterValue=[]
-                for(let i=0;i<setDatas.values.length;i++){
-                    if(setDatas.values[i]){
-                        filterData.push(setDatas.fields[i])
-                        filterValue.push(setDatas.values[i])
-                    }
-                }
-                const sql ="UPDATE "+tableName_project+" SET "+filterData.join()+" WHERE "+_where.fields.join();
-                
-                let res=await db.query(sql,[...filterValue,..._where.values]);
-                
+                const ids = _this.args[tableName].filter(item=>item.isindex)
+                const whereIndexSql = ids.map(item=>` ${item.name}=${params[item.name]} `)
+                let res=await updateData(tableName_project,params,whereIndexSql.join('and'))                
                 return  _this.afterRunFun(params,tableName,res[0],root);
             }
         }
