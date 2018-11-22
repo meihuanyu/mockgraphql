@@ -158,6 +158,11 @@ class UpdateFun extends BaseModal{
             render:(text, col, i)=>this.isYesOrNo(text, col, i,'islist')
           }, 
           {
+            title: '索引',
+            dataIndex: 'isindex',
+            render:(text, col, i)=>this.isYesOrNo(text, col, i,'isindex')
+          }, 
+          {
             title: '类型',
             dataIndex: 'type',
             render:(text, col, i)=>this.selectType(text, col, i,'type')
