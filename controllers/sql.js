@@ -59,6 +59,7 @@ export const deleteData = async function(table_name,where = '1=1',type = 'data')
 export const updateData = async function(table_name,object,where = '1=1'){
     var newAtts = []
     for (var i in object) {
+        //临时措施
         if(i!=='id' && object[i]!=="null"){
             if(typeof(object[i])=='string'){
                 object[i] = "'" + object[i] + "'"
