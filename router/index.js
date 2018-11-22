@@ -5,8 +5,9 @@ import {
 } from 'graphql';
 // 引入 type 
 import {getTables,createField,createTable,getFields,updateFields,deleteFields,querySchme,query_grant} from '../controllers/structure'
-import { create_funs , delete_funs , update_funs , query_funs } from '../controllers/funs'
+import { create_funs , delete_funs , update_funs , query_funs ,query_project_funs} from '../controllers/funs'
 import { create_args , delete_args , update_args , query_args ,import_args} from '../controllers/args'
+import { create_comArgs , delete_comArgs , update_comArgs , query_comArgs,query_comArgsLinkFunction,delete_linkComArgs,create_link_com} from '../controllers/comArgs'
 import {login} from '../controllers/login'
 import {permissions} from '../controllers/user'
 import redis from '../config/redis'
@@ -18,6 +19,9 @@ var jwt = require('jsonwebtoken');
 const router = require('koa-router')()
 async function isLogin(ctx,next){
   const token=ctx.header.authorization
+  // if(ctx._matchedRoute=='/graphql/:apikey'){
+  //   await next()
+  // }
   try {
     var decoded = jwt.verify(token, '123qwe');
   } catch(err) {
@@ -48,6 +52,15 @@ router.get('/app/delete_args',delete_args);
 router.get('/app/update_args',update_args);
 router.get('/app/create_args',create_args);
 router.get('/app/import_args',import_args);
+router.get('/app/query_project_funs',query_project_funs);
+
+router.get('/app/query_comArgs',query_comArgs);
+router.get('/app/delete_comArgs',delete_comArgs);
+router.get('/app/update_comArgs',update_comArgs);
+router.get('/app/create_comArgs',create_comArgs);
+router.get('/app/query_comArgsLinkFunction',query_comArgsLinkFunction);
+router.get('/app/delete_linkComArgs',delete_linkComArgs);
+router.get('/app/create_link_com',create_link_com);
 
 router.get('/login',login);
 
