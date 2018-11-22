@@ -2,7 +2,7 @@ import BaseModal from '../../common/BaseModal'
 import React from 'react'
 import { Form, Input} from 'antd';
 import {  graphql, compose } from 'react-apollo'
-import systemmenuCreate from '../../graphql/systemmenuCreate'
+import systemmenu_create from '../../graphql/systemmenu_create'
 import systemmenu_update from '../../graphql/systemmenu_update'
 
 
@@ -10,7 +10,7 @@ const FormItem = Form.Item;
 class CreateMenu extends BaseModal{
     modalProps={
       onOk:()=>{
-        const {systemmenuCreate,dataSource,gData,systemmenu_update} = this.props
+        const {systemmenu_create,dataSource,gData,systemmenu_update} = this.props
         
         this.props.form.validateFields(async (err, values) => {
           if (!err) {
@@ -24,7 +24,7 @@ class CreateMenu extends BaseModal{
                 })
             }else{
                 values.parentid=gData.length?gData[0].id:'0';
-                await systemmenuCreate({
+                await systemmenu_create({
                     variables:{
                       ...values
                     }
@@ -90,7 +90,7 @@ class CreateMenu extends BaseModal{
     }
 }
 export default compose(
-  graphql(systemmenuCreate,{name:'systemmenuCreate'}),
+  graphql(systemmenu_create,{name:'systemmenu_create'}),
   graphql(systemmenu_update,{name:'systemmenu_update'})
 
   
