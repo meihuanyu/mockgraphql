@@ -1,7 +1,8 @@
 import React from 'react'
 import { Form, Icon, Input, Button, Radio, message, Spin} from 'antd';
 import cfetch from '../util/cFetch'
-import ApolloClient from '../ApolloClient'
+import {  graphql, compose } from 'react-apollo'
+import  login from '../graphql/login'
 const FormItem = Form.Item;
 
 class Login extends React.Component{
@@ -14,12 +15,13 @@ class Login extends React.Component{
         e.preventDefault();
         this.props.form.validateFields(async (err, values) => {
             if (!err) {
-                let response=await cfetch('/api/login',{params:values})
-                if(response.success){
+                let response= await this.props.login({variables:values})
+                debugger
+                if(response.token){
                     localStorage.token=response.token
                     localStorage.username=response.username
                     localStorage.id=response.id
-                    window.location.href="/web"
+                    // window.location.href="/web"
                 }
             }
         });
@@ -51,4 +53,7 @@ class Login extends React.Component{
             </div>
     }
 }
-export default Form.create()(Login) 
+const LoginForm = Form.create()(Login)
+export default compose(
+    graphql(login,{name:"login"})
+)(LoginForm);
