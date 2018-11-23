@@ -19,21 +19,26 @@ class Grouphqlquery extends util{
           type:oper==='list'?new GraphQLList(_objectType):_objectType,
           args:args,
           async resolve(root,params,option){
-              return require(`../functions/${table}/${name}.js`)(params,table,oper,root)
+              if(name){
+                return require(`../commonFun/${name}.js`)(params,table,oper,root)
+              }else{
+                return ()=>{}
+              }
+              
           }
         }
     }
     async startSchema (data){
+        console.log(data)
         this.paramsObj=data.fields;
         this.funs=data.tFuns;
-        this.tComFuns=data.tComFuns;
         this.projectName=data.projectName
         this.args=data.tArgs
         const funNames = Object.keys(this.funs)
         for(let i=0;i<funNames.length;i++){
-            const {oper,type,tablename} = this.funs[funNames[i]]
+            const {oper,isNew,tablename,newFunction} = this.funs[funNames[i]]
             const api_name=funNames[i]
-            if(type == 'original'){
+            if(isNew == 'original'){
               if(oper==='list'){
                 this.query[api_name] =  this.getQueryList(tablename,api_name)
 
@@ -49,11 +54,11 @@ class Grouphqlquery extends util{
               }else if(oper==='update'){
                 this.mutation[api_name] =  this.updateRow(tablename,api_name)  
               }
-            }else if(type == 'new'){
+            }else if(isNew == 'new'){
               if(oper === 'list' || oper === 'single'){
-                this.query[api_name]=this.newApi(tablename,api_name,oper)
+                this.query[api_name]=this.newApi(tablename,newFunction,oper)
               }else{
-                this.mutation[api_name]=this.newApi(tablename,api_name,oper)
+                this.mutation[api_name]=this.newApi(tablename,newFunction,oper)
               }
             }
         }

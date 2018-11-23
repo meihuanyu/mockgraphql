@@ -31,12 +31,12 @@ class Grouphqlquery{
     //params.type:single list delete create update
     async beforRunFun(params,tableName,type,api){
         const obj= this.funs
-        const comObj = this.tComFuns
-        if(comObj[api] && comObj[api].type=='befor'){
-            //刷新 require的缓存
-            this.clearRequire("\\commonFun\\" +comObj[api].funName+ ".js")
-            params =  await require(`../commonFun/${comObj[api].funName}.js`)(params,tableName,type)
-        }
+        // const comObj = this.tComFuns
+        // if(comObj[api] && comObj[api].type=='befor'){
+        //     //刷新 require的缓存
+        //     this.clearRequire("\\commonFun\\" +comObj[api].funName+ ".js")
+        //     params =  await require(`../commonFun/${comObj[api].funName}.js`)(params,tableName,type)
+        // }
         if(obj[api] && obj[api]==="befor"){
             params =  await require(`../functions/${tableName}/${api}.js`)(params,tableName,type)
         }
@@ -44,10 +44,10 @@ class Grouphqlquery{
     }
     async afterRunFun(params,tableName,res,type,api){
         const obj= this.funs
-        const comObj = this.tComFuns
-        if(comObj[api] && comObj[api].type=='after'){
-            res =  await require(`../commonFun/${api}.js`)(params,tableName,type,res)
-        }
+        // const comObj = this.tComFuns
+        // if(comObj[api] && comObj[api].type=='after'){
+        //     res =  await require(`../commonFun/${api}.js`)(params,tableName,type,res)
+        // }
         if(obj[api] && obj[api].type==="after" ){
             res=await require(`../functions/${tableName}/${api}.js`)(params,tableName,type,res)
 
@@ -325,7 +325,7 @@ class Grouphqlquery{
                 //项目名_关联表名
                 const projectName_RelationTable=this.projectName+"_"+table[i].fieldrelationtablename
                 //关联表名
-                const _RelationTableName=table[i].fieldrelationtablename;
+                const _RelationTableName=table[i].fieldrelationtablename.split(this.projectName+"_")[1];
                 //根据关联表名 去找对应的type
                 let _type=this.toObjectType(_RelationTableName,type+_RelationTableName);
                 //根据多表判断 是list还是 deatil

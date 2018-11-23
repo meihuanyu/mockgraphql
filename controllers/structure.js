@@ -205,7 +205,14 @@ export const querySchme=async function(apikey){
     let  _fieldsObj = arrToObj(fieldsArr,'relationtableid')
 
     //查询对应的方法
-    const funsArr = await db.query(`select id,alias,type,oper,tableid from system_function where `+orToSql(tIds,'tableid'))   
+    const funsArr = await db.query(`SELECT funName,alias,oper,sf.type isNew,scf.type,dcription, tableid FROM  
+    (system_function sf left join system_common_link_fun clf  on clf.fid=sf.id )
+    left join
+    system_common_function scf
+    on
+    scf.id=clf.cfid
+    where `+orToSql(tIds,'tableid')) 
+    console.log(funsArr)
     for(let i=0; i<funsArr.length;i++){
         const {oper,alias,tableid} = funsArr[i]
         const index = tIds.indexOf(tableid)
@@ -213,21 +220,40 @@ export const querySchme=async function(apikey){
         if(!tableName){ continue}
         const api_name=alias?alias:tableName+'_'+oper
         funsArr[i].tablename=tableName
-        tFuns[api_name] = funsArr[i]
+        //此处 befor数据有问题
+        if(!tFuns[api_name]){
+            tFuns[api_name] = funsArr[i]
+        }else{
+            if(!tFuns[api_name].afterFunction){
+                tFuns[api_name].afterFunction=[]
+            }
+            if(!tFuns[api_name].beforFunction){
+                tFuns[api_name].beforFunction=[]
+            }
+            const { funName , type} = funsArr[i]
+            if(type==='new'){
+                tFuns[api_name].newFunction=funName
+            }else if(type==='after'){
+                tFuns[api_name].afterFunction.push(funName)
+            }else if(type==='befor'){
+                tFuns[api_name].beforFunction.push(funName)
+            }
+        }               
+        
     }
     //查询对应公共方法
     const fIds = funsArr.map(item=>item.id)
-    const commonFunArr = await db.query(`SELECT mf.id,mf.dcription,mf.funName,mf.type,cf.oper,cf.alias,cf.tableid FROM  system_common_function mf,system_common_link_fun clf,system_function cf  where clf.id=mf.id and clf.fid=cf.id and (${orToSql(fIds,'cf.id')})`)
-    for(let i=0; i < commonFunArr.length;i++){
-        const {oper,alias,tableid} = commonFunArr[i]
-        const index = tIds.indexOf(tableid)
-        const tableName = tableData[index].tablename.split(projectName+"_")[1]
-        if(!tableName){ continue}
-        const api_name=alias?alias:tableName+'_'+oper
-        commonFunArr[i].tablename=tableName
-        tComFuns[api_name] = commonFunArr[i]
-    }
-    //查询对应的参数
+    // const commonFunArr = await db.query(`SELECT mf.id,mf.dcription,mf.funName,mf.type,cf.oper,cf.alias,cf.tableid FROM  system_common_function mf,system_common_link_fun clf,system_function cf  where clf.id=mf.id and clf.fid=cf.id and (${orToSql(fIds,'cf.id')})`)
+    // for(let i=0; i < commonFunArr.length;i++){
+    //     const {oper,alias,tableid} = commonFunArr[i]
+    //     const index = tIds.indexOf(tableid)
+    //     const tableName = tableData[index].tablename.split(projectName+"_")[1]
+    //     if(!tableName){ continue}
+    //     const api_name=alias?alias:tableName+'_'+oper
+    //     commonFunArr[i].tablename=tableName
+    //     tComFuns[api_name] = commonFunArr[i]
+    // }
+    //查询对应的参数 
     const argsArr = await db.query(`select  a.*,t.tablename relationtablename from system_arg a left join graphql_table t on a.relationid=t.id where (${orToSql(tIds,'a.tableid')})`)
     let _argsObj = arrToObj(argsArr.map(item=>{
         item.relationtablename=item.relationtablename?item.relationtablename.split(projectName+"_")[1]:"";
@@ -248,7 +274,7 @@ export const querySchme=async function(apikey){
         //对应表格
         tables[tableName] = tableData[i]
     }
-    return {tFuns,fields,projectName,tArgs,tables,tComFuns};
+    return {tFuns,fields,projectName,tArgs,tables};
 }
 // 数组转对象数组 以arr的一个对象内的key 为最终返回的key
 const arrToObj = function (arr,key){
