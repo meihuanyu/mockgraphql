@@ -11,7 +11,7 @@ export const  login=async function (ctx,next){
         }
     }else{
         var token = jwt.sign({
-            exp: Math.floor(Date.now() / 1000) + (60 * 5), 
+            exp: Math.floor(Date.now() / 1000) + (60 * 180), 
             id:res[0].id,
             username:res[0].username,
             roleid:res[0].roleid

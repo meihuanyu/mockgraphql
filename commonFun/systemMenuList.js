@@ -1,5 +1,5 @@
 
-import db from '../../config/database'
+import db from '../config/database'
 module.exports =async function(params,tableName,name,root){
     const roleid=root.ctx.roleid
     const menu=await db.query("select * from d_menugrant where rid=?",[roleid])

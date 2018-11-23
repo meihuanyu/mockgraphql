@@ -33,7 +33,7 @@ async function isLogin(ctx,next){
   await next()
 }
 
-router.use('/app',isLogin)
+// router.use('/app',isLogin)
 router.get('/app/getTables',getTables);
 router.get('/app/createTable',createTable);
 router.get('/app/createField',createField);
@@ -74,7 +74,6 @@ router.get('/tt',function(){
 // router.use('/graphql',permissions)
 
 
-router.use('/graphql',isLogin)
 // 上传中间件
 .use(apolloUploadKoa({ maxFileSize: 10000000, maxFiles: 10 }))
 
