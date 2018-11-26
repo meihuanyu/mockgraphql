@@ -16,12 +16,12 @@ class Login extends React.Component{
         this.props.form.validateFields(async (err, values) => {
             if (!err) {
                 let response= await this.props.login({variables:values})
-                debugger
-                if(response.token){
-                    localStorage.token=response.token
-                    localStorage.username=response.username
-                    localStorage.id=response.id
-                    // window.location.href="/web"
+                const res = response.data.login
+                if(res.token){
+                    localStorage.token=res.token
+                    localStorage.username=res.username
+                    localStorage.id=res.id
+                    window.location.href="/web"
                 }
             }
         });

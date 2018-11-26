@@ -1,17 +1,17 @@
 
 import md5 from 'md5'
 import db from '../config/database'
-module.exports =async function(params,tableName,name){
-    var jwt = require('jsonwebtoken');
-    // var token = jwt.sign({exp: Math.floor(Date.now() / 1000) + (60 * 1), foo: 'bar' }, 'shhhhh');
-    var token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE1NDIzMzU1NzIsImZvbyI6ImJhciIsImlhdCI6MTU0MjMzNTUxMn0.6jyIKbjFL00G7cFTQstDUsxpOha_bDBC82M4hEno0dA'
-    console.log(token)
-    
+
+module.exports =async function(params,table,root,api){
+    const ctx = root.ctx
+    const jwt = require('jsonwebtoken');
+    const token = ctx.header.authorization
     try {
-        var decoded = jwt.verify(token, 'shhhhh');
-        console.log(decoded)
+        var decoded = jwt.verify(token, '123qwe');
     } catch(err) {
-        console.log(err)
+        throw new Error('登陆超时');
     }
+    ctx.roleid=decoded.roleid
+    ctx.user=decoded
     return params
 }

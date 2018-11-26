@@ -20,8 +20,9 @@ const cache = new InMemoryCache()
     })
     const logoutLink = onError((res) => {
       console.log(res)
+      console.log(res.graphQLErrors[0])
       const networkError=res.networkError
-      if (networkError && networkError.statusCode === 401) {
+      if (res.graphQLErrors && res.graphQLErrors[0].message === "登陆超时") {
          window.location.href="/login"
       };
     })
