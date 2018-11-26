@@ -205,7 +205,7 @@ export const querySchme=async function(apikey){
     let  _fieldsObj = arrToObj(fieldsArr,'relationtableid')
 
     //查询对应的方法
-    const funsArr = await db.query(`SELECT funName,alias,oper,sf.type isNew,scf.type,dcription, tableid FROM  
+    const funsArr = await db.query(`SELECT funName,alias,oper,sf.type isNew,scf.type comType,dcription, tableid FROM  
     (system_function sf left join system_common_link_fun clf  on clf.fid=sf.id )
     left join
     system_common_function scf
@@ -214,31 +214,37 @@ export const querySchme=async function(apikey){
     where `+orToSql(tIds,'tableid')) 
     console.log(funsArr)
     for(let i=0; i<funsArr.length;i++){
-        const {oper,alias,tableid} = funsArr[i]
+        const {oper,alias,tableid,funName,comType} = funsArr[i]
         const index = tIds.indexOf(tableid)
         const tableName = tableData[index].tablename.split(projectName+"_")[1]
         if(!tableName){ continue}
         const api_name=alias?alias:tableName+'_'+oper
         funsArr[i].tablename=tableName
+
         //此处 befor数据有问题
-        if(!tFuns[api_name]){
-            tFuns[api_name] = funsArr[i]
+        //如果生成的apiname一样 需要用new类型接口作为主体 after befor 拼凑参数
+        //如果有funName 说明被关联了 公共方法
+        if(funName){
+            tFuns[api_name] = tFuns[api_name]?tFuns[api_name]:{}
+            if(comType === 'after'){
+                if(tFuns[api_name].afterFunction){
+                    tFuns[api_name].afterFunction.push({funName,oper})
+                }else{
+                    tFuns[api_name].afterFunction = [{funName,oper}]
+                }  
+            }else if(comType === 'befor'){
+                if(tFuns[api_name].beforFunction){
+                    tFuns[api_name].beforFunction.push({funName,oper})
+                }else{
+                    tFuns[api_name].beforFunction = [{funName,oper}]
+                } 
+            }else if(comType === 'new'){
+                tFuns[api_name] = Object.assign(tFuns[api_name],funsArr[i])
+            }
         }else{
-            if(!tFuns[api_name].afterFunction){
-                tFuns[api_name].afterFunction=[]
-            }
-            if(!tFuns[api_name].beforFunction){
-                tFuns[api_name].beforFunction=[]
-            }
-            const { funName , type} = funsArr[i]
-            if(type==='new'){
-                tFuns[api_name].newFunction=funName
-            }else if(type==='after'){
-                tFuns[api_name].afterFunction.push(funName)
-            }else if(type==='befor'){
-                tFuns[api_name].beforFunction.push(funName)
-            }
-        }               
+            tFuns[api_name] = funsArr[i]
+        }
+                    
         
     }
     //查询对应公共方法

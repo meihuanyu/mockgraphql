@@ -37,8 +37,13 @@ class Grouphqlquery{
         //     this.clearRequire("\\commonFun\\" +comObj[api].funName+ ".js")
         //     params =  await require(`../commonFun/${comObj[api].funName}.js`)(params,tableName,type)
         // }
-        if(obj[api] && obj[api]==="befor"){
-            params =  await require(`../functions/${tableName}/${api}.js`)(params,tableName,type)
+        const real_funs =  obj[api].beforFunction
+        if(real_funs){
+            for(let i=0;i<real_funs.length;i++){
+                const funName = real_funs[i].funName
+                // this.clearRequire("\\commonFun\\" +funName+ ".js")
+                params =  await require(`../commonFun/${funName}.js`)(params,tableName,type)
+            }
         }
         return params
     }
