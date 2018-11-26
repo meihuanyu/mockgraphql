@@ -49,9 +49,7 @@ class UpdateFun extends BaseModal{
     }
     selectFs=(text, col, i,name)=>{
         return <Select disabled={!col.isEdit} defaultValue={text} style={{width:"100px"}} onChange={(value,option)=>this.changeState(value,i,name)}>
-                        <Option key={0} value='original'>original</Option>
-                        <Option key={1} value='after'>after</Option>
-                        <Option key={2} value='befor'>befor</Option>                    
+                        <Option key={0} value='original'>original</Option>                
                         <Option key={3} value='new'>new</Option>
                 </Select>
     }
