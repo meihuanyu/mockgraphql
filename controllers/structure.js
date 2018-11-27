@@ -206,13 +206,12 @@ export const querySchme=async function(apikey){
 
     //查询对应的方法
     const funsArr = await db.query(`SELECT funName,alias,oper,sf.type isNew,scf.type comType,dcription, tableid FROM  
-    (system_function sf left join system_common_link_fun clf  on clf.fid=sf.id )
+    (system_api sf left join system_link_fun clf  on clf.fid=sf.id )
     left join
-    system_common_function scf
+    system_function scf
     on
     scf.id=clf.cfid
     where `+orToSql(tIds,'tableid')) 
-    console.log(funsArr)
     for(let i=0; i<funsArr.length;i++){
         const {oper,alias,tableid,funName,comType} = funsArr[i]
         const index = tIds.indexOf(tableid)
@@ -243,22 +242,8 @@ export const querySchme=async function(apikey){
             }
         }else{
             tFuns[api_name] = funsArr[i]
-        }
-                    
-        
+        }                           
     }
-    //查询对应公共方法
-    const fIds = funsArr.map(item=>item.id)
-    // const commonFunArr = await db.query(`SELECT mf.id,mf.dcription,mf.funName,mf.type,cf.oper,cf.alias,cf.tableid FROM  system_common_function mf,system_common_link_fun clf,system_function cf  where clf.id=mf.id and clf.fid=cf.id and (${orToSql(fIds,'cf.id')})`)
-    // for(let i=0; i < commonFunArr.length;i++){
-    //     const {oper,alias,tableid} = commonFunArr[i]
-    //     const index = tIds.indexOf(tableid)
-    //     const tableName = tableData[index].tablename.split(projectName+"_")[1]
-    //     if(!tableName){ continue}
-    //     const api_name=alias?alias:tableName+'_'+oper
-    //     commonFunArr[i].tablename=tableName
-    //     tComFuns[api_name] = commonFunArr[i]
-    // }
     //查询对应的参数 
     const argsArr = await db.query(`select  a.*,t.tablename relationtablename from system_arg a left join graphql_table t on a.relationid=t.id where (${orToSql(tIds,'a.tableid')})`)
     let _argsObj = arrToObj(argsArr.map(item=>{
