@@ -27,7 +27,7 @@ export const query_project_funs=async (ctx)=>{
       ctx.body={
           success:true,
           data:res.map(item=>{
-            const tablename=item.tablename.split(item.apikey+"_")[1]
+            const tablename=item.tablename
             const fileName = item.alias?item.alias:tablename+"_"+item.oper
             const path = `\/${tablename}/${fileName}`
             return {api:path,id:item.id}

@@ -21,9 +21,6 @@ export const getTables = async function(ctx,next){
     }
     const sql='select id,tablename,descinfo from graphql_table where  projectid='+project[0].id;
     let res=await db.query(sql);
-    for(let i=0;i<res.length;i++){
-        res[i].tablename=res[i].tablename.split(res[i].tablename.split("_")[0]+"_")[1]
-    }
     if(res){
         ctx.body={
             success:true,
@@ -63,13 +60,19 @@ export const updateFields = async function(ctx,next){
     }
 }
 export const deleteFields = async function(ctx,next){
-    const resField=await db.query("select * from graphql_field where id="+ctx.query.id)
+    const resField=await db.query("select f.*,t.tablename,t.projectid from graphql_field f ,graphql_table t where f.graprelationid=t.id and f.id="+ctx.query.id)
+
     const resTable=await db.query("select * from graphql_table where id="+resField[0].relationtableid)
-    const field=resField[0]
-    const table=resTable[0]
+
+    const field = resField[0]
+    const table = resTable[0]
+
+    const resProject               = await db.query("select * from system_project where id="+field.projectid)
+    const projectName              = resProject[0].apikey
+
     if(field.fieldtype=='graphqlObj'){
         //查对象 和 对象数组
-        const middleTable=field.fieldrelationtablename;
+        const middleTable=field.tablename
         if(field.issingleorlist){
             const middleTableName=table.tablename+"_"+middleTable;
             const resTable=await db.query("select * from graphql_table where tablename='"+middleTableName+"'");
@@ -105,62 +108,68 @@ export const deleteFields = async function(ctx,next){
         }
     }
 }
-export const createField=async function(ctx,next){
-    const opts = ctx.query;
-    let sql="";
+export const createField=async function(ctx,next){    
+    const {fieldname,fieldtype,relationtableid,issingleorlist,graprelationid,istype}=ctx.query;
+
+   
+
     let res=""
-    const resTable=await db.query("select * from graphql_table where id="+opts.relationtableid)
-    const resProject=await db.query("select * from system_project where id="+resTable[0].projectid)
-
-    const projectName=resProject[0].apikey
-    const ProjectName_tableName=projectName+"_"+opts['tablename'];
-
-    const {fieldname,fieldtype,relationtableid,isdeleteindex,isupdateindex,isupdate,isqueryindex,issingleorlist,fieldrelationtablename,istype}=opts;
+    const thisTable = await db.query(`select * from graphql_table where id=${relationtableid} or id=${graprelationid}`)
+    const twoTable = {}
+    for(let i=0;i<thisTable.length;i++){
+        twoTable[thisTable[i].id] = thisTable[i] 
+    } 
+    const projectid                = twoTable[relationtableid].projectid
+    const resProject               = await db.query("select * from system_project where id="+projectid)
+    const projectName              = resProject[0].apikey
+    const mainTableName            = twoTable[relationtableid].tablename
+    const projectAndMainTableName  = projectName+"_"+mainTableName
     //存入字段表
     //如果是对象 存入字段表 目标表增加关系id字段类型
     //如果不是对象 存入字段表 新增表的结构
-    if(opts.fieldtype=='graphqlObj'){
-        const _tableName=opts['tablename'];
-        if(opts.issingleorlist=="1"){
+    if(fieldtype=='graphqlObj'){
+        const viceTableName  = twoTable[graprelationid].tablename
+        if(issingleorlist == "1"){
             //多对多关系 
-            const _realtionTableName=opts['fieldrelationtablename'];
-            const middleTable=ProjectName_tableName+"_"+_realtionTableName;
+            const middleTable    = projectName+"_"+mainTableName+"_"+viceTableName;
             //创建中转表
             const  createTableSql="CREATE TABLE IF NOT EXISTS `"+(middleTable)+"`("+
-                "`id` INT UNSIGNED AUTO_INCREMENT,`"+(_tableName+"id")+"` int(11) NOT NULL,`"+(_realtionTableName+"id")+"` int(11) NOT NULL,PRIMARY KEY ( `id` )"+
+                "`id` INT UNSIGNED AUTO_INCREMENT,`"+(mainTableName+"id")+"` int(11) NOT NULL,`"+(viceTableName+"id")+"` int(11) NOT NULL,PRIMARY KEY ( `id` )"+
                 ")ENGINE=InnoDB DEFAULT CHARSET=utf8;"
             await db.query(createTableSql);
             console.log('create创建中转表')
             //把中间表放入 mock系统内
             //添加到 graphql table
-            const desc=_tableName+"到"+_realtionTableName+"中转表";
+            const desc=mainTableName+"到"+viceTableName+"中转表";
             const insertlTableSql="insert into graphql_table(tablename,descinfo,type) values('"+middleTable+"','"+desc+"',"+1+")"
             const resTable=await db.query(insertlTableSql);
             const tableid=resTable.insertId;
             console.log('insert中专表到graphql_table')
             //添加到 graphql field
             await addData('graphql_field',[
-                {fieldname:"id",                   fieldtype:"int",relationtableid:tableid,isdeleteindex:1,isqueryindex:1,isupdateindex:1,isupdate:1},
-                {fieldname:_tableName+"id",        fieldtype:"int",relationtableid:tableid,isdeleteindex:1,isqueryindex:1,isupdateindex:1,isupdate:1},
-                {fieldname:_realtionTableName+"id",fieldtype:"int",relationtableid:tableid,isdeleteindex:1,isqueryindex:1,isupdateindex:1,isupdate:1}
+                {fieldname:"id",                   fieldtype:"int",relationtableid:tableid},
+                {fieldname:mainTableName+"id",        fieldtype:"int",relationtableid:tableid},
+                {fieldname:viceTableName+"id",fieldtype:"int",relationtableid:tableid}
             ])
 
             console.log('INSERT 到 graphql_field')
         }else{
             //单个
-            const addsql="alter table "+ProjectName_tableName+" add "+(opts.fieldrelationtablename+"id ")+"int(11);"
+            
+            const addsql = "alter table "+projectAndMainTableName+" add "+(viceTableName+"id ")+"int(11);"
+            console.log(addsql)
             await db.query(addsql)
         }
-
         //原表新增一个字段
-        const addFieldSql="alter table "+ProjectName_tableName+" add "+ opts.fieldname+" int(11);"
+        const addFieldSql="alter table "+projectAndMainTableName+" add "+ fieldname+" int(11);"
+        console.log(addFieldSql)
         await db.query(addFieldSql);  
         console.log("原表新增字段")
         //graphql_field表添加一个记录
-        res=await addData('graphql_field',{fieldname,fieldtype,relationtableid,issingleorlist,fieldrelationtablename,istype})
+        res=await addData('graphql_field',{fieldname,fieldtype,relationtableid,issingleorlist,istype})
     }else{
-        await _addField(opts.fieldname,opts.fieldtype,opts.relationtableid)
-        res=await addData('graphql_field',{fieldname,fieldtype,relationtableid,isdeleteindex,isupdateindex,isqueryindex,isupdate,istype})
+        await _addField(fieldname,fieldtype,relationtableid)
+        res=await addData('graphql_field',{fieldname,fieldtype,relationtableid,graprelationid,istype,issingleorlist})
     }
     if(res){
         ctx.body={
@@ -213,9 +222,9 @@ export const querySchme=async function(apikey){
     scf.id=clf.cfid
     where `+orToSql(tIds,'tableid')) 
     for(let i=0; i<funsArr.length;i++){
-        const {oper,alias,tableid,funName,comType} = funsArr[i]
+        const {oper,alias,tableid,funName,comType,isNew} = funsArr[i]
         const index = tIds.indexOf(tableid)
-        const tableName = tableData[index].tablename.split(projectName+"_")[1]
+        const tableName = tableData[index].tablename
         if(!tableName){ continue}
         const api_name=alias?alias:tableName+'_'+oper
         funsArr[i].tablename=tableName
@@ -229,13 +238,21 @@ export const querySchme=async function(apikey){
                 if(tFuns[api_name].afterFunction){
                     tFuns[api_name].afterFunction.push({funName,oper})
                 }else{
-                    tFuns[api_name].afterFunction = [{funName,oper}]
+                    if(isNew === 'original'){ 
+                        tFuns[api_name] = Object.assign(funsArr[i],{afterFunction:[{funName,oper}]})
+                    }else{
+                        tFuns[api_name].afterFunction = [{funName,oper}]
+                    }
                 }  
             }else if(comType === 'befor'){
                 if(tFuns[api_name].beforFunction){
                     tFuns[api_name].beforFunction.push({funName,oper})
                 }else{
-                    tFuns[api_name].beforFunction = [{funName,oper}]
+                    if(isNew === 'original'){ 
+                        tFuns[api_name] = Object.assign(funsArr[i],{beforFunction:[{funName,oper}]})
+                    }else{
+                        tFuns[api_name].beforFunction = [{funName,oper}]
+                    }
                 } 
             }else if(comType === 'new'){
                 tFuns[api_name] = Object.assign(tFuns[api_name],funsArr[i])
@@ -247,14 +264,14 @@ export const querySchme=async function(apikey){
     //查询对应的参数 
     const argsArr = await db.query(`select  a.*,t.tablename relationtablename from system_arg a left join graphql_table t on a.relationid=t.id where (${orToSql(tIds,'a.tableid')})`)
     let _argsObj = arrToObj(argsArr.map(item=>{
-        item.relationtablename=item.relationtablename?item.relationtablename.split(projectName+"_")[1]:"";
+        item.relationtablename=item.relationtablename?item.relationtablename:"";
         return item}),'tableid')
 
     for(let i=0;i<tableData.length;i++){
         const _name=tableData[i].tablename
         const _id=tableData[i].id
         /** 用apikey 过滤表名   */
-        const tableName=_name.split(projectName+"_")[1]
+        const tableName=_name
 
         //对应的字段
         fields[tableName]=_fieldsObj[_id]
