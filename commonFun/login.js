@@ -1,5 +1,3 @@
-
-import md5 from 'md5'
 import db from '../config/database'
 var jwt = require('jsonwebtoken');
 module.exports =async function(params,tableName,name,{ctx}){

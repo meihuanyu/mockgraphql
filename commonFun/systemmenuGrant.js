@@ -1,12 +1,12 @@
-
-import {addData} from '../controllers/sql'
+import db from '../config/database'
+import {addData, deleteData} from '../controllers/sql'
 module.exports =async function(params,tableName,root){
-    const data=[]
-    console.log(params) 
-    const ids=JSON.parse(params.ids)
-    for(let i=0;i<ids.length;i++){
-        data.push({mid:ids[i],rid:parseInt(params.roleid)})
+    const menus=JSON.parse(params.ids)
+    if(menus[0] && menus[0].rid){
+        await db.query(`delete from d_menugrant where rid=${menus[0].rid}`)
+        const res=await addData('d_menugrant',menus)
+        return res
+    }else{
+        return {}
     }
-    const res=await addData('d_menugrant',data)
-    return res
 }    
