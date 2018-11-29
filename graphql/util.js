@@ -9,7 +9,7 @@ import {
   } from 'graphql';
   
 import db from '../config/database'
-import {addData , updateData} from '../controllers/sql'
+import {addData , updateData ,getData} from '../controllers/sql'
 import { GraphQLUpload } from 'apollo-upload-server'
 class Grouphqlquery{
     constructor (params){
@@ -29,7 +29,7 @@ class Grouphqlquery{
         delete require.cache[pwd]; 
     }
     //params.type:single list delete create update
-    async beforRunFun(params,tableName,type,api){
+    async beforRunFun(params,tableName,root,api){
         const obj= this.funs
         // const comObj = this.tComFuns
         // if(comObj[api] && comObj[api].type=='befor'){
@@ -42,7 +42,7 @@ class Grouphqlquery{
             for(let i=0;i<real_funs.length;i++){
                 const funName = real_funs[i].funName
                 // this.clearRequire("\\commonFun\\" +funName+ ".js")
-                params =  await require(`../commonFun/${funName}.js`)(params,tableName,type)
+                params =  await require(`../commonFun/${funName}.js`)(params,tableName,'占位oper',root)
             }
         }
         return params
@@ -148,38 +148,38 @@ class Grouphqlquery{
                 const gObjs= _this.paramsObj[tableName].filter(item=>{return item.fieldtype==='graphqlObj' && argNames.indexOf(item.fieldname)!==-1})
                 
                 //判断表前缀
-                const realTableName=_this.projectName
-
+                const projectName=_this.projectName
+                //graphql类型的字段会根据自己的create方法去create
                 for(let i=0; i<gObjs.length;i++){
-                    const cuurtName=gObjs[i].fieldrelationtablename
+                    const viceTable=gObjs[i].fieldrelationtablename
                     //过滤出 create的方法
-                    const fun  = _this.funs[cuurtName].filter(item=>item.oper==='create')
+                    const fun  = _this.funs[viceTable].filter(item=>item.oper==='create')
                     
                     //目前不能指定 默认oper是唯一的 
                     if(fun.length){
                         //list有关联中间表
                         if(gObjs[i].issingleorlist){
-                            resTable=await addData(realTableName+"_"+tableName,params)
+                            resTable=await addData(projectName+"_"+tableName,params)
 
-                            const {alias , type , oper} = fun[0]
-                            const funName=alias?alias:cuurtName+'_'+oper
+                            const {alias  , oper} = fun[0]
+                            const funName=alias?alias:viceTable+'_'+oper
 
                             const resCur=await _this.mutation[funName].resolve(root,params[gObjs[i].fieldname])
 
-                            const transferTableName=realTableName+'_'+tableName+'_'+cuurtName
-                            db.query(`insert into ${transferTableName} (${tableName+'id'},${cuurtName+'id'})  values (?,?)`,[resTable.insertId,resCur.id])
+                            const transferTableName=projectName+'_'+tableName+'_'+viceTable
+                            db.query(`insert into ${transferTableName} (${tableName+'id'},${viceTable+'id'})  values (?,?)`,[resTable.insertId,resCur.id])
                         }else{
-                            const {alias , type , oper} = fun[0]
-                            const funName=alias?alias:cuurtName+'_'+oper
+                            const {alias  , oper} = fun[0]
+                            const funName=alias?alias:viceTable+'_'+oper
                             const resCur=await _this.mutation[funName].resolve(root,params[gObjs[i].fieldname])
-                            params[cuurtName+'id'] = resCur.id
-                            resTable=await addData(realTableName+"_"+tableName,params)
+                            params[viceTable+'id'] = resCur.id
+                            resTable=await addData(projectName+"_"+tableName,params)
                         }
                         
                     }
                 }
                 if(!gObjs.length){
-                    resTable=await addData(realTableName+"_"+tableName,params)
+                    resTable=await addData(projectName+"_"+tableName,params)
                 }
 
                 return _this.afterRunFun(params,tableName,{id:resTable.insertId},root,api);
@@ -192,9 +192,8 @@ class Grouphqlquery{
             type:new GraphQLList(Type),
             args:args,
             async resolve(root,params,option){
-                params=await  _this.beforRunFun(params,tableName,root,api)
-                const sql=_this.toSql('query',params,tableName)
-                const res=db.query(sql)                
+                params    = await  _this.beforRunFun(params,tableName,root,api)
+                const res = await getData(_this.projectName+"_"+tableName,params)                
                 return  _this.afterRunFun(params,tableName,res,root,api);
             }
         }
@@ -330,7 +329,7 @@ class Grouphqlquery{
                 //项目名_关联表名
                 const projectName_RelationTable=this.projectName+"_"+table[i].fieldrelationtablename
                 //关联表名
-                const _RelationTableName=table[i].fieldrelationtablename.split(this.projectName+"_")[1];
+                const _RelationTableName=table[i].fieldrelationtablename
                 //根据关联表名 去找对应的type
                 let _type=this.toObjectType(_RelationTableName,type+_RelationTableName);
                 //根据多表判断 是list还是 deatil
