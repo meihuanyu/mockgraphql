@@ -197,15 +197,10 @@ export const querySchme=async function(apikey){
     let fields={};
     let tFuns={};
     let tArgs={}
-    let tablesql="";
     let tables={}
     let tComFuns={}
     const projectName=apikey
-    if(apikey=='system'){
-        tablesql="select * from graphql_table";
-    }else{
-        tablesql="select * from graphql_table where projectid="+resProject[0].id;
-    }
+    const tablesql="select * from graphql_table where projectid="+resProject[0].id;
     const tableData=await db.query(tablesql);
     const tIds = tableData.map(item=>item.id)
 
