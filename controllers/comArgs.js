@@ -11,16 +11,18 @@ export const query_comArgs=async (ctx)=>{
     }
   }
   export const query_comArgsLinkFunction=async (ctx)=>{
+    const sql = `select link.id,api.type,api.oper,api.alias,p.apikey,t.tablename
+    from system_project p,graphql_table t,system_api api,
+    system_link_fun link,system_function fun 
+    where p.id=t.projectid and api.tableid=t.id 
+    and link.fid=api.id and link.cfid=fun.id
+    and p.id=? and fun.id=?`
 
-    const sql = `select sf.*,lf.id linkid,t.tablename,p.apikey from system_link_fun lf,system_api sf,graphql_table t ,system_project p where  lf.fid=sf.id and t.id=sf.tableid and t.projectid=p.id and lf.cfid=?`
-    const res = await db.query(sql,[ctx.query.id])
+    const res = await db.query(sql,[ctx.query.pid,ctx.query.id])
     if(res){
       ctx.body={
           success:true,
-          data:res.map(item=>{
-            item.tablename=item.tablename.split(item.apikey+"_")[1]
-            return item
-          })
+          data:res
       }
     }
   }
