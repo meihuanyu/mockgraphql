@@ -43,12 +43,16 @@ export const addData = async function(table_name,object){
 //删
 //where: 查询条件，传字符串
 //type：删除的类型，默认删除数据（data）,删除表传（table）
-export const deleteData = async function(table_name,where = '1=1',type = 'data'){
-    if(type == "table"){
-        const sql = "DROP TABLE " + table_name//删表
-    }else{
-        const sql = "DELETE FROM " + table_name + "WHERE " + where//删数据
+export const deleteData = async function(table_name,ids,key = 'id'){
+    let where = '1=1'
+    const sqlArr = ids.map(item=>{      
+        return ` ${key} = ${item} `
+    })
+    if(sqlArr.length){
+        where = sqlArr.join(' or ')
     }
+    const sql = `delete from  ${table_name} where  ${where}`
+    console.log(sql)
     let res = await db.query(sql);
     return res
 }
@@ -75,13 +79,15 @@ export const updateData = async function(table_name,object,where = '1=1'){
 //查
 //attributes: 要查询的字段，传 字符串 或 数组
 //where: 查询条件，传 字符串
-export const getData = async function(table_name,attributes = '*',where = '1=1'){
-    if (Array.isArray(attributes)){
-        att = attributes.join(',')
-    }else{
-        att = attributes
+export const getData = async function(table_name,params){
+    const keys = Object.keys(params)
+    const whereArr = []
+    for(let i=0;i<keys.length;i++){
+        whereArr.push(` ${keys[i]}=${params[keys[i]]} `)
     }
-    const sql = "SELECT" + att + "FROM" + table_name + "WHERE" + where
+    const _where = keys.length?whereArr.join('and'):"1=1";
+
+    const sql = "SELECT * FROM " + table_name + " where " + _where
     const res=await db.query(sql);
     return res
 }
