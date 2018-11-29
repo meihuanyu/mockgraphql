@@ -33,7 +33,7 @@ async function isLogin(ctx,next){
   await next()
 }
 
-// router.use('/app',isLogin)
+router.use('/app',isLogin)
 router.get('/app/getTables',getTables);
 router.get('/app/createTable',createTable);
 router.get('/app/createField',createField);
