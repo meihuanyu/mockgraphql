@@ -49,7 +49,7 @@ class App extends React.Component{
                 <Query
                     query={getMenu}
                     variables={{
-                        parentid:'0'
+                        pid:'0'
                     }}
                 >
                     {({loading,data:{systemmenu_list}})=>{

@@ -30,7 +30,10 @@ class UpdateFun extends BaseModal{
     }
     loaderTable=async ()=>{
         this.setState({loadding:true})
-        let response=await cFetch('/api/app/query_comArgsLinkFunction',{params:{id:this.props.gData[0].id}})
+        let response=await cFetch('/api/app/query_comArgsLinkFunction',{params:{
+                        pid:3,
+                        id:this.props.gData[0].id
+                    }})
         this.setState({
             tableData:response.data,
             loadding:false

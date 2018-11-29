@@ -1,7 +1,8 @@
 import gql from 'graphql-tag'
 
-export default gql`query projectList($userid:Int!){
-    projectList(userid:$userid){
+export default gql`
+query project_list{
+    project_list{
         id
         name
         apikey

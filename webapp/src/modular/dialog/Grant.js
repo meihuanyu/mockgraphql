@@ -26,9 +26,8 @@ class Grant extends BaseModal {
     onOk:async ()=>{
         const {grant}=this.props
         const roleid=this.props.gData[0].id
-        const ids=this.currentRows.map(item=>item.id)
         grant({
-            variables:{ids:JSON.stringify(ids),roleid}
+            variables:{ids:JSON.stringify(this.currentRows),roleid}
         })
     }
   }
@@ -38,9 +37,11 @@ class Grant extends BaseModal {
     const treeData=JSON.parse(JSON.stringify(systemmenu_list))
     const roleid=this.props.gData[0].id
     const {data}=await cFetch('/api/app/query_grant',{params:{roleid}})
+    const defaultIds = data.map(item=>JSON.stringify(item.mid))
+    this.currentRows = data.map(item=>({mid:item.mid,pid:item.pid,rid:this.props.gData[0].id}))
     this.setState({
       treeData:treeData,
-      grantIds:data.map(item=>JSON.stringify(item.mid))
+      grantIds:defaultIds
     })
   }
   onLoadData = async (treeNode) => {
@@ -66,15 +67,26 @@ class Grant extends BaseModal {
       return <TreeNode  title={item.displayname} key={item.key?item.key:item.id} dataRef={item} />;
     });
   }
-  hindleOncheck=(keys,{checkedNodes})=>{
-    this.currentRows=[]
-    for(let i=0;i<checkedNodes.length;i++){
-      this.currentRows.push(checkedNodes[i].props.dataRef)
+  hindleOncheck=(keys,xx)=>{
+    const checkedNodes = xx.checkedNodes    
+    const ids = this.currentRows.map(item=>item.mid)
+    if(xx.checked){
+      for(let i=0;i<checkedNodes.length;i++){
+          if(ids.indexOf(parseInt(checkedNodes[i].key))===-1){
+            //新增一个
+            const obj = checkedNodes[i].props.dataRef
+            this.currentRows.push({mid:obj.id,pid:parseInt(obj.pid),rid:this.props.gData[0].id})
+          }
+      }
+    }else{
+      for(let i=0;i<ids.length;i++){
+          if(keys.checked.indexOf(ids[i].toString())===-1){
+            this.currentRows.splice(i,1)
+          }
+      }
     }
   }
   render() {
-    
-    console.log(this.state)
     return this.state?<Tree 
                 defaultCheckedKeys={this.state.grantIds}
                 checkStrictly={true}
@@ -92,7 +104,7 @@ export default compose(
     graphql(getMenu,{
         options:(props)=>({
             variables:{
-                parentid:'0'
+                pid:'0'
             }
         }),
         props({data}){
@@ -104,7 +116,7 @@ export default compose(
             loadMore(id){
               return fetchMore({
                 variables: {
-                  parentid: id,
+                  pid: id,
                 },
                 updateQuery(previousResult, { fetchMoreResult }){
                   return fetchMoreResult.systemmenu_list

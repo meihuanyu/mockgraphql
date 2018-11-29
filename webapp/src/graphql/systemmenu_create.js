@@ -4,20 +4,20 @@ export default gql`
   mutation systemmenu_create(
     $displayname: String!
     $name: String!
-    $parentid: String!
+    $pid: String!
     $component: String
     $oper: String
   ) {
     systemmenu_create(
         displayname: $displayname
         name: $name
-        parentid: $parentid
+        pid: $pid
         component: $component
         oper: $oper
     ) {
         displayname
         name
-        parentid
+        pid
         component
         oper
     }

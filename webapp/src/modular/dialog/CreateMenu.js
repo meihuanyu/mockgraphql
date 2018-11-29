@@ -15,7 +15,7 @@ class CreateMenu extends BaseModal{
         this.props.form.validateFields(async (err, values) => {
           if (!err) {
             if(this.props.type==='edit'){
-                values.parentid=gData[0].parentid
+                values.pid=gData[0].pid
                 values.id=gData[0].id
                 await systemmenu_update({
                     variables:{
@@ -23,7 +23,7 @@ class CreateMenu extends BaseModal{
                     }
                 })
             }else{
-                values.parentid=gData.length?gData[0].id:'0';
+                values.pid=gData.length?gData[0].id:'0';
                 await systemmenu_create({
                     variables:{
                       ...values
@@ -81,7 +81,7 @@ class CreateMenu extends BaseModal{
                       )}
               </FormItem>
               <FormItem style={{display:'none'}} >
-                      {getFieldDecorator('parentid')(
+                      {getFieldDecorator('pid')(
                         <Input/>
                       )}
               </FormItem>

@@ -90,7 +90,7 @@ export default compose(
   graphql(getMenu,{
         options:(props)=>({
             variables:{
-                parentid:'0'
+                pid:'0'
             }
         }),
         props({data}){
@@ -102,7 +102,7 @@ export default compose(
             loadMore(id){
               return fetchMore({
                 variables: {
-                  parentid: id,
+                  pid: id,
                 },
                 updateQuery(previousResult, { fetchMoreResult }){
                   return fetchMoreResult.systemmenu_list
@@ -115,7 +115,7 @@ export default compose(
     graphql(getMenu,{
       options:(props)=>({
           variables:{
-              parentid:props.currentMenu.id
+              pid:props.currentMenu.id
           }
       }),
       props({data}){

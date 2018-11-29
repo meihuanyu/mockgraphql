@@ -54,10 +54,10 @@ class Field extends BaseModal{
     guanlian=(text, col,index, name)=>{
         if(col.isEdit){
             if(col.fieldtype==="graphqlObj"){
-                return <Select  defaultValue={text} style={{width:"100px"}} onChange={(value,option)=>this.changeState(value,index,'fieldrelationtablename')}> 
+                return <Select  defaultValue={text} style={{width:"100px"}} onChange={(value,option)=>this.changeState(value,index,'graprelationid')}> 
                             {
                                 this.state.tables.map((item,index)=>{
-                                    return <Option key={item.id} value={item.tablename}>{item.tablename}</Option>
+                                    return <Option key={item.id} value={item.id}>{item.tablename}</Option>
                                 })
                             }
                         </Select>
@@ -117,7 +117,7 @@ class Field extends BaseModal{
                 id:this.state.tableData[index].id,
                 fieldtype:this.state.tableData[index].fieldtype,
                 fieldname:this.state.tableData[index].fieldname,
-                fieldrelationtablename:this.state.tableData[index].fieldrelationtablename,
+                graprelationid:this.state.tableData[index].graprelationid,
                 table:this.props.gData[0].tablename
             }});
         }
@@ -131,11 +131,7 @@ class Field extends BaseModal{
             fieldtype:"",
             isEdit:true,
             fieldtype:"",
-            isdeleteindex:0,
-            isqueryindex:1,
             issingleorlist:0,
-            isupdate:1,
-            isupdateindex:0,
             istype:1,
             addEdit:true,
             relationtableid:this.props.gData[0].id
@@ -156,28 +152,12 @@ class Field extends BaseModal{
             render:this.selectType
           },
           , {
-            title: '修改参数',
-            dataIndex: 'isupdate',
-            render:(text, col, i)=>this.isYesOrNo(text,col,i,"isupdate")
-          }, {
-            title: '删除参数',
-            dataIndex: 'isdeleteindex',
-            render:(text, col, i)=>this.isYesOrNo(text,col,i,"isdeleteindex")
-          }, {
-            title: '搜索参数',
-            dataIndex: 'isqueryindex',
-            render:(text, col, i)=>this.isYesOrNo(text,col,i,"isqueryindex")
-          }, {
-            title: '修改参数',
-            dataIndex: 'isupdateindex',
-            render:(text, col, i)=>this.isYesOrNo(text,col,i,"isupdateindex")
-          }, {
             title: '是否返回',
             dataIndex: 'istype',
             render:(text, col, i)=>this.isYesOrNo(text,col,i,"istype")
           }, {
             title: '关联对象',
-            dataIndex: 'fieldrelationtablename',
+            dataIndex: 'graprelationid',
             render:this.guanlian
           }, {
             title: '单个或多个',

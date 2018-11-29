@@ -2,7 +2,7 @@ import React from 'react';
 import { Form, Icon, Input, Button, Checkbox,Select ,Radio ,Switch} from 'antd';
 import cfetch from '../../util/cFetch'
 import BaseModal from '../../common/BaseModal'
-import projectList from '../../graphql/projectList'
+import project_list from '../../graphql/project_list'
 import {  graphql, compose } from 'react-apollo'
 
 const Option = Select.Option;
@@ -24,7 +24,7 @@ class NormalLoginForm extends BaseModal {
   render() {
     const { getFieldDecorator } = this.props.form;
 
-    let optionTable=this.props.projectList?this.props.projectList.map((item)=><Option key={item.id} value={item.id}>{item.name}</Option>):null
+    let optionTable=this.props.project_list?this.props.project_list.map((item)=><Option key={item.id} value={item.id}>{item.name}</Option>):null
     const formItemLayout = {
         labelCol: {
           xs: { span: 24 },
@@ -69,16 +69,16 @@ class NormalLoginForm extends BaseModal {
 const WrappedNormalLoginForm = Form.create()(NormalLoginForm);
 
 export default compose(
-  graphql(projectList,{
+  graphql(project_list,{
       options:(props)=>({
           variables:{
               userid:parseInt(localStorage.id)
           }
       }),
       props({data}){
-        const {loading,projectList}=data
+        const {loading,project_list}=data
         return {
-          projectList:projectList
+          project_list:project_list
         }
       }})
 )(WrappedNormalLoginForm)

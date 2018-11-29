@@ -69,7 +69,7 @@ export default compose(
     graphql(getMenu,{
       options:(props)=>({
           variables:{
-              parentid:props.currentMenu.id
+              pid:props.currentMenu.id
           }
       }),
       props({data}){
