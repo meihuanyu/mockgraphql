@@ -210,7 +210,7 @@ export const querySchme=async function(apikey){
 
     //查询对应的方法
     const funsArr = await db.query(`SELECT funName,alias,oper,api.type isNew,fun.type comType,dcription, tableid FROM  
-    (d_api api left join d_api_link_fun linkFun  on linkFun.aid=api.id )
+    (d_api api left join d_api_link_pfun linkFun  on linkFun.aid=api.id )
     left join
     d_function fun
     on

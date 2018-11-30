@@ -13,7 +13,7 @@ export const query_comArgs=async (ctx)=>{
   export const query_comArgsLinkFunction=async (ctx)=>{
     const sql = `select link.id,api.type,api.oper,api.alias,p.apikey,t.tablename
     from system_project p,graphql_table t,d_api api,
-    d_api_link_fun link,d_function fun 
+    d_api_link_pfun link,d_function fun 
     where p.id=t.projectid and api.tableid=t.id 
     and link.aid=api.id and link.cfid=fun.id
     and p.id=? and fun.id=?`
@@ -28,7 +28,7 @@ export const query_comArgs=async (ctx)=>{
   }
   export const create_link_com=async (ctx)=>{
     const { cfid , fid} = ctx.query
-    const res = await addData('d_api_link_fun',{
+    const res = await addData('d_api_link_pfun',{
       cfid:cfid,
       aid:fid
     })
@@ -41,7 +41,7 @@ export const query_comArgs=async (ctx)=>{
   }
 
   export const delete_linkComArgs=async (ctx)=>{
-    const sql = `delete from d_api_link_fun where id=?`
+    const sql = `delete from d_api_link_pfun where id=?`
     const res = await db.query(sql,[ctx.query.id])
     if(res){
       ctx.body={
