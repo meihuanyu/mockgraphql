@@ -15,7 +15,7 @@ export const query_comArgs=async (ctx)=>{
     from system_project p,graphql_table t,d_api api,
     d_link_fun link,d_function fun 
     where p.id=t.projectid and api.tableid=t.id 
-    and link.fid=api.id and link.cfid=fun.id
+    and link.aid=api.id and link.cfid=fun.id
     and p.id=? and fun.id=?`
 
     const res = await db.query(sql,[ctx.query.pid,ctx.query.id])
@@ -30,7 +30,7 @@ export const query_comArgs=async (ctx)=>{
     const { cfid , fid} = ctx.query
     const res = await addData('d_link_fun',{
       cfid:cfid,
-      fid:fid
+      aid:fid
     })
     if(res){
       ctx.body={

@@ -209,12 +209,12 @@ export const querySchme=async function(apikey){
     let  _fieldsObj = arrToObj(fieldsArr,'relationtableid')
 
     //查询对应的方法
-    const funsArr = await db.query(`SELECT funName,alias,oper,sf.type isNew,scf.type comType,dcription, tableid FROM  
-    (d_api sf left join d_link_fun clf  on clf.fid=sf.id )
+    const funsArr = await db.query(`SELECT funName,alias,oper,api.type isNew,fun.type comType,dcription, tableid FROM  
+    (d_api api left join d_link_fun linkFun  on linkFun.aid=api.id )
     left join
-    d_function scf
+    d_function fun
     on
-    scf.id=clf.cfid
+    fun.id=linkFun.cfid
     where `+orToSql(tIds,'tableid')) 
     for(let i=0; i<funsArr.length;i++){
         const {oper,alias,tableid,funName,comType,isNew} = funsArr[i]
