@@ -1,7 +1,7 @@
 import db from '../config/database'
 import { updateData ,addData} from './sql'
 export const query_args=async (ctx)=>{
-    const sql = `select * from system_arg where tableid=? order by type DESC`
+    const sql = `select * from graohql_arg where tableid=? order by type DESC`
     const res = await db.query(sql,[ctx.query.id])
     if(res){
       ctx.body={
@@ -13,7 +13,7 @@ export const query_args=async (ctx)=>{
 
 
 export const delete_args=async (ctx)=>{
-    const sql = `delete from system_arg where id=?`
+    const sql = `delete from graohql_arg where id=?`
     const res = await db.query(sql,[ctx.query.id])
     if(res){
       ctx.body={
@@ -26,7 +26,7 @@ export const delete_args=async (ctx)=>{
 export const update_args=async (ctx)=>{
     const { name, type ,relationid,id,isupdate,isdelete,iscreate,issingle,islist,isindex} = ctx.query
     
-    const res = await updateData('system_arg',{
+    const res = await updateData('graohql_arg',{
       name,type,relationid,isupdate,isdelete,iscreate,issingle,islist,isindex
     },`id=${id}`)
 
@@ -41,7 +41,7 @@ export const update_args=async (ctx)=>{
 export const create_args=async (ctx)=>{
     const {  name, type ,relationid,tableid,isupdate,isdelete,iscreate,issingle,islist,isindex} = ctx.query
     
-    const res = await addData('system_arg',{
+    const res = await addData('graohql_arg',{
       name, type ,relationid,isupdate,isdelete,iscreate,issingle,islist,isindex,tableid
     })
     if(res){
@@ -54,7 +54,7 @@ export const create_args=async (ctx)=>{
 export const import_args=async (ctx)=>{
   const { id } = ctx.query
   const fieldsSql = `select fieldname name,fieldtype type,relationtableid tableid,graprelationid relationid from graphql_field where relationtableid=?`
-  const argsSql = `select name from system_arg where tableid=${id}`
+  const argsSql = `select name from graohql_arg where tableid=${id}`
   const args = await db.query(argsSql)
   const argsName = args.map(item=>item.name)
   const fields = await db.query(fieldsSql,[id])
@@ -73,7 +73,7 @@ export const import_args=async (ctx)=>{
     }
   }
   _values.join(',')
-  const addArgsSql=`insert into system_arg (name,type,tableid,relationid) values ${_values}`
+  const addArgsSql=`insert into graohql_arg (name,type,tableid,relationid) values ${_values}`
   console.log(addArgsSql)
   const res = await db.query(addArgsSql)
   ctx.body={

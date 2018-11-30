@@ -1,7 +1,7 @@
 import db from '../config/database'
 
 export const query_funs=async (ctx)=>{
-    const sql = `select * from system_api where tableid=? order by type DESC`
+    const sql = `select * from d_api where tableid=? order by type DESC`
     const res = await db.query(sql,[ctx.query.id])
     if(res){
       ctx.body={
@@ -21,7 +21,7 @@ export const query_project_funs=async (ctx)=>{
       return ` tableid = ${item.id} `
     })
 
-    const sql = `select f.*,t.tablename,p.apikey from system_api f, graphql_table t ,system_project p where f.tableid=t.id and t.projectid=p.id and (${tablesSql.join(' or ')}) order by type DESC`
+    const sql = `select f.*,t.tablename,p.apikey from d_api f, graphql_table t ,system_project p where f.tableid=t.id and t.projectid=p.id and (${tablesSql.join(' or ')}) order by type DESC`
     const res = await db.query(sql)
     if(res){
       ctx.body={
@@ -39,7 +39,7 @@ export const query_project_funs=async (ctx)=>{
 
 
 export const delete_funs=async (ctx)=>{
-    const sql = `delete from system_api where id=?`
+    const sql = `delete from d_api where id=?`
     const res = await db.query(sql,[ctx.query.id])
     if(res){
       ctx.body={
@@ -51,7 +51,7 @@ export const delete_funs=async (ctx)=>{
 
 export const update_funs=async (ctx)=>{
     const { id, alias, oper, type } = ctx.query
-    const sql = `update system_api set alias=? ,oper=? ,type=?   where id=?`
+    const sql = `update d_api set alias=? ,oper=? ,type=?   where id=?`
     const res = await db.query(sql,[alias , oper , type , id])
     if(res){
       ctx.body={
@@ -63,7 +63,7 @@ export const update_funs=async (ctx)=>{
 
 export const create_funs=async (ctx)=>{
     const { alias, oper, type ,tableid} = ctx.query
-    const sql = `insert into  system_api(alias , oper ,type ,tableid) values (? , ? , ? ,?)`
+    const sql = `insert into  d_api(alias , oper ,type ,tableid) values (? , ? , ? ,?)`
     const res = await db.query(sql,[alias , oper , type , tableid])
     if(res){
       ctx.body={

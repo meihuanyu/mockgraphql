@@ -210,9 +210,9 @@ export const querySchme=async function(apikey){
 
     //查询对应的方法
     const funsArr = await db.query(`SELECT funName,alias,oper,sf.type isNew,scf.type comType,dcription, tableid FROM  
-    (system_api sf left join system_link_fun clf  on clf.fid=sf.id )
+    (d_api sf left join d_link_fun clf  on clf.fid=sf.id )
     left join
-    system_function scf
+    d_function scf
     on
     scf.id=clf.cfid
     where `+orToSql(tIds,'tableid')) 
@@ -257,7 +257,7 @@ export const querySchme=async function(apikey){
         }                           
     }
     //查询对应的参数 
-    const argsArr = await db.query(`select  a.*,t.tablename relationtablename from system_arg a left join graphql_table t on a.relationid=t.id where (${orToSql(tIds,'a.tableid')})`)
+    const argsArr = await db.query(`select  a.*,t.tablename relationtablename from graohql_arg a left join graphql_table t on a.relationid=t.id where (${orToSql(tIds,'a.tableid')})`)
     let _argsObj = arrToObj(argsArr.map(item=>{
         item.relationtablename=item.relationtablename?item.relationtablename:"";
         return item}),'tableid')
