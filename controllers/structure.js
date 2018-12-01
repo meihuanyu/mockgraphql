@@ -3,24 +3,8 @@ import {addData} from '../controllers/sql'
 var jwt = require('jsonwebtoken');
 
 export const getTables = async function(ctx,next){
-    const token=ctx.header.authorization
-    var decoded 
-    try {
-        decoded = jwt.verify(token, '123qwe');
-    } catch(err) {
-          ctx.status=401
-          return false
-    }
-    const project=await db.query('select * from system_project where userid='+decoded.id)
-    if(!project[0]){
-        ctx.body={
-            success:true,
-            data:[]
-        }
-        return false
-    }
-    const sql='select id,tablename,descinfo from graphql_table where  projectid='+project[0].id;
-    let res=await db.query(sql);
+    const sql='select id,tablename,descinfo from graphql_table where  projectid=?';
+    let res=await db.query(sql,[ctx.query.pid]);
     if(res){
         ctx.body={
             success:true,
@@ -209,12 +193,15 @@ export const querySchme=async function(apikey){
     let  _fieldsObj = arrToObj(fieldsArr,'relationtableid')
 
     //查询对应的方法
-    const funsArr = await db.query(`SELECT funName,alias,oper,api.type isNew,fun.type comType,dcription, tableid FROM  
-    (d_api api left join d_api_link_pfun linkFun  on linkFun.aid=api.id )
-    left join
+    const funsArr = await db.query(`select funName,alias,oper,api.type isNew,fun.type comType,dcription, tableid from 
+    d_api api LEFT JOIN d_api_link_pfun lpf
+    on api.id=lpf.aid
+    LEFT JOIN
+    d_fun_link_project flp
+    on lpf.fpid=flp.id
+    LEFT JOIN
     d_function fun
-    on
-    fun.id=linkFun.cfid
+    on flp.fid=fun.id
     where `+orToSql(tIds,'tableid')) 
     for(let i=0; i<funsArr.length;i++){
         const {oper,alias,tableid,funName,comType,isNew} = funsArr[i]
