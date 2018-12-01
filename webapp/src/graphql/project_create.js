@@ -1,20 +1,15 @@
 import gql from 'graphql-tag'
 
 export default gql`
-  mutation projectCreate(
+  mutation project_create(
     $name: String!
     $apikey: String!
-    $userid: Int!
   ) {
-    projectCreate(
+    project_create(
         name: $name
         apikey: $apikey
-        userid: $userid
     ) {
-        name
-        apikey
-        userid
-        
+        id
     }
   }
 `

@@ -25,7 +25,9 @@ class User extends Component {
     }
     loaderTable=async ()=>{
         this.setState({tableLoging:true})
-        let {data}=await cFetch('/api/app/getTables')
+        let {data}=await cFetch('/api/app/getTables',{
+            params:{pid:this.props.currentMenu.pid}
+        })
         this.setState({
             tableData:data,
             tableLoging:false

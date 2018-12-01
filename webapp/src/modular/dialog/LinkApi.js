@@ -21,9 +21,11 @@ class UpdateFun extends BaseModal{
         
         }
       }
-    async componentWillMount(){
+    componentWillMount = async()=>{
         this.loaderTable();
-        const res = await cFetch('/api/app/query_project_funs')
+        const res = await cFetch('/api/app/query_project_funs',{
+            params:{pid:this.props.gData[0].pid}
+        })
         this.setState({
             apis:res.data
         })
@@ -31,8 +33,8 @@ class UpdateFun extends BaseModal{
     loaderTable=async ()=>{
         this.setState({loadding:true})
         let response=await cFetch('/api/app/query_comArgsLinkFunction',{params:{
-                        pid:3,
-                        id:this.props.gData[0].id
+                        pid:this.props.gData[0].pid,
+                        fid:this.props.gData[0].fid
                     }})
         this.setState({
             tableData:response.data,
@@ -50,7 +52,7 @@ class UpdateFun extends BaseModal{
     deleteRow=async (index)=>{
         if(this.state.tableData[index].id){
             await cFetch('/api/app/delete_linkComArgs',{params:{
-                id:this.state.tableData[index].linkid
+                id:this.state.tableData[index].id
             }});
         }
         let  temp=this.state
@@ -59,8 +61,8 @@ class UpdateFun extends BaseModal{
     }
     newRow = async () =>{
         await cFetch('/api/app/create_link_com',{params:{
-            cfid:this.props.gData[0].id,
-            fid:this.state.curKey
+            fpid:this.props.gData[0].id,
+            aid:this.state.curKey
         }})
         this.loaderTable()
     }
