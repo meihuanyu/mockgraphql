@@ -1,8 +1,8 @@
 import db from '../config/database'
 import { updateData ,addData} from './sql'
 export const query_comArgs=async (ctx)=>{
-    const sql = `select * from d_function`
-    const res = await db.query(sql)
+    const sql = `select * from d_function fun,d_fun_link_project fp where fp.fid=fun.id and fp.pid=?`
+    const res = await db.query(sql,[ctx.query.projectId])
     if(res){
       ctx.body={
           success:true,
@@ -11,14 +11,11 @@ export const query_comArgs=async (ctx)=>{
     }
   }
   export const query_comArgsLinkFunction=async (ctx)=>{
-    const sql = `select link.id,api.type,api.oper,api.alias,p.apikey,t.tablename
-    from system_project p,graphql_table t,d_api api,
-    d_api_link_pfun link,d_function fun 
-    where p.id=t.projectid and api.tableid=t.id 
-    and link.aid=api.id and link.cfid=fun.id
-    and p.id=? and fun.id=?`
+    const sql = `select lpf.id,api.type,api.oper,api.alias,t.tablename 
+    from d_api api ,d_api_link_pfun lpf,d_fun_link_project flp,graphql_table t 
+    where api.id=lpf.aid and lpf.fpid=flp.id and api.tableid=t.id and flp.fid=? and flp.pid=?`
 
-    const res = await db.query(sql,[ctx.query.pid,ctx.query.id])
+    const res = await db.query(sql,[ctx.query.fid,ctx.query.pid])
     if(res){
       ctx.body={
           success:true,
@@ -27,10 +24,10 @@ export const query_comArgs=async (ctx)=>{
     }
   }
   export const create_link_com=async (ctx)=>{
-    const { cfid , fid} = ctx.query
+    const { fpid , aid} = ctx.query
     const res = await addData('d_api_link_pfun',{
-      cfid:cfid,
-      aid:fid
+      fpid:fpid,
+      aid:aid
     })
     if(res){
       ctx.body={

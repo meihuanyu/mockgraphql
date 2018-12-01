@@ -12,16 +12,16 @@ export const query_funs=async (ctx)=>{
   }
 
 export const query_project_funs=async (ctx)=>{
-    const resProject = await db.query(`select * from system_project where userid=${ctx.user.id}`)
     //写死只要一个项目
-    const projectId = resProject[0].id
+    const projectId = ctx.query.pid
     const resTable = await db.query(`select * from graphql_table where projectid=${projectId}`)
     
     const tablesSql = resTable.map(item=>{
-      return ` tableid = ${item.id} `
+      return ` f.tableid = ${item.id} `
     })
 
-    const sql = `select f.*,t.tablename,p.apikey from d_api f, graphql_table t ,system_project p where f.tableid=t.id and t.projectid=p.id and (${tablesSql.join(' or ')}) order by type DESC`
+    const sql = `select f.*,t.tablename,p.apikey from d_api f, graphql_table t ,system_project p 
+    where f.tableid=t.id and t.projectid=p.id and (${tablesSql.join(' or ')}) order by type DESC`
     const res = await db.query(sql)
     if(res){
       ctx.body={
