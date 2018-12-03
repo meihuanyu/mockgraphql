@@ -29,8 +29,6 @@ export const addData = async function(table_name,object){
         zhanwei.push("("+temp_zw.join()+")")
     }
     const sql = "INSERT INTO " + table_name + " (" + attributes.join(',') + ") " + "VALUES "+zhanwei.join()
-    console.log(sql)
-    console.log(values)
     try {
         let res = await db.query(sql,values);
         return res
@@ -52,7 +50,6 @@ export const deleteData = async function(table_name,ids,key = 'id'){
         where = sqlArr.join(' or ')
     }
     const sql = `delete from  ${table_name} where  ${where}`
-    console.log(sql)
     let res = await db.query(sql);
     return res
 }
