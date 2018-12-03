@@ -9,6 +9,7 @@ query systemmenu_list($pid:String){
       component
       oper
       pid
+      mid
     }   
    }
 `

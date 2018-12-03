@@ -26,6 +26,7 @@ class Grant extends BaseModal {
     onOk:async ()=>{
         const {grant}=this.props
         const roleid=this.props.gData[0].id
+        
         grant({
             variables:{ids:JSON.stringify(this.currentRows),roleid}
         })
@@ -59,12 +60,12 @@ class Grant extends BaseModal {
     return data.map((item) => {
       if (item.children) {
         return (
-          <TreeNode title={item.displayname} key={item.key?item.key:item.id} dataRef={item}>
+          <TreeNode title={item.displayname} key={item.key?item.key:item.mid} dataRef={item}>
             {this.renderTreeNodes(item.children)}
           </TreeNode>
         );
       }
-      return <TreeNode  title={item.displayname} key={item.key?item.key:item.id} dataRef={item} />;
+      return <TreeNode  title={item.displayname} key={item.key?item.key:item.mid} dataRef={item} />;
     });
   }
   hindleOncheck=(keys,xx)=>{
@@ -72,10 +73,10 @@ class Grant extends BaseModal {
     const ids = this.currentRows.map(item=>item.mid)
     if(xx.checked){
       for(let i=0;i<checkedNodes.length;i++){
-          if(ids.indexOf(parseInt(checkedNodes[i].key))===-1){
+          if(ids.indexOf(checkedNodes[i].key)===-1){
             //新增一个
             const obj = checkedNodes[i].props.dataRef
-            this.currentRows.push({id:obj.id,mid:obj.id,pid:parseInt(obj.pid),rid:this.props.gData[0].id})
+            this.currentRows.push({id:obj.id,mid:obj.mid,pid:obj.pid,rid:this.props.gData[0].id})
           }
       }
     }else{
@@ -85,6 +86,7 @@ class Grant extends BaseModal {
           }
       }
     }
+    console.log(this.currentRows)
   }
   render() {
     return this.state?<Tree 
