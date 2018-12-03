@@ -38,7 +38,7 @@ class Grant extends BaseModal {
     const roleid=this.props.gData[0].id
     const {data}=await cFetch('/api/app/query_grant',{params:{roleid}})
     const defaultIds = data.map(item=>JSON.stringify(item.mid))
-    this.currentRows = data.map(item=>({mid:item.mid,pid:item.pid,rid:this.props.gData[0].id}))
+    this.currentRows = data.map(item=>({id:item.id,mid:item.mid,pid:item.pid,rid:this.props.gData[0].id}))
     this.setState({
       treeData:treeData,
       grantIds:defaultIds
@@ -75,7 +75,7 @@ class Grant extends BaseModal {
           if(ids.indexOf(parseInt(checkedNodes[i].key))===-1){
             //新增一个
             const obj = checkedNodes[i].props.dataRef
-            this.currentRows.push({mid:obj.id,pid:parseInt(obj.pid),rid:this.props.gData[0].id})
+            this.currentRows.push({id:obj.id,mid:obj.id,pid:parseInt(obj.pid),rid:this.props.gData[0].id})
           }
       }
     }else{
@@ -104,7 +104,7 @@ export default compose(
     graphql(getMenu,{
         options:(props)=>({
             variables:{
-                pid:'0'
+                pid:'top'
             }
         }),
         props({data}){

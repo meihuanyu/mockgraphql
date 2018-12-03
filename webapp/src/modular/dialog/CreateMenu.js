@@ -23,7 +23,7 @@ class CreateMenu extends BaseModal{
                     }
                 })
             }else{
-                values.pid=gData.length?gData[0].id:'0';
+                values.pid=gData.length?gData[0].id:'top';
                 await systemmenu_create({
                     variables:{
                       ...values
