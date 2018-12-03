@@ -72,7 +72,7 @@ export default compose(
     graphql(getMenu,{
         name:"getMenu",
         options:(props)=>({
-                variables:{pid:props.match.params.topMenuId}
+                variables:{pid:props.match.params.projectId}
         })
     }),
     graphql(currentNode, { name: 'currentNode' })
