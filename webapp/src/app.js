@@ -82,7 +82,7 @@ class App extends React.Component{
                                         </div>
                                     </Header>
                                     <Content>
-                                        {systemmenu_list.map((item)=> <Route key={item.id} path={"/web/"+item.name+"/:topMenuId"} component={asyncComponent(()=>import('/modular'+item.component))} />)}
+                                        {systemmenu_list.map((item)=> <Route key={item.id} path={"/web/"+item.name+"/:projectId"} component={asyncComponent(()=>import('/modular'+item.component))} />)}
                                     </Content>                  
                                 </Layout>
                             )

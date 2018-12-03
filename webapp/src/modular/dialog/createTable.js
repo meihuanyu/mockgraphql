@@ -2,9 +2,6 @@ import React from 'react';
 import { Form, Icon, Input, Button, Checkbox,Select ,Radio ,Switch} from 'antd';
 import cfetch from '../../util/cFetch'
 import BaseModal from '../../common/BaseModal'
-import project_list from '../../graphql/project_list'
-import {  graphql, compose } from 'react-apollo'
-
 const Option = Select.Option;
 const FormItem = Form.Item;
 const RadioGroup = Radio.Group;
@@ -22,9 +19,9 @@ class NormalLoginForm extends BaseModal {
     }
   }
   render() {
+    console.log(this.props)
     const { getFieldDecorator } = this.props.form;
 
-    let optionTable=this.props.project_list?this.props.project_list.map((item)=><Option key={item.id} value={item.id}>{item.name}</Option>):null
     const formItemLayout = {
         labelCol: {
           xs: { span: 24 },
@@ -37,16 +34,6 @@ class NormalLoginForm extends BaseModal {
       };
     return (
       <Form onSubmit={this.handleSubmit} className="login-form">
-      <FormItem {...formItemLayout}   label="项目名称">
-            {getFieldDecorator('projectid', {
-                rules: [{ required: true, message: 'Please input your 项目名称!' }],
-                getValueFromEvent:this.hanldeOnchengeTable
-            })(
-                <Select >
-                    {optionTable}
-                </Select>
-            )}
-        </FormItem>
         <FormItem {...formItemLayout} label="表名称">
           {getFieldDecorator('tablename', {
             rules: [{ required: true, message: 'Please input your 表名称!' }],
@@ -68,17 +55,4 @@ class NormalLoginForm extends BaseModal {
 
 const WrappedNormalLoginForm = Form.create()(NormalLoginForm);
 
-export default compose(
-  graphql(project_list,{
-      options:(props)=>({
-          variables:{
-              userid:parseInt(localStorage.id)
-          }
-      }),
-      props({data}){
-        const {loading,project_list}=data
-        return {
-          project_list:project_list
-        }
-      }})
-)(WrappedNormalLoginForm)
+export default WrappedNormalLoginForm

@@ -59,7 +59,7 @@ class User extends Component {
         };
         return <div>
             <Spin spinning={this.props.menuLoading}>
-                <TopMenu menuData={this.props.topMenu} dataSource={this.dataSource} />
+                <TopMenu match={this.props.match} menuData={this.props.topMenu} dataSource={this.dataSource} />
             </Spin>
             <Spin spinning={this.state.tableLoging}>
                 <Table rowSelection={rowSelection} dataSource={this.state.tableData} columns={columns} rowKey="id"/>

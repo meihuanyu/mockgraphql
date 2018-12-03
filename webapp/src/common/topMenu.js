@@ -30,7 +30,7 @@ class TopMenu extends React.Component{
                         >
                             {items}
                     </Menu>
-                    {modalPatch?<ShowModal  component={modalPatch} menuFlowProps={flowData} upperCom={this} />:null}
+                    {modalPatch?<ShowModal match={this.props.match}  component={modalPatch} menuFlowProps={flowData} upperCom={this} />:null}
                 </div>
     }
 }
