@@ -38,7 +38,7 @@ class System extends Component{
     }
     render(){
         let {systemmenu_list,loading}=this.props.getMenu
-        const currentUrl=this.props.match.url;
+        const currentPath=this.props.match.path;
         const systemDom=loading?(<div>loading</div>):(
             <Layout>
                 <Sider width={200} style={{ background: '#fff' }}>
@@ -51,7 +51,7 @@ class System extends Component{
                 <Content>
                     <Layout>
                         <Content>
-                            <CreateRouter currentUrl={currentUrl} menuData={systemmenu_list} />
+                            <CreateRouter currentUrl={currentPath} menuData={systemmenu_list} />
                         </Content>
                     </Layout>
                 </Content>
