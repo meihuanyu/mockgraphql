@@ -32,9 +32,9 @@ export const getFields = async function(ctx,next){
     }
 }
 export const updateFields = async function(ctx,next){
-    const req=ctx.query
-    let sql ="UPDATE graphql_field SET fieldname='"+req.fieldname+"' , fieldtype='"+req.fieldtype+"' , issingleorlist="+req.issingleorlist+" , relationtableid="+req.relationtableid+" , isdeleteindex="+req.isdeleteindex+" , isqueryindex="+req.isqueryindex+" , isupdateindex="+req.isupdateindex+" , istype="+req.istype+" , isupdate="+req.isupdate+" WHERE id="+ctx.query.id;
-    const res=await db.query(sql);
+    const {fieldtype,istype } = ctx.query
+    let sql =`UPDATE graphql_field SET fieldtype=? ,istype=?  WHERE id=${ctx.query.id}`;
+    const res=await db.query(sql,[fieldtype,istype]);
     
     if(res){
         ctx.body={
@@ -98,7 +98,7 @@ export const createField=async function(ctx,next){
    
 
     let res=""
-    const thisTable = await db.query(`select * from graphql_table where id=${relationtableid} or id=${graprelationid}`)
+    const thisTable = await db.query(`select * from graphql_table where id=${relationtableid} ${graprelationid?' or id='+graprelationid:""}`)
     const twoTable = {}
     for(let i=0;i<thisTable.length;i++){
         twoTable[thisTable[i].id] = thisTable[i] 
@@ -152,8 +152,8 @@ export const createField=async function(ctx,next){
         //graphql_field表添加一个记录
         res=await addData('graphql_field',{fieldname,fieldtype,relationtableid,issingleorlist,istype})
     }else{
-        await _addField(fieldname,fieldtype,relationtableid)
-        res=await addData('graphql_field',{fieldname,fieldtype,relationtableid,graprelationid,istype,issingleorlist})
+        await _addField(fieldname,fieldtype,projectAndMainTableName)
+        res=await addData('graphql_field',{fieldname,fieldtype,relationtableid,istype,issingleorlist})
     }
     if(res){
         ctx.body={
@@ -289,9 +289,7 @@ const _createTable=async function(tablename,tableid){
     res=await db.query(insertsql);
     return res
 }
-const _addField = async function(field,type,tableid){
-    const tableres=await db.query("select tablename from graphql_table where id="+tableid)
-    const tableName=tableres[0].tablename
+const _addField = async function(field,type,tableName){
     let num=0;
     if(type=="int"){
         num=11
