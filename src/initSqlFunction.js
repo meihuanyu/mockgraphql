@@ -20,21 +20,20 @@ export const initSql = function(){
         RETURN sTemp;
         END;`)
     })
-    db.query(`DROP FUNCTION IF EXISTS 'nextval';`).then(function(){
-        db.query(`DELIMITER //    
-        CREATE  FUNCTION 'nextval'(seq_name VARCHAR(50)) RETURNS int(11)    
+    db.query(`DROP FUNCTION IF EXISTS nextval;`).then(function(){
+        db.query(`     
+        CREATE  FUNCTION nextval(seq_name VARCHAR(50)) RETURNS int(11)    
             DETERMINISTIC     
         BEGIN     
         UPDATE sequence SET current_value = current_value + increment WHERE NAME = seq_name;       
         RETURN currval(seq_name);       
-        END//     
-        DELIMITER ;
+        END;
         `)
     })
 
-    db.query(`DROP FUNCTION IF EXISTS 'currval';`).then(function(){
-        db.query(`DELIMITER //  
-        CREATE  FUNCTION 'currval'(seq_name VARCHAR(50)) RETURNS int(11)  
+    db.query(`DROP FUNCTION IF EXISTS currval;`).then(function(){
+        db.query(`  
+        CREATE  FUNCTION currval(seq_name VARCHAR(50)) RETURNS int(11)  
             READS SQL DATA  
             DETERMINISTIC  
         BEGIN  
@@ -42,9 +41,7 @@ export const initSql = function(){
         SET VALUE = 0;  
         SELECT current_value INTO VALUE FROM sequence WHERE NAME = seq_name;  
         RETURN VALUE;  
-        END//  
-        DELIMITER ;
-        `)
+        END;        `)
     })
 
     
