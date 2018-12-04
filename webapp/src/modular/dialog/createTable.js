@@ -11,6 +11,7 @@ class NormalLoginForm extends BaseModal {
     onOk:async ()=>{
       this.props.form.validateFields(async (err, values) => {
         if (!err) {
+          values.projectid = this.props.match.params.projectId
           var res=await cfetch('/api/app/createTable',{params:values});
           this.props.close('next')
         }
@@ -19,7 +20,6 @@ class NormalLoginForm extends BaseModal {
     }
   }
   render() {
-    console.log(this.props)
     const { getFieldDecorator } = this.props.form;
 
     const formItemLayout = {

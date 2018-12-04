@@ -1,5 +1,5 @@
 import db from '../config/database'
-import {addData} from '../controllers/sql'
+import {addData,getOneData} from '../controllers/sql'
 var jwt = require('jsonwebtoken');
 
 export const getTables = async function(ctx,next){
@@ -94,25 +94,23 @@ export const deleteFields = async function(ctx,next){
 }
 export const createField=async function(ctx,next){    
     const {fieldname,fieldtype,relationtableid,issingleorlist,graprelationid,istype}=ctx.query;
-
-   
-
     let res=""
-    const thisTable = await db.query(`select * from graphql_table where id=${relationtableid} ${graprelationid?' or id='+graprelationid:""}`)
-    const twoTable = {}
-    for(let i=0;i<thisTable.length;i++){
-        twoTable[thisTable[i].id] = thisTable[i] 
-    } 
-    const projectid                = twoTable[relationtableid].projectid
-    const resProject               = await db.query("select * from system_project where id="+projectid)
-    const projectName              = resProject[0].apikey
-    const mainTableName            = twoTable[relationtableid].tablename
+    const relationTable =  await getOneData('graphql_table',{
+        id:relationtableid
+    }) 
+    const projectid                = relationTable.projectid
+    const resProject               = await getOneData('system_project',{id:projectid})
+    const projectName              = resProject.apikey
+    const mainTableName            = relationTable.tablename
     const projectAndMainTableName  = projectName+"_"+mainTableName
     //存入字段表
     //如果是对象 存入字段表 目标表增加关系id字段类型
     //如果不是对象 存入字段表 新增表的结构
     if(fieldtype=='graphqlObj'){
-        const viceTableName  = twoTable[graprelationid].tablename
+        const grapTable =  await getOneData('graphql_table',{
+            id:graprelationid
+        }) 
+        const viceTableName  = grapTable[0].tablename
         if(issingleorlist == "1"){
             //多对多关系 
             const middleTable    = projectName+"_"+mainTableName+"_"+viceTableName;
@@ -125,8 +123,11 @@ export const createField=async function(ctx,next){
             //把中间表放入 mock系统内
             //添加到 graphql table
             const desc=mainTableName+"到"+viceTableName+"中转表";
-            const insertlTableSql="insert into graphql_table(tablename,descinfo,type) values('"+middleTable+"','"+desc+"',"+1+")"
-            const resTable=await db.query(insertlTableSql);
+            const resTable=await addData('graphql_table',{
+                tablename:middleTable,
+                descinfo:desc,
+                type:1
+            })
             const tableid=resTable.insertId;
             console.log('insert中专表到graphql_table')
             //添加到 graphql field
@@ -139,14 +140,12 @@ export const createField=async function(ctx,next){
             console.log('INSERT 到 graphql_field')
         }else{
             //单个
-            
             const addsql = "alter table "+projectAndMainTableName+" add "+(viceTableName+"id ")+"int(11);"
             console.log(addsql)
             await db.query(addsql)
         }
         //原表新增一个字段
         const addFieldSql="alter table "+projectAndMainTableName+" add "+ fieldname+" int(11);"
-        console.log(addFieldSql)
         await db.query(addFieldSql);  
         console.log("原表新增字段")
         //graphql_field表添加一个记录
@@ -163,12 +162,15 @@ export const createField=async function(ctx,next){
     }
 }
 export const createTable=async function(ctx,next){
-    const opts = ctx.query;
-    const project=await db.query('select * from system_project where id='+opts.projectid)
-    const qianzui=project[0].apikey;
-    const sql="insert into graphql_table (tablename,descinfo,projectid) values('"+(qianzui+"_"+opts.tablename)+"','"+opts.descinfo+"',"+opts.projectid+")"
-    const insertres=await db.query(sql);
-    const res =await _createTable(qianzui+"_"+opts.tablename,insertres.insertId)
+    const { tablename,descinfo,projectid} = ctx.query;
+    const resProjects = await db.query(`select apikey from system_project where id=?`,[projectid]) 
+    const apiKey = resProjects[0].apikey
+    const insertRes = await addData('graphql_table',{
+        tablename,
+        descinfo,
+        projectid
+    })
+    const res =await _createTable(apiKey+"_"+tablename,insertRes.insertId)
     if(res){
         ctx.body={
             success:true
@@ -280,13 +282,16 @@ const arrToObj = function (arr,key){
 }
 const _createTable=async function(tablename,tableid){
     const  sql="CREATE TABLE IF NOT EXISTS `"+tablename+"`("+
-        "`id` INT UNSIGNED AUTO_INCREMENT,`createdAt` DATE,`updatedAt` DATE,PRIMARY KEY ( `id` )"+
+        "`id` INT UNSIGNED AUTO_INCREMENT,`createdAt` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,`updatedAt` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,PRIMARY KEY ( `id` )"+
         ")ENGINE=InnoDB DEFAULT CHARSET=utf8;"
-    let res=await db.query(sql);  
+    db.query(sql);  
     //默认id状态
-    const insertsql="INSERT INTO graphql_field  (fieldname,fieldtype,relationtableid,isdeleteindex,isqueryindex,isupdateindex,isupdate)"+ 
-    "values ('id','int',"+tableid+",1,1,1,1)"
-    res=await db.query(insertsql);
+    const res = await addData('graphql_field',{
+        fieldname:"id",
+        fieldtype:"int",
+        relationtableid:tableid,
+        istype:1
+    })
     return res
 }
 const _addField = async function(field,type,tableName){

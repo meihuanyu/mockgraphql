@@ -76,6 +76,26 @@ export const updateData = async function(table_name,object,where = '1=1'){
 //查
 //attributes: 要查询的字段，传 字符串 或 数组
 //where: 查询条件，传 字符串
+export const getOneData = async function(table_name,params){
+    var values = []
+    var _where = []
+    for(let key in params){
+        values.push(params[key])
+        _where.push(` ${key}=? `)
+    }
+
+    const sql = "SELECT * FROM " + table_name +( _where?' where '+_where.join(' and '):"")
+    try {
+        let res = await db.query(sql,values);
+        return res[0]
+    } catch (error) {
+        console.error(error)
+        return {}
+    }
+}
+//查
+//attributes: 要查询的字段，传 字符串 或 数组
+//where: 查询条件，传 字符串
 export const getData = async function(table_name,params){
     const keys = Object.keys(params)
     const whereArr = []
