@@ -112,7 +112,7 @@ function toQueryString(object) {
 }
 
 
-function cFetch(url, options) {
+function cFetch(url,params, options) {
     let mergeUrl =  url;
     const defaultOptions = {
         method: 'GET',
@@ -125,7 +125,7 @@ function cFetch(url, options) {
     };
 
     const opts = Object.assign({}, defaultOptions, {...options});
-
+    opts.params = params
     // add query params to url when method is GET
     if (opts && opts.method === "GET" && opts['params']) {
         mergeUrl = mergeUrl + '?' + toQueryString(opts['params']);
