@@ -35,9 +35,9 @@ class ComFunction extends Component {
         this.setState({
             tableLoading:true
         })
-        const resData = await cFetch('/api/app/query_comArgs',{params:{
+        const resData = await cFetch('/api/app/query_comArgs',{
             projectId:this.props.currentMenu.pid
-        }})
+        })
         this.setState({
             tableData:resData.data,
             tableLoading:false

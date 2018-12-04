@@ -12,7 +12,7 @@ class NormalLoginForm extends BaseModal {
       this.props.form.validateFields(async (err, values) => {
         if (!err) {
           values.projectid = this.props.match.params.projectId
-          var res=await cfetch('/api/app/createTable',{params:values});
+          var res=await cfetch('/api/app/createTable',values);
           this.props.close('next')
         }
       });

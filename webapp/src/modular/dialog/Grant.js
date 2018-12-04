@@ -37,7 +37,7 @@ class Grant extends BaseModal {
     let {systemmenu_list}=this.props
     const treeData=JSON.parse(JSON.stringify(systemmenu_list))
     const roleid=this.props.gData[0].id
-    const {data}=await cFetch('/api/app/query_grant',{params:{roleid}})
+    const {data}=await cFetch('/api/app/query_grant',{roleid})
     const defaultIds = data.map(item=>JSON.stringify(item.mid))
     this.currentRows = data.map(item=>({id:item.id,mid:item.mid,pid:item.pid,rid:this.props.gData[0].id}))
     this.setState({

@@ -24,7 +24,7 @@ class Field extends BaseModal{
     }
     loaderTable=async ()=>{
         this.setState({loadding:true})
-        let response=await cfetch('/api/app/getFields',{params:{id:this.props.gData[0].id}})
+        let response=await cfetch('/api/app/getFields',{id:this.props.gData[0].id})
         let tables=await cfetch('/api/app/getTables')
         this.setState({
             tableData:response.data,
@@ -97,12 +97,12 @@ class Field extends BaseModal{
     }
     save=async (index)=>{
         if(this.state.tableData[index].id){
-            let response=await cfetch('/api/app/updateFields',{params:this.state.tableData[index]})
+            let response=await cfetch('/api/app/updateFields',this.state.tableData[index])
             this.endEdit(index)
         }else{
             let paramsObj=this.state.tableData[index]
             paramsObj.tablename=this.props.gData[0].tablename
-            var res=await cfetch('/api/app/createField',{params:paramsObj});
+            var res=await cfetch('/api/app/createField',paramsObj);
             let  temp=this.state
             temp.tableData[index].isEdit=false
             temp.tableData[index].addEdit=false
@@ -112,13 +112,13 @@ class Field extends BaseModal{
     }
     deleteRow=async (index)=>{
         if(this.state.tableData[index].id){
-            var res=await cfetch('/api/app/deleteFields',{params:{
+            var res=await cfetch('/api/app/deleteFields',{
                 id:this.state.tableData[index].id,
                 fieldtype:this.state.tableData[index].fieldtype,
                 fieldname:this.state.tableData[index].fieldname,
                 fieldrelationtablename:this.state.tableData[index].fieldrelationtablename,
                 table:this.props.gData[0].tablename
-            }});
+            });
         }
         let  temp=this.state
         temp.tableData.splice(index,1)

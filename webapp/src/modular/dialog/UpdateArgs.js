@@ -25,7 +25,7 @@ class UpdateFun extends BaseModal{
     }
     loaderTable=async ()=>{
         this.setState({loadding:true})
-        let response=await cfetch('/api/app/query_args',{params:{id:this.props.gData[0].id}})
+        let response=await cfetch('/api/app/query_args',{id:this.props.gData[0].id})
         let tables=await cfetch('/api/app/getTables')
         this.setState({
             tables:tables.data,
@@ -92,12 +92,12 @@ class UpdateFun extends BaseModal{
     save=async (index)=>{
         if(this.state.tableData[index].id){
             let _params=this.state.tableData[index]
-            let response=await cfetch('/api/app/update_args',{params:_params})
+            let response=await cfetch('/api/app/update_args',_params)
             this.endEdit(index)
         }else{
             let paramsObj=this.state.tableData[index]
             paramsObj.tableid=this.props.gData[0].id
-            var res=await cfetch('/api/app/create_args',{params:paramsObj});
+            var res=await cfetch('/api/app/create_args',paramsObj);
             let  temp=this.state
             temp.tableData[index].isEdit=false
             temp.tableData[index].id=res.data.insertId
@@ -106,9 +106,9 @@ class UpdateFun extends BaseModal{
     }
     deleteRow=async (index)=>{
         if(this.state.tableData[index].id){
-            await cfetch('/api/app/delete_args',{params:{
+            await cfetch('/api/app/delete_args',{
                 id:this.state.tableData[index].id
-            }});
+            });
         }
         let  temp=this.state
         temp.tableData.splice(index,1)
@@ -127,7 +127,7 @@ class UpdateFun extends BaseModal{
     }
     importArgs=async ()=>{
         this.setState({importArgsLoadding:true})
-        await cfetch('/api/app/import_args',{params:{id:this.props.gData[0].id}})
+        await cfetch('/api/app/import_args',{id:this.props.gData[0].id})
         this.setState({importArgsLoadding:false})
     }
     render(){

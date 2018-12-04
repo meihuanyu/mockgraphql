@@ -24,7 +24,7 @@ class UpdateFun extends BaseModal{
     }
     loaderTable=async ()=>{
         this.setState({loadding:true})
-        let response=await cfetch('/api/app/query_funs',{params:{id:this.props.gData[0].id}})
+        let response=await cfetch('/api/app/query_funs',{id:this.props.gData[0].id})
         this.setState({
             tableData:response.data,
             loadding:false
@@ -79,12 +79,12 @@ class UpdateFun extends BaseModal{
         console.log(this.state.tableData)
         if(this.state.tableData[index].id){
             let _params=this.state.tableData[index]
-            let response=await cfetch('/api/app/update_funs',{params:_params})
+            let response=await cfetch('/api/app/update_funs',_params)
             this.endEdit(index)
         }else{
             let paramsObj=this.state.tableData[index]
             paramsObj.tableid=this.props.gData[0].id
-            var res=await cfetch('/api/app/create_funs',{params:paramsObj});
+            var res=await cfetch('/api/app/create_funs',paramsObj);
             let  temp=this.state
             temp.tableData[index].isEdit=false
             temp.tableData[index].id=res.data.insertId
@@ -93,9 +93,9 @@ class UpdateFun extends BaseModal{
     }
     deleteRow=async (index)=>{
         if(this.state.tableData[index].id){
-            await cfetch('/api/app/delete_funs',{params:{
+            await cfetch('/api/app/delete_funs',{
                 id:this.state.tableData[index].id
-            }});
+            });
         }
         let  temp=this.state
         temp.tableData.splice(index,1)
