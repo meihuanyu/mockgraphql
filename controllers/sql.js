@@ -104,7 +104,7 @@ export const getData = async function(table_name,params){
         _where.push(` ${key}=? `)
     }
 
-    const sql = "SELECT * FROM " + table_name +( _where?' where '+_where.join(' and '):"")
+    const sql = "SELECT * FROM " + table_name +( _where.length?' where '+_where.join(' and '):"")
     try {
         let res = await db.query(sql,values);
         return res
