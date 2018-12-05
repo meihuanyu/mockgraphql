@@ -65,7 +65,7 @@ class ComFunction extends Component {
         };
         return <div>
             <Spin spinning={this.props.loading}>
-                <TopMenu menuData={this.props.topMenu} dataSource={this.dataSource} />
+                <TopMenu  match={this.props.match} menuData={this.props.topMenu} dataSource={this.dataSource} />
             </Spin>
             <Spin spinning={this.state.tableLoading}>
                 <Table rowSelection={rowSelection} dataSource={tableData} columns={columns} rowKey="id" />
