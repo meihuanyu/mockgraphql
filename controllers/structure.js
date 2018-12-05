@@ -1,5 +1,5 @@
 import db from '../config/database'
-import {addData,getOneData} from '../controllers/sql'
+import {addData,getOneData, getData} from '../controllers/sql'
 var jwt = require('jsonwebtoken');
 
 export const getTables = async function(ctx,next){
@@ -48,20 +48,20 @@ export const deleteFields = async function(ctx,next){
 
     const resTable=await db.query("select * from graphql_table where id="+resField[0].relationtableid)
 
+    const resProject               = await getOneData('system_project',{id:resTable[0].projectid})
+    const projectName              = resProject.apikey
+
     const field = resField[0]
     const table = resTable[0]
-
-    const resProject               = await db.query("select * from system_project where id="+field.projectid)
-    const projectName              = resProject[0].apikey
 
     if(field.fieldtype=='graphqlObj'){
         //查对象 和 对象数组
         const middleTable=field.tablename
         if(field.issingleorlist){
-            const middleTableName=table.tablename+"_"+middleTable;
-            const resTable=await db.query("select * from graphql_table where tablename='"+middleTableName+"'");
-            
-            const middleId=field.id;
+            const _middleTableName = table.tablename + "_" + field.tablename
+            const resRealtionTable = await getOneData('graphql_table',{tablename:_middleTableName,type:1})
+            const middleTableName  = projectName+"_"+resRealtionTable.tablename
+            const middleId         = resRealtionTable.id
             //删除table
             db.query("DROP TABLE "+middleTableName)
             console.log('删除中间表...'+middleTableName)
@@ -80,7 +80,7 @@ export const deleteFields = async function(ctx,next){
         }
         
     }
-    db.query("alter table "+table.tablename+" drop "+field.fieldname)
+    db.query("alter table "+projectName+"_"+table.tablename+" drop "+field.fieldname)
     console.log('删除原表字段'+field.fieldname)
 
     let sql ="delete  from graphql_field where id="+ctx.query.id;
@@ -110,7 +110,7 @@ export const createField=async function(ctx,next){
         const grapTable =  await getOneData('graphql_table',{
             id:graprelationid
         }) 
-        const viceTableName  = grapTable[0].tablename
+        const viceTableName  = grapTable.tablename
         if(issingleorlist == "1"){
             //多对多关系 
             const middleTable    = projectName+"_"+mainTableName+"_"+viceTableName;
@@ -124,7 +124,7 @@ export const createField=async function(ctx,next){
             //添加到 graphql table
             const desc=mainTableName+"到"+viceTableName+"中转表";
             const resTable=await addData('graphql_table',{
-                tablename:middleTable,
+                tablename:mainTableName+"_"+viceTableName,
                 descinfo:desc,
                 type:1
             })
@@ -149,7 +149,7 @@ export const createField=async function(ctx,next){
         await db.query(addFieldSql);  
         console.log("原表新增字段")
         //graphql_field表添加一个记录
-        res=await addData('graphql_field',{fieldname,fieldtype,relationtableid,issingleorlist,istype})
+        res=await addData('graphql_field',{fieldname,fieldtype,relationtableid,graprelationid,issingleorlist,istype})
     }else{
         await _addField(fieldname,fieldtype,projectAndMainTableName)
         res=await addData('graphql_field',{fieldname,fieldtype,relationtableid,istype,issingleorlist})
@@ -178,16 +178,13 @@ export const createTable=async function(ctx,next){
     }
 }
 export const querySchme=async function(apikey){
-    const queryProjectSql="select * from system_project where apikey='"+apikey+"'"
-    const resProject=await db.query(queryProjectSql)
+    const resProject=await getOneData('system_project',{apikey})
     let fields={};
     let tFuns={};
     let tArgs={}
     let tables={}
-    let tComFuns={}
     const projectName=apikey
-    const tablesql="select * from graphql_table where projectid="+resProject[0].id;
-    const tableData=await db.query(tablesql);
+    const tableData=await getData('graphql_table',{projectid:resProject.id})
     const tIds = tableData.map(item=>item.id)
 
     //查询对应的字段  转换成对象 id:[{},{}]
