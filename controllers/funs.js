@@ -12,9 +12,8 @@ export const query_funs=async (ctx)=>{
   }
 
 export const query_project_funs=async (ctx)=>{
-    //写死只要一个项目
     const projectId = ctx.query.pid
-    const resTable = await db.query(`select * from graphql_table where projectid=${projectId}`)
+    const resTable = await db.query(`select * from graphql_table where projectid=?`,[projectId])
     
     const tablesSql = resTable.map(item=>{
       return ` f.tableid = ${item.id} `
