@@ -7,7 +7,7 @@ import {
 import {getTables,createField,createTable,getFields,updateFields,deleteFields,querySchme,query_grant} from '../controllers/structure'
 import { create_funs , delete_funs , update_funs , query_funs ,query_project_funs} from '../controllers/funs'
 import { create_args , delete_args , update_args , query_args ,import_args} from '../controllers/args'
-import { create_comArgs , delete_comArgs , update_comArgs , query_comArgs,query_comArgsLinkFunction,delete_linkComArgs,create_link_com} from '../controllers/comArgs'
+import { create_comArgs , delete_comArgs , update_comArgs , query_comArgs,query_comArgsLinkFunction,delete_linkComArgs,create_link_com,importFunction} from '../controllers/comArgs'
 import {login} from '../controllers/login'
 import {permissions} from '../controllers/user'
 import redis from '../config/redis'
@@ -61,6 +61,7 @@ router.get('/app/create_comArgs',create_comArgs);
 router.get('/app/query_comArgsLinkFunction',query_comArgsLinkFunction);
 router.get('/app/delete_linkComArgs',delete_linkComArgs);
 router.get('/app/create_link_com',create_link_com);
+router.get('/app/importFunction',importFunction);
 
 
 router.get('/tt',function(ctx){
