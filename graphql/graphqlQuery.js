@@ -1,74 +1,106 @@
 import util from './util'
+
 import {
-    graphql,
+  GraphQLInputObjectType,
     GraphQLSchema,
     GraphQLObjectType,
     GraphQLString,
     GraphQLID,
     GraphQLList,
     GraphQLNonNull,
-    isOutputType,
-    GraphQLInt,
-    GraphQLInputObjectType
+    GraphQLInt
   } from 'graphql';
   
 class Grouphqlquery extends util{
-    async queryFun(resData){
-
-    }
-    newApi(table,name){
-        let _objectType= this.toObjectType(table,table+name)
-        const args=this.toArgs(table,'isqueryindex')
+    newApi(table,name,oper,api){
+        let _objectType= this.toObjectType(table,api)
+        const args=this.toArgs(table,oper)
+        const _this = this
         return  {
-          type:_objectType,
+          type:oper==='list'?new GraphQLList(_objectType):_objectType,
           args:args,
           async resolve(root,params,option){
-              return require(`../functions/${table}/${name}.js`)(params,table,name)
+              if(name){
+                params=await _this.beforRunFun(params,table,root,api)
+                return require(`../commonFun/${name}.js`)(params,table,oper,root)
+              }else{
+                return ()=>{}
+              }
+              
           }
         }
     }
     async startSchema (data){
-        const resData=data.fields;
-        this.paramsObj=resData;
+        console.log(data)
+        this.paramsObj=data.fields;
         this.funs=data.tFuns;
         this.projectName=data.projectName
-        this.tables=Object.keys(resData);
-        let   query={}
-        let   mutation={}
-        for(let i=0;i<this.tables.length;i++){
-            const currKey=this.tables[i]
+        this.args=data.tArgs
+        const funNames = Object.keys(this.funs)
+        for(let i=0;i<funNames.length;i++){
+            const {oper,isNew,tablename,funName} = this.funs[funNames[i]]
+            const api_name=funNames[i]
+            if(isNew == 'original'){
+              if(oper==='list'){
+                this.query[api_name] =  this.getQueryList(tablename,api_name)
 
-            //创建新的api
-            const tFun=this.funs[currKey]
-            if(tFun && tFun.news){
-              const news=tFun.news
-              for(let i=0;i<news.length;i++){
-                if(news[i].isquery==1){
-                  mutation[currKey+"_"+news[i].name]=this.newApi(currKey,news[i].name)
-                }else if(news[i].isquery==2){
-                  query[currKey+"_"+news[i].name]=this.newApi(currKey,news[i].name)
-                }
-                
+              }else if(oper==='single'){
+                this.query[api_name] =  this.getSingleRow(tablename,api_name)
+
+              }else if(oper==='create'){
+                this.mutation[api_name] =  this.createRow(tablename,api_name)  
+
+              }else if(oper==='delete'){
+                this.mutation[api_name] =  this.deleteRow(tablename,api_name)  
+
+              }else if(oper==='update'){
+                this.mutation[api_name] =  this.updateRow(tablename,api_name)  
+              }
+            }else if(isNew == 'new'){
+              if(oper === 'list' || oper === 'single'){
+                this.query[api_name]=this.newApi(tablename,funName,oper,api_name)
+              }else{
+                this.mutation[api_name]=this.newApi(tablename,funName,oper,api_name)
               }
             }
-            
-
-            query[currKey+"List"] =  this.getQueryList(currKey)
-            query[currKey] =  this.getSingleRow(currKey)
-            
-            mutation[currKey+'Create'] =  this.createRow(currKey)   
-            mutation[currKey+'Delete'] =  this.deleteRow(currKey)   
-            mutation[currKey+'Update'] =  this.updateRow(currKey)   
         }
+        this.mutation.testgg={
+          type:new GraphQLObjectType({
+            name:'testctype',
+            fields:{
+              aa:{
+                type:GraphQLString
+              },bb:{
+                type:GraphQLString
+              }
+            }
+          })  ,
+          args:{
+            ap:{
+              name:'ap',
+              type:new GraphQLList(new GraphQLInputObjectType({
+                name:"apxxx",
+                fields:{
+                  description: { type: GraphQLString }
+                }
+              }))
+            }
+          },
+          async resolve(root,params,option){
+              console.log(params)
+              return  {}
+          }
+      }
+
 
         return new GraphQLSchema({
             query: new GraphQLObjectType({
               name: 'Queries',
-              fields:  query
+              fields:  this.query
             }),
             mutation:new GraphQLObjectType({
               name:"Mutaions",
-              fields:mutation
+              fields:this.mutation
             })
           })
     }

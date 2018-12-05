@@ -18,8 +18,8 @@ class Demo extends React.Component {
     return this.currentRows
   }
   componentWillMount=()=>{
-    let {systemmenuList}=this.props
-    const treeData=JSON.parse(JSON.stringify(systemmenuList))
+    let {systemmenu_list}=this.props
+    const treeData=JSON.parse(JSON.stringify(systemmenu_list))
     this.setState({
       treeData:treeData
     })
@@ -28,7 +28,7 @@ class Demo extends React.Component {
     
     const resData=await this.props.loadMore(treeNode.props.dataRef.id)
     return new Promise((resolve) => {
-        treeNode.props.dataRef.children = JSON.parse(JSON.stringify(resData.data.systemmenuList));
+        treeNode.props.dataRef.children = JSON.parse(JSON.stringify(resData.data.systemmenu_list));
         this.setState({
           treeData: [...this.state.treeData],
         });
@@ -58,8 +58,8 @@ class Demo extends React.Component {
     currentRows:this.getRows,
     reload:async ()=>{
       this.bug_temp_caese_key++
-      const {data:{systemmenuList}}=await this.props.refetch()
-      const treeData=JSON.parse(JSON.stringify(systemmenuList))
+      const {data:{systemmenu_list}}=await this.props.refetch()
+      const treeData=JSON.parse(JSON.stringify(systemmenu_list))
       for(let i=0;i<treeData.length;i++){
         treeData[i].key=treeData[i].id+"x"+this.bug_temp_caese_key
       }
@@ -90,22 +90,22 @@ export default compose(
   graphql(getMenu,{
         options:(props)=>({
             variables:{
-                parentid:'0'
+                pid:'top'
             }
         }),
         props({data}){
-          let {loading,systemmenuList,fetchMore,refetch} =data
+          let {loading,systemmenu_list,fetchMore,refetch} =data
           return {
             loading,
-            systemmenuList,
+            systemmenu_list,
             refetch,
             loadMore(id){
               return fetchMore({
                 variables: {
-                  parentid: id,
+                  pid: id,
                 },
                 updateQuery(previousResult, { fetchMoreResult }){
-                  return fetchMoreResult.systemmenuList
+                  return fetchMoreResult.systemmenu_list
                 }
               })
             }
@@ -115,13 +115,13 @@ export default compose(
     graphql(getMenu,{
       options:(props)=>({
           variables:{
-              parentid:props.currentMenu.id
+              pid:props.currentMenu.id
           }
       }),
       props({data}){
-        const {loading,systemmenuList}=data
+        const {loading,systemmenu_list}=data
         return {
-          topMenu:systemmenuList
+          topMenu:systemmenu_list
         }
       }
     })

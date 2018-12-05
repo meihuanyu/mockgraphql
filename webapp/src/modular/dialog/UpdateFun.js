@@ -2,11 +2,11 @@ import React from 'react'
 import BaseModal from '../../common/BaseModal'
 import {graphql,compose} from 'react-apollo'
 import systemmenuDelete from '../../graphql/systemmenuDelete'
-import {Table,Switch,Select,Button,Input,Spin ,message } from 'antd'
+import {Table,Switch,Select,Button,Input,Spin  } from 'antd'
 import cfetch from '../../util/cFetch'
 const Option=Select.Option
 
-class Field extends BaseModal{
+class UpdateFun extends BaseModal{
     state={
         tableData:[],
         selectedRowKeys:[],
@@ -24,13 +24,9 @@ class Field extends BaseModal{
     }
     loaderTable=async ()=>{
         this.setState({loadding:true})
-        let response=await cfetch('/api/app/getFields',{id:this.props.gData[0].id})
-        let tables=await cfetch('/api/app/getTables',{
-            pid:this.props.match.params.projectId
-        })
+        let response=await cfetch('/api/app/query_funs',{id:this.props.gData[0].id})
         this.setState({
             tableData:response.data,
-            tables:tables.data,
             loadding:false
         })
     }
@@ -42,50 +38,32 @@ class Field extends BaseModal{
         temp.tableData[index][name]=text
         this.setState(temp)
     }
-    selectType=(text, col, i)=>{
-        return <Select disabled={!col.isEdit} defaultValue={text} style={{width:"100px"}} onChange={(value,option)=>this.changeState(value,i,'fieldtype')}>
-                        <Option key={1} value='varchar'>varchar</Option>
-                        <Option key={2} value='int'>int</Option>                    
-                        <Option key={3} value='obj'>对象</Option>
-                        <Option key={4} value='graphqlObj'>关联对象</Option>
+    selectType=(text, col, i,name)=>{
+        return <Select disabled={!col.isEdit} defaultValue={text} style={{width:"100px"}} onChange={(value,option)=>this.changeState(value,i,name)}>
+                        <Option key={2} value='list'>list</Option>                    
+                        <Option key={3} value='single'>single</Option>
+                        <Option key={4} value='create'>create</Option>
+                        <Option key={5} value='delete'>delete</Option>
+                        <Option key={6} value='update'>update</Option>
+                </Select>
+    }
+    selectFs=(text, col, i,name)=>{
+        return <Select disabled={!col.isEdit} defaultValue={text} style={{width:"100px"}} onChange={(value,option)=>this.changeState(value,i,name)}>
+                        <Option key={0} value='original'>original</Option>                
+                        <Option key={3} value='new'>new</Option>
                 </Select>
     }
     isYesOrNo=(text, col,index, name)=>{
         return <Switch disabled={!col.isEdit} defaultChecked={text==1} onChange={(check)=>this.changeState(check?1:0,index,name)}/>
     }
-    guanlian=(text, col,index, name)=>{
-        if(col.isEdit){
-            if(col.fieldtype==="graphqlObj"){
-                return <Select  defaultValue={text} style={{width:"100px"}} onChange={(value,option)=>this.changeState(value,index,'graprelationid')}> 
-                            {
-                                this.state.tables.map((item,index)=>{
-                                    return <Option key={item.id} value={item.id}>{item.tablename}</Option>
-                                })
-                            }
-                        </Select>
-            }else{
-                return text
-            }
-            
-        }else{
-            return text
-        }
-        
-    }
     isEditing=(record)=>{
         return record.isEdit
     }
     textInput=(text, col, index,name)=>{
-        if(col.addEdit){
+        if(col.isEdit){  
             return <Input defaultValue={text} onChange={(e)=>this.changeState(e.target.value,index,name)}/>
         }
         return text
-    }
-    objSingleOrList=(text, col, i)=>{
-        if(col.fieldtype==="graphqlObj"){
-            return <Switch disabled={!col.isEdit} defaultChecked={text==1} onChange={(checked)=>this.changeState(checked?1:0,i,"issingleorlist")}/>
-        }
-        return ""
     }
     beginEdit=(index)=>{
         let  temp=this.state
@@ -98,33 +76,25 @@ class Field extends BaseModal{
         this.setState(temp)
     }
     save=async (index)=>{
-        if(this.state.tableData[index].graprelationid === this.props.gData[0].id){
-            message.error('请不要关联自己')
-            return false
-        }
+        console.log(this.state.tableData)
         if(this.state.tableData[index].id){
             let _params=this.state.tableData[index]
-            let response=await cfetch('/api/app/updateFields',_params)
+            let response=await cfetch('/api/app/update_funs',_params)
             this.endEdit(index)
         }else{
             let paramsObj=this.state.tableData[index]
-            paramsObj.tablename=this.props.gData[0].tablename
-            var res=await cfetch('/api/app/createField',paramsObj);
+            paramsObj.tableid=this.props.gData[0].id
+            var res=await cfetch('/api/app/create_funs',paramsObj);
             let  temp=this.state
             temp.tableData[index].isEdit=false
-            temp.tableData[index].addEdit=false
             temp.tableData[index].id=res.data.insertId
             this.setState(temp)
         }
     }
     deleteRow=async (index)=>{
         if(this.state.tableData[index].id){
-            var res=await cfetch('/api/app/deleteFields',{
-                id:this.state.tableData[index].id,
-                fieldtype:this.state.tableData[index].fieldtype,
-                fieldname:this.state.tableData[index].fieldname,
-                graprelationid:this.state.tableData[index].graprelationid,
-                table:this.props.gData[0].tablename
+            await cfetch('/api/app/delete_funs',{
+                id:this.state.tableData[index].id
             });
         }
         let  temp=this.state
@@ -133,47 +103,54 @@ class Field extends BaseModal{
     }
     newRow=()=>{
         const _row={
-            fieldname:"",
-            fieldtype:"",
-            isEdit:true,
-            fieldtype:"",
-            issingleorlist:0,
-            istype:1,
-            addEdit:true,
-            relationtableid:this.props.gData[0].id
+            type:"",
+            oper:"",
+            alias:"",
+            isEdit:true
         }
         let  temp=this.state
         temp.tableData.push(_row)
         this.setState(temp)
     }
     render(){
+        console.log(this.props)
         const columns = [{
-            title: '字段名称',
-            dataIndex: 'fieldname',
-            render:(text, col, i)=>this.textInput(text, col, i,'fieldname')
+            title: '名称',
+            dataIndex: '',
+            render:item=>{
+                const tablename=this.props.gData[0].tablename
+                const fileName = item.alias?item.alias:tablename+"_"+item.oper
+                return fileName
+            }
+          },{
+            title: '接口方式',
+            dataIndex: 'type',
+            render:(text, col, i)=>this.selectFs(text, col, i,'type')
           }, 
           {
-            title: '类型',
-            dataIndex: 'fieldtype',
-            render:this.selectType
-          },
-          , {
-            title: '是否返回',
-            dataIndex: 'istype',
-            render:(text, col, i)=>this.isYesOrNo(text,col,i,"istype")
-          }, {
-            title: '关联对象',
-            dataIndex: 'graprelationid',
-            render:this.guanlian
-          }, {
-            title: '单个或多个',
-            dataIndex: 'issingleorlist',
-            render:this.objSingleOrList
-          },
+            title: '接口类型',
+            dataIndex: 'oper',
+            render:(text, col, i)=>this.selectType(text, col, i,'oper')
+          },{
+            title: '别名',
+            dataIndex: 'alias',
+            render:(text, col, i)=>this.textInput(text, col, i,'alias')
+          },{
+            title: '位置',
+            dataIndex: '',
+            render:item=>{
+                let path = ""
+                if(item.type!=='original'){
+                    const tablename=this.props.gData[0].tablename
+                    const fileName = item.alias?item.alias:tablename+"_"+item.oper
+                    path = `\/${tablename}/${fileName}`
+                }
+                return path
+            }
+          }, 
           {
             title: 'operation',
             dataIndex: 'operation',
-            width:100,
             render: (text, record,index) => {
               const editable = this.isEditing(record);
               return (
@@ -207,4 +184,4 @@ class Field extends BaseModal{
         </div>
     }
 }
-export default Field
+export default UpdateFun

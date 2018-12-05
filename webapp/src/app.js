@@ -17,12 +17,13 @@ class App extends React.Component{
         resLoading:false
     }
     graphqlApi=()=>{
-        window.open("/api/graphiql/textx")
+        window.open("/api/graphiql/"+window.location.pathname.split('/')[2])
     }
     reslApi=async ()=>{
         this.setState({resLoading:true});
-        var res=await cfetch("/api/aa");
-        window.location.href=window.location.href
+        await cfetch("/api/tt",{apiKey:window.location.pathname.split('/')[2]});
+        this.setState({resLoading:false});
+
     }
     hanlderClose=()=>{
         localStorage.removeItem("id");
@@ -49,10 +50,11 @@ class App extends React.Component{
                 <Query
                     query={getMenu}
                     variables={{
-                        parentid:'0'
+                        pid:'top'
                     }}
                 >
-                    {({loading,data:{systemmenuList}})=>{
+                    {({loading,data:{systemmenu_list}})=>{
+                            console.log(systemmenu_list)
                             return loading?("loading"):(
                                 <Layout>
                                     <Header>
@@ -60,7 +62,7 @@ class App extends React.Component{
                                             <Row gutter={16}>
                                             
                                             <Col span={19}>
-                                                <CommonHeader menuData={systemmenuList} />
+                                                <CommonHeader menuData={systemmenu_list} />
                                             </Col>
                                             <Col span={1}>  
                                                 <div onClick={this.reslApi} style={{color:"#fff",fontSize:"15px",cursor:"pointer"}}>
@@ -81,7 +83,7 @@ class App extends React.Component{
                                         </div>
                                     </Header>
                                     <Content>
-                                        {systemmenuList.map((item)=> <Route key={item.id} path={"/web/"+item.name+"/:topMenuId"} component={asyncComponent(()=>import('/modular'+item.component))} />)}
+                                        {systemmenu_list.map((item)=> <Route key={item.id} path={"/web/"+item.name+"/:projectId"} component={asyncComponent(()=>import('/modular'+item.component))} />)}
                                     </Content>                  
                                 </Layout>
                             )

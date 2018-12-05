@@ -2,7 +2,7 @@ import React from 'react';
 import { Form, Icon, Input, Button, Checkbox,Select ,Radio ,Switch} from 'antd';
 import {  graphql, compose } from 'react-apollo'
 import BaseModal from '../../common/BaseModal'
-import projectCreate from '../../graphql/projectCreate'
+import project_create from '../../graphql/project_create'
 
 const Option = Select.Option;
 const FormItem = Form.Item;
@@ -13,8 +13,7 @@ class NormalLoginForm extends BaseModal {
     onOk:async ()=>{
       this.props.form.validateFields(async (err, values) => {
         if (!err) {
-          values.userid=localStorage.id
-          await this.props.projectCreate({variables:values})
+          await this.props.project_create({variables:values})
           this.props.close('next')
         }
       });
@@ -57,5 +56,5 @@ class NormalLoginForm extends BaseModal {
 const WrappedNormalLoginForm = Form.create()(NormalLoginForm);
 
 export default compose(
-    graphql(projectCreate,{name:"projectCreate"})
+    graphql(project_create,{name:"project_create"})
 )(WrappedNormalLoginForm);

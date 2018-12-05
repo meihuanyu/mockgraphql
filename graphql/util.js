@@ -1,44 +1,61 @@
 import {
-    graphql,
-    GraphQLSchema,
     GraphQLObjectType,
     GraphQLString,
     GraphQLID,
     GraphQLList,
     GraphQLNonNull,
-    isOutputType,
     GraphQLInt,
     GraphQLInputObjectType
   } from 'graphql';
   
 import db from '../config/database'
-import {addData} from '../controllers/sql'
-
+import {addData , updateData ,getData,deleteData} from '../controllers/sql'
+import { GraphQLUpload } from 'apollo-upload-server'
 class Grouphqlquery{
     constructor (params){
         this.paramsObj={};
-        this.tables=[];
         this.funs={}
+        this.args={}
+        this.tComFuns={}
         this.projectName=""
-        
+        this.query={}
+        this.mutation={}
         // return this.startSchema()
     }
-    //params.type:single list delete create update
-    beforRunFun(params,tableName,type){
-        const obj= this.funs[tableName]
-        
-        if(obj[type] && obj[type].type==="befor"){
-            return  require(`../functions/${tableName}/${obj[type].name}.js`)(params,tableName,type)
-        }else{
-            return params
-        }
-        
+    clearRequire(_path){
+        var path = require('path');
+        var pwd = path.resolve();
+        pwd += _path;
+        delete require.cache[pwd]; 
     }
-    afterRunFun(params,tableName,res,type){
-        const obj= this.funs[tableName]
-        if(obj[type] && obj[type].type==="after" ){
-            const _res=require(`../functions/${tableName}/${obj[type].name}.js`)(params,tableName,type,res)
-            return _res
+    //params.type:single list delete create update
+    async beforRunFun(params,tableName,root,api){
+        const obj= this.funs
+        // const comObj = this.tComFuns
+        // if(comObj[api] && comObj[api].type=='befor'){
+        //     //刷新 require的缓存
+        //     this.clearRequire("\\commonFun\\" +comObj[api].funName+ ".js")
+        //     params =  await require(`../commonFun/${comObj[api].funName}.js`)(params,tableName,type)
+        // }
+        const real_funs =  obj[api].beforFunction
+        if(real_funs){
+            for(let i=0;i<real_funs.length;i++){
+                const funName = real_funs[i].funName
+                // this.clearRequire("\\commonFun\\" +funName+ ".js")
+                params =  await require(`../commonFun/${funName}.js`)(params,tableName,'占位oper',root)
+            }
+        }
+        return params
+    }
+    async afterRunFun(params,tableName,res,type,api){
+        const obj= this.funs
+        // const comObj = this.tComFuns
+        // if(comObj[api] && comObj[api].type=='after'){
+        //     res =  await require(`../commonFun/${api}.js`)(params,tableName,type,res)
+        // }
+        if(obj[api] && obj[api].type==="after" ){
+            res=await require(`../functions/${tableName}/${api}.js`)(params,tableName,type,res)
+
         }else{
             let delete_keys=[]
             for(let key in this.paramsObj[tableName]){
@@ -56,130 +73,284 @@ class Grouphqlquery{
             return res
         }
     }
-    createRow(table){
+    createRow(table,api){
         let _objectType= this.toObjectType(table,table+'create')
-        const args=this.toArgs(table)
-        let _query= this.createRowOper(table,_objectType,args)
+        const args=this.toArgs(table,'create')
+        let _query= this.createRowOper(table,_objectType,args,api)
         return _query;
     }
-    deleteRow(table){
+    deleteRow(table,api){
         let _objectType= this.toObjectType(table,table+'delete')
-        const args=this.toArgs(table,'isdeleteindex')
-        let _query= this.deleteRowOper(table,_objectType,args)
+        const args=this.toArgs(table,'delete')
+        let _query= this.deleteRowOper(table,_objectType,args,api)
         return _query;
     }
-    updateRow(table){
+    updateRow(table,api){
         const _objectType= this.toObjectType(table,table+'update')
-        const args=this.toArgs(table,'isupdate')
-        const _query= this.updateRowOper(table,_objectType,args)
+        const args=this.toArgs(table,'update')
+        const _query= this.updateRowOper(table,_objectType,args,api)
         return _query;
     }
-    getQueryList(table){
+    getQueryList(table,api){
         let _objectType= this.toObjectType(table,table+'list')
-        const args=this.toArgs(table,'isqueryindex')
-        let _query= this.queryTableOper(table,_objectType,args)
+        const args=this.toArgs(table,'list')
+        let _query= this.queryTableOper(table,_objectType,args,api)
         return _query;
     }
-    getSingleRow(table){
+    getSingleRow(table,api){
         let _objectType= this.toObjectType(table,table)
-        const args=this.toArgs(table,'isqueryindex')
-        let _query= this.querySingleOper(table,_objectType,args)
+        const args=this.toArgs(table,'single')
+        let _query= this.querySingleOper(table,_objectType,args,api)
         return _query
     }
 
     
     
-    updateRowOper(tableName,Type,args){
+    updateRowOper(tableName,Type,args,api){
         const _this=this
         return {
             type:Type,
             args:args,
             async resolve(root,params,option){
-                params=await _this.beforRunFun(params,tableName,root)
-                const obj= _this.funs[tableName]
-        
-                if(obj.update && obj.update.type==="on"){
-                    return  require(`../functions/${tableName}/${obj.update.name}.js`)(params,tableName,root)
-                }
+                params=await _this.beforRunFun(params,tableName,root,api)
                 const tableName_project=_this.projectName+"_"+tableName
-                const setDatas=_this.toWhereSql1(tableName,'isupdate',params);
-                const _where=_this.toWhereSql1(tableName,'isupdateindex',params);
-                
-                const sql ="UPDATE "+tableName_project+" SET "+setDatas.fields.join()+" WHERE "+_where.fields.join();
-                let res=await db.query(sql,[...setDatas.values,..._where.values]);
-                
+                const ids = _this.args[tableName].filter(item=>item.isindex)
+                const whereIndexSql = ids.map(item=>` ${item.name}=${params[item.name]} `)
+                let res=await updateData(tableName_project,params,whereIndexSql.join('and'))                
                 return  _this.afterRunFun(params,tableName,res[0],root);
             }
         }
     }
-    deleteRowOper(tableName,Type,args){
+    deleteRowOper(tableName,Type,args,api){
         const _this=this;
         return {
             type:Type,
             args:args,
             async resolve(root,params,option){
-                params=await _this.beforRunFun(params,tableName,root)
-                const obj= _this.funs[tableName]
-                if(obj.delete && obj.delete.type==="on"){
-                    return  require(`../functions/${tableName}/${obj.delete.name}.js`)(params,tableName,root)
-                }
+                params=await _this.beforRunFun(params,tableName,root,api)
                 const sql=_this.toSql('delete',params,tableName)
                 let res=await db.query(sql);
                 
-                return _this.afterRunFun(params,tableName,res[0],root);
+                return _this.afterRunFun(params,tableName,res[0],root,api);
             }
         }
     }
-    createRowOper(tableName,Type,args){
+    createRowOper(tableName,Type,args,api){
         const _this=this;
         return {
             type:Type,
             args:args,
             async resolve(root,params,option){
-                params=await  _this.beforRunFun(params,tableName,root)
-                const obj= _this.funs[tableName]
-                if(obj.create && obj.create.type==="on"){
-                    return  require(`../functions/${tableName}/${obj.create.name}.js`)(params,tableName,root)
+                params=await  _this.beforRunFun(params,tableName,root,api)
+                
+                let resTable = {}
+                const argNames=_this.args[tableName].map(item=>item.name)
+                const gObjs= _this.paramsObj[tableName].filter(item=>{return item.fieldtype==='graphqlObj' && argNames.indexOf(item.fieldname)!==-1})
+                
+                //表前缀
+                const projectName=_this.projectName
+                //graphql类型的字段会根据自己的create方法去create
+                for(let i=0; i<gObjs.length;i++){
+                    const thisFieldName = gObjs[i].fieldname
+                    const viceTable=gObjs[i].fieldrelationtablename
+                    //过滤出 create的方法
+                    const keys = Object.keys(_this.funs)
+                    let fun = []
+                    for(let i=0;i<keys.length;i++){
+                        const item = _this.funs[keys[i]]
+                        if(item.oper==='create'&&item.tablename===viceTable){
+                            fun = [item]
+                        }
+                    }
+                    
+                    //目前不能指定 默认oper create是唯一的 
+                    if(fun.length){
+                        //判断grap字段 有没有关联表
+                        if(gObjs[i].issingleorlist){
+                            //多个个创建
+
+                            /*创建原始表的数据  */
+                            resTable=await addData(projectName+"_"+tableName,params)
+                            /** 没有传值 则不去创建graphqlObj 也无需关联中间表 */
+                            if(params[thisFieldName]){
+                                let transferParams = []
+                                const {alias  , oper} = fun[0]
+                                const transferTableName = projectName+'_'+tableName+'_'+viceTable
+                                const graphqlObjTableName = projectName+'_'+viceTable
+                                /** 创建grapqlObj 数据 */
+                                const grapObjRes = await addData(graphqlObjTableName,params[thisFieldName])
+                                /** 返回的insertId 去叠加取id */
+                                for(let i=0;i<grapObjRes.affectedRows;i++){
+                                    let tempT = {}
+                                    tempT[viceTable+'id'] = grapObjRes.insertId+i
+                                    tempT[tableName+'id'] = resTable.insertId
+                                    transferParams.push(tempT)
+                                }
+                                /** insert 中间表关联数据 */
+                                addData(transferTableName,transferParams)
+                            }
+                            
+                        }else{
+                            //单个创建
+                            const {alias  , oper} = fun[0]
+                            const funName=alias?alias:viceTable+'_'+oper
+                            const resCur=await _this.mutation[funName].resolve(root,params[thisFieldName])
+                            params[viceTable+'id'] = resCur.id
+
+                            /*创建原始表的数据  */
+                            resTable=await addData(projectName+"_"+tableName,params)
+                        }
+                        
+                    }
                 }
-                const res=await addData(_this.projectName+"_"+tableName,params)
-                return _this.afterRunFun(params,tableName,{id:res.insertId},root);
+                // 正常create  无graphqlObj字段
+                if(!gObjs.length){
+                    /*创建原始表的数据  */
+                    resTable=await addData(projectName+"_"+tableName,params)
+                }
+
+                return _this.afterRunFun(params,tableName,{id:resTable.insertId},root,api);
             }
         }
     }
-    queryTableOper(tableName,Type,args){
+    queryTableOper(tableName,Type,args,api){
         let _this=this;
         return {
             type:new GraphQLList(Type),
             args:args,
             async resolve(root,params,option){
-                params=await  _this.beforRunFun(params,tableName,root)
-                const obj= _this.funs[tableName]
-                if(obj.list && obj.list.type==="on"){
-                    return  require(`../functions/${tableName}/${obj.list.name}.js`)(params,tableName,root)
-                }
-
-                const sql=_this.toSql('query',params,tableName)
-                const res=db.query(sql)                
-                return  _this.afterRunFun(params,tableName,res,root);
+                params    = await  _this.beforRunFun(params,tableName,root,api)
+                const res = await getData(_this.projectName+"_"+tableName,params)                
+                return  _this.afterRunFun(params,tableName,res,root,api);
             }
         }
     }
-    querySingleOper(tableName,Type,args){
+    querySingleOper(tableName,Type,args,api){
         let _this=this;
         return {
             type:Type,
             args:args,
             async resolve(root,params,option){
-                params=await _this.beforRunFun(params,tableName,root)
-                const obj= this.funs[tableName]
-                if(obj.single && obj.single.type==="on"){
-                    return  require(`../functions/${tableName}/${obj.single.name}.js`)(params,tableName,root)
-                }else{
-                    const sql=_this.toSql('query',params,tableName)
-                    const res=await db.query(sql)
-                }
-                return _this.afterRunFun(params,tableName,res[0],root);
+                params=await _this.beforRunFun(params,tableName,root,api)
+                return _this.afterRunFun(params,tableName,res[0],root,api);
             }
+        }
+    }
+    /**
+     *中间表关联删除
+     *
+     * @param {*} _issingleorlist
+     * @param {*} viceTable
+     * @param {*} tableName
+     * @param {*} fieldname
+     * @returns
+     * @memberof Grouphqlquery
+     */
+    deleteLinkResolve(_issingleorlist,viceTable,tableName,fieldname){
+        const _this=this;
+        let create_args={}
+        create_args[viceTable+'id']={
+            name:viceTable+'id',
+            type:GraphQLInt
+        }
+        create_args[tableName+'id']={
+            name:tableName+'id',
+            type:GraphQLInt                    
+        }
+        return {
+            type:new GraphQLObjectType({
+                name:viceTable+'_'+tableName,
+                fields:{
+                  id:{
+                    type:GraphQLInt
+                  }
+                }
+              })  ,
+              args:create_args,
+              async resolve(root,params,option){
+                const projectName=_this.projectName
+                const graphqlObjTableName = projectName+'_'+viceTable
+                const transferTableName = projectName+'_'+tableName+'_'+viceTable
+                let lastRes = {} 
+                if(_issingleorlist){
+                    /** 删除关联表数据 */
+                    let deleteGrapObj = {}
+                    deleteGrapObj[viceTable+'id'] = params[viceTable+'id']
+                    deleteGrapObj[tableName+'id'] = params[tableName+'id']
+                    deleteData(transferTableName,deleteGrapObj)
+                    /** 删除viceTable表数据 */
+                    lastRes = await deleteData(graphqlObjTableName,{
+                        id:params[viceTable+'id']
+                    })
+                }else{
+                    /** 删除viceTable表数据 */
+                    lastRes = await deleteData(graphqlObjTableName,{
+                        id:params[viceTable+'id']
+                    })
+                    
+                }
+                return lastRes
+              }
+        }
+    }
+    createLinkResolve(_issingleorlist,viceTable,tableName,fieldname){
+        const _this=this;
+        let create_args={}
+        create_args[tableName+'id']={
+            name:tableName+'id',
+            type:GraphQLInt                    
+        }
+        const _type = new GraphQLInputObjectType({
+            name:tableName+'_'+viceTable,
+            fields:_this.toArgs(viceTable,'create',tableName)
+        })
+        create_args[fieldname]={
+            name:tableName,
+            type:_issingleorlist?new GraphQLList(_type):_type
+        }
+                
+        return {
+            type:new GraphQLObjectType({
+                name:viceTable+'id',
+                fields:{
+                  id:{
+                    type:GraphQLInt
+                  }
+                }
+              })  ,
+              args:create_args,
+              async resolve(root,params,option){
+                  //判断是graphqlObj是否为List
+                  const projectName=_this.projectName
+                  let lastRes = {} 
+                  if(params[fieldname]){
+                       const graphqlObjTableName = projectName+'_'+viceTable
+                       /** list */
+                      if(_issingleorlist){
+                        let transferParams = []
+                        const transferTableName = projectName+'_'+tableName+'_'+viceTable
+                        
+                        /** 创建grapqlObj 数据 */
+                        const grapObjRes = await addData(graphqlObjTableName,params[fieldname])
+                        /** 返回的insertId 去叠加取id */
+                        for(let i=0;i<grapObjRes.affectedRows;i++){
+                            let tempT = {}
+                            tempT[viceTable+'id'] = grapObjRes.insertId+i
+                            tempT[tableName+'id'] = params[tableName+'id']
+                            transferParams.push(tempT)
+                        }
+                        /** insert 中间表关联数据 */
+                        lastRes = await addData(transferTableName,transferParams)
+                      }else{
+                        /** single */
+                        const resGrapObj = await addData(graphqlObjTableName,params[fieldname])
+                        lastRes = await db.query(`update ${projectName+"_"+tableName} set ${viceTable+"_id"}=${resGrapObj.insertId} where id=${params[tableName+'id']}`)
+                      }
+                        
+                    }
+                    return lastRes
+                  
+              }
         }
     }
     /*
@@ -193,16 +364,34 @@ class Grouphqlquery{
                 const _this=this;
 
                 const _fieldname=table[i].fieldname
+                //是否是多表
                 const _issingleorlist=table[i].issingleorlist
-                //查询tablename
+                //项目名_关联表名
                 const projectName_RelationTable=this.projectName+"_"+table[i].fieldrelationtablename
-                const _RelationTableName=table[i].fieldrelationtablename;
-                
+                //关联表名
+                const _RelationTableName=table[i].fieldrelationtablename
+                //根据关联表名 去找对应的type
                 let _type=this.toObjectType(_RelationTableName,type+_RelationTableName);
+                //根据多表判断 是list还是 deatil
                 _type=_issingleorlist?new GraphQLList(_type):_type;
+
+                
+
+                /**
+                 * 在此生成关联表的craete 和 delete
+                 */
+                
+                this.mutation[`add_${_RelationTableName}_link_${name}`]=this.createLinkResolve(_issingleorlist,_RelationTableName,name,_fieldname)
+                this.mutation[`del_${_RelationTableName}_link_${name}`]=this.deleteLinkResolve(_issingleorlist,_RelationTableName,name,_fieldname)
+
+                 /**
+                 * 在此生成关联表的craete 和 delete   end
+                 */
+
                 fields[_fieldname]={
                     type:_type,
                     resolve:async function(thisItem){
+                        //中转表查询
                         if(_issingleorlist){
                             const middleTale=_this.projectName+"_"+name+"_"+_RelationTableName
                             const queryMiddleSql="select "+(_RelationTableName+"id")+" from "+middleTale+" where "+(name+"id")+"="+thisItem.id
@@ -227,6 +416,7 @@ class Grouphqlquery{
                 switch(table[i].fieldtype){
                     case "varchar":
                         fields[table[i].fieldname]={
+
                             type:GraphQLString
                         }
                         break;
@@ -254,39 +444,64 @@ class Grouphqlquery{
         }
         return args
     }
-    //通用 转换arg
-    //table 表名称
-    //Indexes 验证Indexes索引 是否需要生产args参数 ps：如果参数为空 默认生成所有
-    toArgs(table,Indexes){
-        const obj=this.paramsObj[table]
+    /**
+     *通用 生成arg
+     *
+     * @param {String} table    表名称
+     * @param {String} Indexes  参数类型过滤
+     * @param {String} tempName 如果是graphql 递归下去的名称
+     * @returns {}
+     * @memberof Grouphqlquery
+     */
+    toArgs(table,Indexes,tempName){
+        const obj=this.args[table]
+        if(!obj) return {}
+        
         //默认带上id
         let  args={}
+        let _this=this
         for(var i=0;i<obj.length;i++){
-            let _fieldname=obj[i].fieldname
-            if(!Indexes || obj[i][Indexes] || obj[i][Indexes+'index']){
-                switch(obj[i].fieldtype){
+            let _name=obj[i].name
+            if(obj[i]['is'+Indexes]){
+                switch(obj[i].type){
                     case "id":
-                        args[_fieldname]={
-                                name:_fieldname,
+                        args[_name]={
+                                name:_name,
                                 type:new GraphQLNonNull(GraphQLID)
                             }
                         break;
                     case "varchar":
-                        args[_fieldname]={
-                                name:_fieldname,
+                        args[_name]={
+                                name:_name,
                                 type:table=="system"?new GraphQLList(GraphQLString):GraphQLString
                             }
                         break;
                     case "int":
-                        args[_fieldname]={
-                                name:_fieldname,
+                        args[_name]={
+                                name:_name,
                                 type:GraphQLInt
                             }
                         break;
                     case "graphqlObj":
-                        args[_fieldname]={
-                                name:_fieldname,
-                                type:GraphQLInt
+                        const typeName=tempName?tempName+'_'+_name:_name
+
+                        const targetField = _this.paramsObj[table].filter(item=>item.fieldname===obj[i].name)
+
+                        const issingleorlist = targetField[0].issingleorlist
+                        const type = new GraphQLInputObjectType({
+                            name:typeName,
+                            fields:_this.toArgs(obj[i].relationtablename,Indexes,typeName)
+                        })
+                        
+                        args[_name]={
+                                name:obj[i].relationtablename,
+                                type:issingleorlist?new GraphQLList(type):type
+                            }
+                        break;
+                    case "upload":
+                        args[_name]={
+                                name:_name,
+                                type:GraphQLUpload
                             }
                         break;
                 }
@@ -294,7 +509,14 @@ class Grouphqlquery{
         }
         return args
     }
-
+    getRelationTable(table,name){
+        let fields={}
+        for(let i=0;i<this.paramsObj[table].length;i++){
+            
+            fields[this.paramsObj[table][i].fieldname]=this.paramsObj[table][i]
+        }
+        return fields[name]
+    }
     toSql(type,params,tableName){
         let sql=""
         const tableName_project=tableName

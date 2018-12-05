@@ -12,7 +12,7 @@ import { onError } from 'apollo-link-error'
 
 import gql from 'graphql-tag'
 import TApp from './testApp'
-import clientx from './ApolloClient'
+import clientx from './T_Apollo'
 class Start extends Component {
   render() {
     

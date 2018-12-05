@@ -37,21 +37,21 @@ class System extends Component{
         this.props.currentNode.refetch().then(console.log)
     }
     render(){
-        let {systemmenuList,loading}=this.props.getMenu
-        const currentUrl=this.props.match.url;
+        let {systemmenu_list,loading}=this.props.getMenu
+        const currentPath=this.props.match.path;
         const systemDom=loading?(<div>loading</div>):(
             <Layout>
                 <Sider width={200} style={{ background: '#fff' }}>
                     <Menu 
                     mode="inline"
                     >
-                        {this.renderTreeNodes(systemmenuList)}
+                        {this.renderTreeNodes(systemmenu_list)}
                     </Menu>
                 </Sider>
                 <Content>
                     <Layout>
                         <Content>
-                            <CreateRouter currentUrl={currentUrl} menuData={systemmenuList} />
+                            <CreateRouter currentUrl={currentPath} menuData={systemmenu_list} />
                         </Content>
                     </Layout>
                 </Content>
@@ -72,7 +72,7 @@ export default compose(
     graphql(getMenu,{
         name:"getMenu",
         options:(props)=>({
-                variables:{parentid:props.match.params.topMenuId}
+                variables:{pid:props.match.params.projectId}
         })
     }),
     graphql(currentNode, { name: 'currentNode' })

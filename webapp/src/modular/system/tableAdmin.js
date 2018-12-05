@@ -25,7 +25,7 @@ class User extends Component {
     }
     loaderTable=async ()=>{
         this.setState({tableLoging:true})
-        let {data}=await cFetch('/api/app/getTables')
+        let {data}=await cFetch('/api/app/getTables',{pid:this.props.currentMenu.pid})
         this.setState({
             tableData:data,
             tableLoging:false
@@ -57,7 +57,7 @@ class User extends Component {
         };
         return <div>
             <Spin spinning={this.props.menuLoading}>
-                <TopMenu menuData={this.props.topMenu} dataSource={this.dataSource} />
+                <TopMenu match={this.props.match} menuData={this.props.topMenu} dataSource={this.dataSource} />
             </Spin>
             <Spin spinning={this.state.tableLoging}>
                 <Table rowSelection={rowSelection} dataSource={this.state.tableData} columns={columns} rowKey="id"/>
@@ -69,13 +69,13 @@ export default compose(
     graphql(getMenu,{
       options:(props)=>({
           variables:{
-              parentid:props.currentMenu.id
+              pid:props.currentMenu.id
           }
       }),
       props({data}){
-        const {loading,systemmenuList}=data
+        const {loading,systemmenu_list}=data
         return {
-          topMenu:systemmenuList,
+          topMenu:systemmenu_list,
           menuLoading:loading
         }
       }

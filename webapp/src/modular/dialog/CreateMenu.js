@@ -2,29 +2,29 @@ import BaseModal from '../../common/BaseModal'
 import React from 'react'
 import { Form, Input} from 'antd';
 import {  graphql, compose } from 'react-apollo'
-import systemmenuCreate from '../../graphql/systemmenuCreate'
-import systemmenuUpdate from '../../graphql/systemmenuUpdate'
+import systemmenu_create from '../../graphql/systemmenu_create'
+import systemmenu_update from '../../graphql/systemmenu_update'
 
 
 const FormItem = Form.Item;
 class CreateMenu extends BaseModal{
     modalProps={
       onOk:()=>{
-        const {systemmenuCreate,dataSource,gData,systemmenuUpdate} = this.props
+        const {systemmenu_create,dataSource,gData,systemmenu_update} = this.props
         
         this.props.form.validateFields(async (err, values) => {
           if (!err) {
             if(this.props.type==='edit'){
-                values.parentid=gData[0].parentid
+                values.pid=gData[0].pid
                 values.id=gData[0].id
-                await systemmenuUpdate({
+                await systemmenu_update({
                     variables:{
                       ...values
                     }
                 })
             }else{
-                values.parentid=gData.length?gData[0].id:'0';
-                await systemmenuCreate({
+                values.pid=gData.length?gData[0].id:'top';
+                await systemmenu_create({
                     variables:{
                       ...values
                     }
@@ -81,7 +81,7 @@ class CreateMenu extends BaseModal{
                       )}
               </FormItem>
               <FormItem style={{display:'none'}} >
-                      {getFieldDecorator('parentid')(
+                      {getFieldDecorator('pid')(
                         <Input/>
                       )}
               </FormItem>
@@ -90,8 +90,8 @@ class CreateMenu extends BaseModal{
     }
 }
 export default compose(
-  graphql(systemmenuCreate,{name:'systemmenuCreate'}),
-  graphql(systemmenuUpdate,{name:'systemmenuUpdate'})
+  graphql(systemmenu_create,{name:'systemmenu_create'}),
+  graphql(systemmenu_update,{name:'systemmenu_update'})
 
   
 )(Form.create({

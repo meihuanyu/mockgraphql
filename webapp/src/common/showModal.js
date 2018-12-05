@@ -43,7 +43,7 @@ class ShowModal extends React.Component{
         return <Modal
                     {...ModalParams}
                 >
-                {patch?<AsyncMenu component={patch} {...this.props.menuFlowProps} close={this.closeModal}  rModal={_this} />:null}
+                {patch?<AsyncMenu component={patch} {...this.props.menuFlowProps} match={this.props.match} close={this.closeModal}  rModal={_this} />:null}
             </Modal>
     }
 }

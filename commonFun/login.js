@@ -1,12 +1,10 @@
-
-import md5 from 'md5'
-import db from '../../config/database'
+import db from '../config/database'
 var jwt = require('jsonwebtoken');
-module.exports =async function(params,tableName,name){
-    const sql="select * from system_user where accountnumber='"+ctx.query.accountnumber+"' and password="+ctx.query.password
+module.exports =async function(params,tableName,name,{ctx}){
+    const sql="select * from system_user where accountnumber='"+params.accountnumber+"' and password="+params.password
     const res=await db.query(sql)
     if(res.length==0){
-        ctx.body={
+        return {
             success:false,
             msg:"登陆失败"
         }
@@ -17,9 +15,9 @@ module.exports =async function(params,tableName,name){
             username:res[0].username,
             roleid:res[0].roleid
         }, '123qwe');
-        ctx.body={
+        return {
             success:true,
-            msg:"成功",
+            msg:"成功", 
             id:res[0].id,
             username:res[0].username,
             token:token

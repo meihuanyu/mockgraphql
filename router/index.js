@@ -5,21 +5,31 @@ import {
 } from 'graphql';
 // 引入 type 
 import {getTables,createField,createTable,getFields,updateFields,deleteFields,querySchme,query_grant} from '../controllers/structure'
+import { create_funs , delete_funs , update_funs , query_funs ,query_project_funs} from '../controllers/funs'
+import { create_args , delete_args , update_args , query_args ,import_args} from '../controllers/args'
+import { create_comArgs , delete_comArgs , update_comArgs , query_comArgs,query_comArgsLinkFunction,delete_linkComArgs,create_link_com,importFunction} from '../controllers/comArgs'
 import {login} from '../controllers/login'
 import {permissions} from '../controllers/user'
 import redis from '../config/redis'
 import db from '../config/database'
 import {addData} from '../controllers/sql'
 import graphqlQuery from '../graphql/graphqlQuery';
+import { apolloUploadKoa } from 'apollo-upload-server'
+var jwt = require('jsonwebtoken');
 const router = require('koa-router')()
 async function isLogin(ctx,next){
-  const usertoken=ctx.header.authorization
-  const user =await db.query('select * from system_user where token="'+usertoken+'"')
-  if(!user[0] || !user[0].roleid){
+  const token=ctx.header.authorization
+  // if(ctx._matchedRoute=='/graphql/:apikey'){
+  //   await next()
+  // }
+  try {
+    var decoded = jwt.verify(token, '123qwe');
+  } catch(err) {
       ctx.status=401
+      return false
   }
-  ctx.roleid=user[0]?user[0].roleid:""
-  ctx.user=user
+  ctx.roleid=decoded.roleid
+  ctx.user=decoded
   await next()
 }
 
@@ -32,32 +42,41 @@ router.get('/app/updateFields',updateFields);
 router.get('/app/deleteFields',deleteFields);
 router.get('/app/query_grant',query_grant);
 
-router.get('/login',login);
+router.get('/app/query_funs',query_funs);
+router.get('/app/delete_funs',delete_funs);
+router.get('/app/update_funs',update_funs);
+router.get('/app/create_funs',create_funs);
+
+router.get('/app/query_args',query_args);
+router.get('/app/delete_args',delete_args);
+router.get('/app/update_args',update_args);
+router.get('/app/create_args',create_args);
+router.get('/app/import_args',import_args);
+router.get('/app/query_project_funs',query_project_funs);
+
+router.get('/app/query_comArgs',query_comArgs);
+router.get('/app/delete_comArgs',delete_comArgs);
+router.get('/app/update_comArgs',update_comArgs);
+router.get('/app/create_comArgs',create_comArgs);
+router.get('/app/query_comArgsLinkFunction',query_comArgsLinkFunction);
+router.get('/app/delete_linkComArgs',delete_linkComArgs);
+router.get('/app/create_link_com',create_link_com);
+router.get('/app/importFunction',importFunction);
 
 
-router.get('/tt',function(){
+router.get('/tt',function(ctx){
   
-  addData('textx_info',{aihao:"tex1",pid:3})
-  // db.query("insert into textx_info (aihao,pid) values(?,?),(?,?)",["哈哈哈",1,"pupu",2])
-
-})
-router.get('/aa',async (ctx)=>{
-  const usertoken=ctx.header.authorization
-  const user =await db.query('select id from system_user where token="'+usertoken+'"')
-  if(!user[0].id){
-      ctx.status=401
-  }
-  const project=await db.query('select * from system_project where userid='+user[0].id)
-  const apis=project.map(item=>item.apikey)
-  redis.del(apis); 
+  redis.del(ctx.query.apiKey); 
   ctx.body={
     success:true
   }
-});
 
+})
 // router.use('/graphql',permissions)
-router.use('/graphql',isLogin)
 
+
+// 上传中间件
+.use(apolloUploadKoa({ maxFileSize: 10000000, maxFiles: 10 }))
 
 router.post('/graphql/:apikey', async (ctx, next,xx) => {
   let schemaData="" 

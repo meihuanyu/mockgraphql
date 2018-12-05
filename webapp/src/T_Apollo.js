@@ -18,11 +18,8 @@ const cache = new InMemoryCache()
         Mutation: Mutation
       }
     })
-    const logoutLink = onError((res) => {
-      console.log(res)
-      console.log(res.graphQLErrors[0])
-      const networkError=res.networkError
-      if (res.graphQLErrors && res.graphQLErrors[0].message === "登陆超时") {
+    const logoutLink = onError(({ networkError }) => {
+      if (networkError && networkError.statusCode === 401) {
          window.location.href="/login"
       };
     })
@@ -34,8 +31,7 @@ const cache = new InMemoryCache()
       link: logoutLink.concat(
         stateLink.concat(
           createUploadLink(
-            {uri: '/api/graphql/system',headers:{authorization:localStorage.token}},
-            stateLink
+            {uri: '/api/graphql/textx',headers:{authorization:localStorage.token}}
           )
         )
       ),

@@ -26,28 +26,30 @@ class Grant extends BaseModal {
     onOk:async ()=>{
         const {grant}=this.props
         const roleid=this.props.gData[0].id
-        const ids=this.currentRows.map(item=>item.id)
+        
         grant({
-            variables:{ids:JSON.stringify(ids),roleid}
+            variables:{ids:JSON.stringify(this.currentRows),roleid}
         })
     }
   }
   currentRows=[]
   componentWillMount=async ()=>{
-    let {systemmenuList}=this.props
-    const treeData=JSON.parse(JSON.stringify(systemmenuList))
+    let {systemmenu_list}=this.props
+    const treeData=JSON.parse(JSON.stringify(systemmenu_list))
     const roleid=this.props.gData[0].id
-    const {data}=await cFetch('/api/app/query_grant',{params:{roleid}})
+    const {data}=await cFetch('/api/app/query_grant',{roleid})
+    const defaultIds = data.map(item=>JSON.stringify(item.mid))
+    this.currentRows = data.map(item=>({id:item.id,mid:item.mid,pid:item.pid,rid:this.props.gData[0].id}))
     this.setState({
       treeData:treeData,
-      grantIds:data.map(item=>JSON.stringify(item.mid))
+      grantIds:defaultIds
     })
   }
   onLoadData = async (treeNode) => {
     
     const resData=await this.props.loadMore(treeNode.props.dataRef.id)
     return new Promise((resolve) => {
-        treeNode.props.dataRef.children = JSON.parse(JSON.stringify(resData.data.systemmenuList));
+        treeNode.props.dataRef.children = JSON.parse(JSON.stringify(resData.data.systemmenu_list));
         this.setState({
           treeData: [...this.state.treeData],
         });
@@ -58,23 +60,35 @@ class Grant extends BaseModal {
     return data.map((item) => {
       if (item.children) {
         return (
-          <TreeNode title={item.displayname} key={item.key?item.key:item.id} dataRef={item}>
+          <TreeNode title={item.displayname} key={item.key?item.key:item.mid} dataRef={item}>
             {this.renderTreeNodes(item.children)}
           </TreeNode>
         );
       }
-      return <TreeNode  title={item.displayname} key={item.key?item.key:item.id} dataRef={item} />;
+      return <TreeNode  title={item.displayname} key={item.key?item.key:item.mid} dataRef={item} />;
     });
   }
-  hindleOncheck=(keys,{checkedNodes})=>{
-    this.currentRows=[]
-    for(let i=0;i<checkedNodes.length;i++){
-      this.currentRows.push(checkedNodes[i].props.dataRef)
+  hindleOncheck=(keys,xx)=>{
+    const checkedNodes = xx.checkedNodes    
+    const ids = this.currentRows.map(item=>item.mid)
+    if(xx.checked){
+      for(let i=0;i<checkedNodes.length;i++){
+          if(ids.indexOf(checkedNodes[i].key)===-1){
+            //新增一个
+            const obj = checkedNodes[i].props.dataRef
+            this.currentRows.push({id:obj.id,mid:obj.mid,pid:obj.pid,rid:this.props.gData[0].id})
+          }
+      }
+    }else{
+      for(let i=0;i<ids.length;i++){
+          if(keys.checked.indexOf(ids[i].toString())===-1){
+            this.currentRows.splice(i,1)
+          }
+      }
     }
+    console.log(this.currentRows)
   }
   render() {
-    
-    console.log(this.state)
     return this.state?<Tree 
                 defaultCheckedKeys={this.state.grantIds}
                 checkStrictly={true}
@@ -92,22 +106,22 @@ export default compose(
     graphql(getMenu,{
         options:(props)=>({
             variables:{
-                parentid:'0'
+                pid:'top'
             }
         }),
         props({data}){
-          let {loading,systemmenuList,fetchMore,refetch} =data
+          let {loading,systemmenu_list,fetchMore,refetch} =data
           return {
             loading,
-            systemmenuList,
+            systemmenu_list,
             refetch,
             loadMore(id){
               return fetchMore({
                 variables: {
-                  parentid: id,
+                  pid: id,
                 },
                 updateQuery(previousResult, { fetchMoreResult }){
-                  return fetchMoreResult.systemmenuList
+                  return fetchMoreResult.systemmenu_list
                 }
               })
             }

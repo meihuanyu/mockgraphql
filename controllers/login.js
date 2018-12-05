@@ -1,6 +1,5 @@
 import db from '../config/database'
-
-import md5 from 'md5'
+var jwt = require('jsonwebtoken');
 export const  login=async function (ctx,next){
     
     const sql="select * from system_user where accountnumber='"+ctx.query.accountnumber+"' and password="+ctx.query.password
@@ -11,9 +10,12 @@ export const  login=async function (ctx,next){
             msg:"登陆失败"
         }
     }else{
-        const token=md5(ctx.query.accountnumber+ctx.query.password)
-        const updatesql="update system_user set token='"+token+"' where id="+res[0].id
-        db.query(updatesql)
+        var token = jwt.sign({
+            exp: Math.floor(Date.now() / 1000) + (60 * 180), 
+            id:res[0].id,
+            username:res[0].username,
+            roleid:res[0].roleid
+        }, '123qwe');
         ctx.body={
             success:true,
             msg:"成功",

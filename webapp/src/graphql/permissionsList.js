@@ -1,7 +1,7 @@
 import gql from 'graphql-tag'
 
 export default gql`query{
-    permissionsList{
+    permissions_list{
         id       
         itable
         table_update

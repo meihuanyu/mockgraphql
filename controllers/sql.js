@@ -20,28 +20,35 @@ export const addData = async function(table_name,object){
     }else{
         let temp_zw=[]
         for(let key in object){
-            values.push(object[key])
-            temp_zw.push("?")
+            if(typeof(object[key])!=='object'){
+                values.push(object[key])
+                temp_zw.push("?")
+                attributes.push(key)
+            }
         }
         zhanwei.push("("+temp_zw.join()+")")
-        attributes=Object.keys(object)
     }
     const sql = "INSERT INTO " + table_name + " (" + attributes.join(',') + ") " + "VALUES "+zhanwei.join()
-    console.log(sql)
-    console.log(values)
-    let res = await db.query(sql,values);
-    return res
+    try {
+        let res = await db.query(sql,values);
+        return res
+    } catch (error) {
+        console.error(error)
+        return {}
+    }
 }
 
 //删
 //where: 查询条件，传字符串
 //type：删除的类型，默认删除数据（data）,删除表传（table）
-export const deleteData = async function(table_name,where = '1=1',type = 'data'){
-    if(type == "table"){
-        const sql = "DROP TABLE " + table_name//删表
-    }else{
-        const sql = "DELETE FROM " + table_name + "WHERE " + where//删数据
+export const deleteData = async function(table_name,object){
+    let sqlArr = ['1=1']
+
+    for(const key in object){
+        sqlArr.push(` ${key}=${object[key]} `)
     }
+    
+    const sql = `delete from  ${table_name} where  ${sqlArr.join(' and ')}`
     let res = await db.query(sql);
     return res
 }
@@ -52,12 +59,15 @@ export const deleteData = async function(table_name,where = '1=1',type = 'data')
 export const updateData = async function(table_name,object,where = '1=1'){
     var newAtts = []
     for (var i in object) {
-        if(typeof(object[i])=='string'){
-            object[i] = "'" + object[i] + "'"
+        //临时措施
+        if(i!=='id' && object[i]!=="null"){
+            if(typeof(object[i])=='string'){
+                object[i] = "'" + object[i] + "'"
+            }
+            newAtts.push(i + "=" + object[i]); //属性
         }
-        newAtts.push(i + "=" + object[i]); //属性
     }
-    const sql ="UPDATE " + table_name + " SET " + newAtts.join(',') + "WHERE " + where;
+    const sql ="UPDATE " + table_name + " SET " + newAtts.join(',') + " WHERE " + where;
     let res=await db.query(sql);
     return res
 }
@@ -65,13 +75,40 @@ export const updateData = async function(table_name,object,where = '1=1'){
 //查
 //attributes: 要查询的字段，传 字符串 或 数组
 //where: 查询条件，传 字符串
-export const getData = async function(table_name,attributes = '*',where = '1=1'){
-    if (Array.isArray(attributes)){
-        att = attributes.join(',')
-    }else{
-        att = attributes
+export const getOneData = async function(table_name,params){
+    var values = []
+    var _where = []
+    for(let key in params){
+        values.push(params[key])
+        _where.push(` ${key}=? `)
     }
-    const sql = "SELECT" + att + "FROM" + table_name + "WHERE" + where
-    const res=await db.query(sql);
-    return res
+
+    const sql = "SELECT * FROM " + table_name +( _where?' where '+_where.join(' and '):"")
+    try {
+        let res = await db.query(sql,values);
+        return res[0]
+    } catch (error) {
+        console.error(error)
+        return {}
+    }
+}
+//查
+//attributes: 要查询的字段，传 字符串 或 数组
+//where: 查询条件，传 字符串
+export const getData = async function(table_name,params){
+    var values = []
+    var _where = []
+    for(let key in params){
+        values.push(params[key])
+        _where.push(` ${key}=? `)
+    }
+
+    const sql = "SELECT * FROM " + table_name +( _where.length?' where '+_where.join(' and '):"")
+    try {
+        let res = await db.query(sql,values);
+        return res
+    } catch (error) {
+        console.error(error)
+        return {}
+    }
 }

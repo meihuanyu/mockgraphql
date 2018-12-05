@@ -1,7 +1,7 @@
 import React ,{Component} from 'react';
 import TopMenu from '../../common/topMenu'
 import getMenu from '../../graphql/getMenu'
-import userList from '../../graphql/userList'
+import user_list from '../../graphql/user_list'
 
 import {  graphql, compose } from 'react-apollo'
 import {Table} from 'antd'
@@ -14,7 +14,7 @@ class User extends Component {
     }
     getRows=()=>{
       let tempArr=[]
-      this.props.userList.map(item=>{
+      this.props.user_list.map(item=>{
           tempArr[item.id]=item
       })
       return this.state.selectedRowKeys.map(item=>tempArr[item])
@@ -57,7 +57,7 @@ class User extends Component {
         return <div>
             <TopMenu menuData={this.props.topMenu} dataSource={this.dataSource} />
             
-            <Table rowSelection={rowSelection} dataSource={this.props.userList} columns={columns} rowKey="id" />
+            <Table rowSelection={rowSelection} dataSource={this.props.user_list} columns={columns} rowKey="id" />
         </div>
     }
 }
@@ -65,21 +65,21 @@ export default compose(
     graphql(getMenu,{
       options:(props)=>({
           variables:{
-              parentid:props.currentMenu.id
+              pid:props.currentMenu.id
           }
       }),
       props({data}){
-        const {loading,systemmenuList}=data
+        const {loading,systemmenu_list}=data
         return {
-          topMenu:systemmenuList
+          topMenu:systemmenu_list
         }
       }
     }),
-    graphql(userList,{
+    graphql(user_list,{
         props({data}){
-          const {loading,userList}=data
+          const {loading,user_list}=data
           return {
-            userList:userList
+            user_list:user_list
           }
         }})
 )(User)
