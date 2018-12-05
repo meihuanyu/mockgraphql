@@ -1,8 +1,27 @@
 import db from '../config/database'
 import { updateData ,addData} from './sql'
 export const query_comArgs=async (ctx)=>{
-    const sql = `select * from d_function fun,d_fun_link_project fp where fp.fid=fun.id and fp.pid=?`
-    const res = await db.query(sql,[ctx.query.projectId])
+    let res
+    if(ctx.query.projectId!='all'){
+      const sql = `select * from d_function fun,d_fun_link_project fp where fp.fid=fun.id and fp.pid=?`
+      res = await db.query(sql,[ctx.query.projectId])
+    }else{
+      const sql = `select * from d_function fun,d_fun_link_project fp where fp.fid=fun.id`
+      res = await db.query(sql)
+    }
+    
+    if(res){
+      ctx.body={
+          success:true,
+          data:res
+      }
+    }
+  }
+  export const importFunction = async (ctx)=>{
+    let ids = eval(ctx.query.ids)
+    const projectId = ctx.query.projectId
+    const postData = ids.map(item=>({fid:item,pid:projectId}))
+    const res = await addData('d_fun_link_project',postData)
     if(res){
       ctx.body={
           success:true,
