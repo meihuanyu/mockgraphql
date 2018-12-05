@@ -151,23 +151,34 @@ class Grouphqlquery{
                 const projectName=_this.projectName
                 //graphql类型的字段会根据自己的create方法去create
                 for(let i=0; i<gObjs.length;i++){
+                    
                     const viceTable=gObjs[i].fieldrelationtablename
                     //过滤出 create的方法
-                    const fun  = _this.funs[viceTable].filter(item=>item.oper==='create')
+                    const keys = Object.keys(_this.funs)
+                    let fun = []
+                    for(let i=0;i<keys.length;i++){
+                        const item = _this.funs[keys[i]]
+                        if(item.oper==='create'&&item.tablename===viceTable){
+                            fun = [item]
+                        }
+                    }
                     
                     //目前不能指定 默认oper是唯一的 
                     if(fun.length){
                         //list有关联中间表
                         if(gObjs[i].issingleorlist){
                             resTable=await addData(projectName+"_"+tableName,params)
+                            //没有传值 就不管
+                            if(params[gObjs[i].fieldname]){
+                                const {alias  , oper} = fun[0]
+                                const funName=alias?alias:viceTable+'_'+oper
 
-                            const {alias  , oper} = fun[0]
-                            const funName=alias?alias:viceTable+'_'+oper
+                                const resCur=await _this.mutation[funName].resolve(root,params[gObjs[i].fieldname])
 
-                            const resCur=await _this.mutation[funName].resolve(root,params[gObjs[i].fieldname])
-
-                            const transferTableName=projectName+'_'+tableName+'_'+viceTable
-                            db.query(`insert into ${transferTableName} (${tableName+'id'},${viceTable+'id'})  values (?,?)`,[resTable.insertId,resCur.id])
+                                const transferTableName=projectName+'_'+tableName+'_'+viceTable
+                                db.query(`insert into ${transferTableName} (${tableName+'id'},${viceTable+'id'})  values (?,?)`,[resTable.insertId,resCur.id])
+                            }
+                            
                         }else{
                             const {alias  , oper} = fun[0]
                             const funName=alias?alias:viceTable+'_'+oper
@@ -267,12 +278,13 @@ class Grouphqlquery{
             name:name+'id',
             type:GraphQLInt                    
         }
+        const _type = new GraphQLInputObjectType({
+            name:name+'_'+_RelationTableName,
+            fields:_this.toArgs(_RelationTableName,'create',name)
+        })
         create_args[_RelationTableName]={
             name:name,
-            type:new GraphQLInputObjectType({
-                name:name+'_'+_RelationTableName,
-                fields:_this.toArgs(_RelationTableName,'create',name)
-            })
+            type:_issingleorlist?new GraphQLList(_type):type
         }
                 
         return {
@@ -335,6 +347,7 @@ class Grouphqlquery{
                 //根据多表判断 是list还是 deatil
                 _type=_issingleorlist?new GraphQLList(_type):_type;
 
+                
 
                 /**
                  * 在此生成关联表的craete 和 delete
@@ -375,6 +388,7 @@ class Grouphqlquery{
                 switch(table[i].fieldtype){
                     case "varchar":
                         fields[table[i].fieldname]={
+
                             type:GraphQLString
                         }
                         break;
@@ -442,12 +456,18 @@ class Grouphqlquery{
                         break;
                     case "graphqlObj":
                         const typeName=tempName?tempName+'_'+_name:_name
+
+                        const targetField = _this.paramsObj[table].filter(item=>item.fieldname===obj[i].name)
+
+                        const issingleorlist = targetField[0].issingleorlist
+                        const type = new GraphQLInputObjectType({
+                            name:typeName,
+                            fields:_this.toArgs(obj[i].relationtablename,Indexes,typeName)
+                        })
+                        
                         args[_name]={
                                 name:obj[i].relationtablename,
-                                type:new GraphQLInputObjectType({
-                                    name:typeName,
-                                    fields:_this.toArgs(obj[i].relationtablename,Indexes,typeName)
-                                })
+                                type:issingleorlist?new GraphQLList(type):type
                             }
                         break;
                     case "upload":
