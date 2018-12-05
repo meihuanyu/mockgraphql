@@ -97,14 +97,19 @@ export const getOneData = async function(table_name,params){
 //attributes: 要查询的字段，传 字符串 或 数组
 //where: 查询条件，传 字符串
 export const getData = async function(table_name,params){
-    const keys = Object.keys(params)
-    const whereArr = []
-    for(let i=0;i<keys.length;i++){
-        whereArr.push(` ${keys[i]}=${params[keys[i]]} `)
+    var values = []
+    var _where = []
+    for(let key in params){
+        values.push(params[key])
+        _where.push(` ${key}=? `)
     }
-    const _where = keys.length?whereArr.join('and'):"1=1";
 
-    const sql = "SELECT * FROM " + table_name + " where " + _where
-    const res=await db.query(sql);
-    return res
+    const sql = "SELECT * FROM " + table_name +( _where?' where '+_where.join(' and '):"")
+    try {
+        let res = await db.query(sql,values);
+        return res
+    } catch (error) {
+        console.error(error)
+        return {}
+    }
 }
