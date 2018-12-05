@@ -9,7 +9,7 @@ import {
   } from 'graphql';
   
 import db from '../config/database'
-import {addData , updateData ,getData} from '../controllers/sql'
+import {addData , updateData ,getData,deleteData} from '../controllers/sql'
 import { GraphQLUpload } from 'apollo-upload-server'
 class Grouphqlquery{
     constructor (params){
@@ -237,24 +237,29 @@ class Grouphqlquery{
         }
     }
     /**
-     * 中间表关联删除
+     *中间表关联删除
      *
      * @param {*} _issingleorlist
-     * @param {*} _RelationTableName
-     * @param {*} name
+     * @param {*} viceTable
+     * @param {*} tableName
+     * @param {*} fieldname
      * @returns
      * @memberof Grouphqlquery
      */
-    deleteLinkResolve(_issingleorlist,_RelationTableName,name){
+    deleteLinkResolve(_issingleorlist,viceTable,tableName,fieldname){
         const _this=this;
         let create_args={}
-        create_args[_RelationTableName+'id']={
-            name:_RelationTableName+'id',
+        create_args[viceTable+'id']={
+            name:viceTable+'id',
             type:GraphQLInt
+        }
+        create_args[tableName+'id']={
+            name:tableName+'id',
+            type:GraphQLInt                    
         }
         return {
             type:new GraphQLObjectType({
-                name:_RelationTableName+'_'+name,
+                name:viceTable+'_'+tableName,
                 fields:{
                   id:{
                     type:GraphQLInt
@@ -263,27 +268,28 @@ class Grouphqlquery{
               })  ,
               args:create_args,
               async resolve(root,params,option){
-                  //返回
-                  let resObj={}
-                  //过滤出 create的方法
-                  const fun  = _this.funs[_RelationTableName].filter(item=>item.oper==='delete')
-
-                  if(fun[0]){
-                        const {alias , type , oper} = fun[0]
-                        const funName=alias?alias:_RelationTableName+'_'+oper  
-                        resObj=await _this.mutation[funName].resolve(root,params[_RelationTableName],option)
-                  }else{
-                      console.log('没有对应的方法'+_RelationTableName+"_delete")
-                      return {}
-                  }
-                  if(_issingleorlist){
-                        const middleTale=_this.projectName+"_"+name+"_"+_RelationTableName
-                        const delSql=`delete from ${middleTale} where ${_RelationTableName+'id'}=?`
-                        db.query(delSql)
-                    }else{
-                      
-                  }
-                  return resObj
+                const projectName=_this.projectName
+                const graphqlObjTableName = projectName+'_'+viceTable
+                const transferTableName = projectName+'_'+tableName+'_'+viceTable
+                let lastRes = {} 
+                if(_issingleorlist){
+                    /** 删除关联表数据 */
+                    let deleteGrapObj = {}
+                    deleteGrapObj[viceTable+'id'] = params[viceTable+'id']
+                    deleteGrapObj[tableName+'id'] = params[tableName+'id']
+                    deleteData(transferTableName,deleteGrapObj)
+                    /** 删除viceTable表数据 */
+                    lastRes = await deleteData(graphqlObjTableName,{
+                        id:params[viceTable+'id']
+                    })
+                }else{
+                    /** 删除viceTable表数据 */
+                    lastRes = await deleteData(graphqlObjTableName,{
+                        id:params[viceTable+'id']
+                    })
+                    
+                }
+                return lastRes
               }
         }
     }
