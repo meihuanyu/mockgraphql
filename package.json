@@ -30,6 +30,7 @@
     "koa-router": "^7.4.0",
     "koa-static": "^4.0.2",
     "md5": "^2.2.1",
+    "moment": "^2.22.2",
     "mysql-pro": "^1.0.1",
     "shortid": "^2.2.13"
   }
