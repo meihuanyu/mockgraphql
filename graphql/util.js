@@ -306,7 +306,7 @@ class Grouphqlquery{
         })
         create_args[fieldname]={
             name:tableName,
-            type:_issingleorlist?new GraphQLList(_type):type
+            type:_issingleorlist?new GraphQLList(_type):_type
         }
                 
         return {
