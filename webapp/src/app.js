@@ -17,12 +17,13 @@ class App extends React.Component{
         resLoading:false
     }
     graphqlApi=()=>{
-        window.open("/api/graphiql/textx")
+        window.open("/api/graphiql/"+window.location.pathname.split('/')[2])
     }
     reslApi=async ()=>{
         this.setState({resLoading:true});
-        var res=await cfetch("/api/aa");
-        window.location.href=window.location.href
+        await cfetch("/api/tt",{apiKey:window.location.pathname.split('/')[2]});
+        this.setState({resLoading:false});
+
     }
     hanlderClose=()=>{
         localStorage.removeItem("id");

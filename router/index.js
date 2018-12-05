@@ -62,13 +62,13 @@ router.get('/app/query_comArgsLinkFunction',query_comArgsLinkFunction);
 router.get('/app/delete_linkComArgs',delete_linkComArgs);
 router.get('/app/create_link_com',create_link_com);
 
-router.get('/login',login);
 
-
-router.get('/tt',function(){
+router.get('/tt',function(ctx){
   
-  redis.del('system'); 
-  redis.del('textx'); 
+  redis.del(ctx.query.apiKey); 
+  ctx.body={
+    success:true
+  }
 
 })
 // router.use('/graphql',permissions)
