@@ -41,15 +41,14 @@ export const addData = async function(table_name,object){
 //删
 //where: 查询条件，传字符串
 //type：删除的类型，默认删除数据（data）,删除表传（table）
-export const deleteData = async function(table_name,ids,key = 'id'){
-    let where = '1=1'
-    const sqlArr = ids.map(item=>{      
-        return ` ${key} = ${item} `
-    })
-    if(sqlArr.length){
-        where = sqlArr.join(' or ')
+export const deleteData = async function(table_name,object){
+    let sqlArr = ['1=1']
+
+    for(const key in object){
+        sqlArr.push(` ${key}=${object[key]} `)
     }
-    const sql = `delete from  ${table_name} where  ${where}`
+    
+    const sql = `delete from  ${table_name} where  ${sqlArr.join(' and ')}`
     let res = await db.query(sql);
     return res
 }
