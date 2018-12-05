@@ -151,7 +151,7 @@ class Grouphqlquery{
                 const projectName=_this.projectName
                 //graphql类型的字段会根据自己的create方法去create
                 for(let i=0; i<gObjs.length;i++){
-                    
+                    const thisFieldName = gObjs[i].fieldname
                     const viceTable=gObjs[i].fieldrelationtablename
                     //过滤出 create的方法
                     const keys = Object.keys(_this.funs)
@@ -163,33 +163,49 @@ class Grouphqlquery{
                         }
                     }
                     
-                    //目前不能指定 默认oper是唯一的 
+                    //目前不能指定 默认oper create是唯一的 
                     if(fun.length){
-                        //list有关联中间表
+                        //判断grap字段 有没有关联表
                         if(gObjs[i].issingleorlist){
+                            //多个个创建
+
+                            /*创建原始表的数据  */
                             resTable=await addData(projectName+"_"+tableName,params)
-                            //没有传值 就不管
-                            if(params[gObjs[i].fieldname]){
+                            /** 没有传值 则不去创建graphqlObj 也无需关联中间表 */
+                            if(params[thisFieldName]){
+                                let transferParams = []
                                 const {alias  , oper} = fun[0]
-                                const funName=alias?alias:viceTable+'_'+oper
-
-                                const resCur=await _this.mutation[funName].resolve(root,params[gObjs[i].fieldname])
-
-                                const transferTableName=projectName+'_'+tableName+'_'+viceTable
-                                db.query(`insert into ${transferTableName} (${tableName+'id'},${viceTable+'id'})  values (?,?)`,[resTable.insertId,resCur.id])
+                                const transferTableName = projectName+'_'+tableName+'_'+viceTable
+                                const graphqlObjTableName = projectName+'_'+viceTable
+                                /** 创建grapqlObj 数据 */
+                                const grapObjRes = await addData(graphqlObjTableName,params[thisFieldName])
+                                /** 返回的insertId 去叠加取id */
+                                for(let i=0;i<grapObjRes.affectedRows;i++){
+                                    let tempT = {}
+                                    tempT[viceTable+'id'] = grapObjRes.insertId+i
+                                    tempT[tableName+'id'] = resTable.insertId
+                                    transferParams.push(tempT)
+                                }
+                                /** insert 中间表关联数据 */
+                                addData(transferTableName,transferParams)
                             }
                             
                         }else{
+                            //单个创建
                             const {alias  , oper} = fun[0]
                             const funName=alias?alias:viceTable+'_'+oper
-                            const resCur=await _this.mutation[funName].resolve(root,params[gObjs[i].fieldname])
+                            const resCur=await _this.mutation[funName].resolve(root,params[thisFieldName])
                             params[viceTable+'id'] = resCur.id
+
+                            /*创建原始表的数据  */
                             resTable=await addData(projectName+"_"+tableName,params)
                         }
                         
                     }
                 }
+                // 正常create  无graphqlObj字段
                 if(!gObjs.length){
+                    /*创建原始表的数据  */
                     resTable=await addData(projectName+"_"+tableName,params)
                 }
 
