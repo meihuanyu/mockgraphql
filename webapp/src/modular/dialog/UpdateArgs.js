@@ -175,6 +175,7 @@ class UpdateFun extends BaseModal{
           {
             title: 'operation',
             dataIndex: 'operation',
+            width:100,
             render: (text, record,index) => {
               const editable = this.isEditing(record);
               return (

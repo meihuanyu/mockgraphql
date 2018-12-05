@@ -2,7 +2,7 @@ import React from 'react'
 import BaseModal from '../../common/BaseModal'
 import {graphql,compose} from 'react-apollo'
 import systemmenuDelete from '../../graphql/systemmenuDelete'
-import {Table,Switch,Select,Button,Input,Spin  } from 'antd'
+import {Table,Switch,Select,Button,Input,Spin ,message } from 'antd'
 import cfetch from '../../util/cFetch'
 const Option=Select.Option
 
@@ -98,6 +98,10 @@ class Field extends BaseModal{
         this.setState(temp)
     }
     save=async (index)=>{
+        if(this.state.tableData[index].graprelationid === this.props.gData[0].id){
+            message.error('请不要关联自己')
+            return false
+        }
         if(this.state.tableData[index].id){
             let _params=this.state.tableData[index]
             let response=await cfetch('/api/app/updateFields',_params)
@@ -169,6 +173,7 @@ class Field extends BaseModal{
           {
             title: 'operation',
             dataIndex: 'operation',
+            width:100,
             render: (text, record,index) => {
               const editable = this.isEditing(record);
               return (
