@@ -146,8 +146,8 @@ export const createField=async function(ctx,next){
         }
         //原表新增一个字段
         const addFieldSql="alter table "+projectAndMainTableName+" add "+ fieldname+" int(11);"
+        console.log(addFieldSql)
         await db.query(addFieldSql);  
-        console.log("原表新增字段")
         //graphql_field表添加一个记录
         res=await addData('graphql_field',{fieldname,fieldtype,relationtableid,graprelationid,issingleorlist,istype})
     }else{
