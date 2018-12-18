@@ -68,8 +68,13 @@ export const updateData = async function(table_name,object,where = '1=1'){
         }
     }
     const sql ="UPDATE " + table_name + " SET " + newAtts.join(',') + " WHERE " + where;
-    let res=await db.query(sql);
-    return res
+    try {
+        let res=await db.query(sql);
+        return res
+    } catch (error) {
+        console.error(error)
+        return {}
+    }
 }
 
 //查
@@ -83,7 +88,7 @@ export const getOneData = async function(table_name,params){
         _where.push(` ${key}=? `)
     }
 
-    const sql = "SELECT * FROM " + table_name +( _where?' where '+_where.join(' and '):"")
+    const sql = "SELECT * FROM " + table_name +( _where.length?' where '+_where.join(' and '):"")
     try {
         let res = await db.query(sql,values);
         return res[0]
