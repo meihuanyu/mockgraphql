@@ -29,24 +29,24 @@ export const  afterRunFun= async(params,tableName,res,type,api,funs)=>{
 }
 export const  dbOper = async (operType,params,tableName,api,root,projectName,allData) =>{
     let res
-    params = await beforRunFun(params,tableName,root,api,allData.funs)
+    params = await beforRunFun(params,tableName,root,api,allData.tFuns)
     if(operType === 'single'){
         res = await getOneData(projectName+"_"+tableName,params)   
     }else if(operType === 'list'){
         res = await getData(projectName+"_"+tableName,params)   
-    }else if(operType === 'delete'){
+    }else if(operType === 'delete'){  
         res = await deleteData(projectName+"_"+tableName,params)
     }else if(operType === 'update'){
 
         const tableName_project=projectName+"_"+tableName
-        const ids = allData.args[tableName].filter(item=>item.isindex)
+        const ids = allData.tArgs[tableName].filter(item=>item.isindex)
         const whereIndexSql = ids.map(item=>` ${item.name}=${params[item.name]} `)
         res = await updateData(tableName_project,params,whereIndexSql.join('and'))   
           
     }else if(operType === 'create'){
         let resTable = {}
-        const argNames=allData.args[tableName].map(item=>item.name)
-        const gObjs= allData.paramsObj[tableName].filter(item=>{return item.fieldtype==='graphqlObj' && argNames.indexOf(item.fieldname)!==-1})
+        const argNames=allData.tArgs[tableName].map(item=>item.name)
+        const gObjs= allData.fields[tableName].filter(item=>{return item.fieldtype==='graphqlObj' && argNames.indexOf(item.fieldname)!==-1})
         
         //graphql类型的字段会根据自己的create
         for(let i=0; i<gObjs.length;i++){
@@ -94,5 +94,5 @@ export const  dbOper = async (operType,params,tableName,api,root,projectName,all
 
     }
                          
-    return afterRunFun(params,tableName,res,root,api,allData.funs);
+    return afterRunFun(params,tableName,res,root,api,allData.tFuns);
 }
