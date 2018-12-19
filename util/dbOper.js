@@ -91,7 +91,7 @@ export const  dbOper = async (operType,params,tableName,api,root,projectName,all
             /*创建原始表的数据  */
             resTable=await addData(projectName+"_"+tableName,params)
         }
-
+        res = resTable
     }
                          
     return afterRunFun(params,tableName,res,root,api,allData.tFuns);
