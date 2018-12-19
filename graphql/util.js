@@ -14,9 +14,9 @@ import {dbOper} from '../util/dbOper'
 import { GraphQLUpload } from 'apollo-upload-server'
 class Grouphqlquery{
     constructor (params){
-        this.paramsObj={};
-        this.funs={}
-        this.args={}
+        this.fields={};
+        this.tFuns={}
+        this.tArgs={}
         this.tComFuns={}
         this.projectName=""
         this.query={}
@@ -287,7 +287,7 @@ class Grouphqlquery{
         return fields;
     }
     toObjectType(table,type){
-        let _fields=this.toGrahqlField(this.paramsObj[table],type,table);
+        let _fields=this.toGrahqlField(this.fields[table],type,table);
         return new GraphQLObjectType({
             name:type,
             fields:_fields
@@ -310,7 +310,7 @@ class Grouphqlquery{
      * @memberof Grouphqlquery
      */
     toArgs(table,Indexes,tempName){
-        const obj=this.args[table]
+        const obj=this.tArgs[table]
         if(!obj) return {}
         
         //默认带上id
@@ -341,7 +341,7 @@ class Grouphqlquery{
                     case "graphqlObj":
                         const typeName=tempName?tempName+'_'+_name:_name
 
-                        const targetField = _this.paramsObj[table].filter(item=>item.fieldname===obj[i].name)
+                        const targetField = _this.fields[table].filter(item=>item.fieldname===obj[i].name)
 
                         const issingleorlist = targetField[0].issingleorlist
                         const type = new GraphQLInputObjectType({
@@ -367,9 +367,9 @@ class Grouphqlquery{
     }
     getRelationTable(table,name){
         let fields={}
-        for(let i=0;i<this.paramsObj[table].length;i++){
+        for(let i=0;i<this.fields[table].length;i++){
             
-            fields[this.paramsObj[table][i].fieldname]=this.paramsObj[table][i]
+            fields[this.fields[table][i].fieldname]=this.fields[table][i]
         }
         return fields[name]
     }
@@ -393,7 +393,7 @@ class Grouphqlquery{
     //params 可选参数  与key对应 生成where
     //待废弃
     toWhereSql(table,Indexes,params={},joinkey){
-        const obj=this.paramsObj[table]
+        const obj=this.fields[table]
         //默认带上id
         let  _where=[]
         for(var i=0;i<obj.length;i++){
@@ -414,7 +414,7 @@ class Grouphqlquery{
         return _where.join(joinkey?joinkey:' and ')
     }
     toWhereSql1(table,Indexes,params={}){
-        const obj=this.paramsObj[table]
+        const obj=this.fields[table]
         //默认带上id
         let  values=[]
         let  fields=[]
