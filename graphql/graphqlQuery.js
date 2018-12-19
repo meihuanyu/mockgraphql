@@ -5,12 +5,10 @@ import {
     GraphQLSchema,
     GraphQLObjectType,
     GraphQLString,
-    GraphQLID,
-    GraphQLList,
-    GraphQLNonNull,
-    GraphQLInt
+    GraphQLList
   } from 'graphql';
-  
+
+import { beforRunFun } from '../util/dbOper'
 class Grouphqlquery extends util{
     newApi(table,name,oper,api){
         let _objectType= this.toObjectType(table,api)
@@ -21,7 +19,7 @@ class Grouphqlquery extends util{
           args:args,
           async resolve(root,params,option){
               if(name){
-                params=await _this.beforRunFun(params,table,root,api)
+                params=await beforRunFun(params,table,root,api,_this.funs)
                 return require(`../commonFun/${name}.js`)(params,table,oper,root)
               }else{
                 return ()=>{}

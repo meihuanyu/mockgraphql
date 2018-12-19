@@ -7,14 +7,8 @@ const clearRequire = (_path)=>{
     delete require.cache[pwd]; 
 }
 //params.type:single list delete create update
-const beforRunFun = async (params,tableName,root,api,obj) =>{
-    // const comObj = this.tComFuns
-    // if(comObj[api] && comObj[api].type=='befor'){
-    //     //刷新 require的缓存
-    //     this.clearRequire("\\commonFun\\" +comObj[api].funName+ ".js")
-    //     params =  await require(`../commonFun/${comObj[api].funName}.js`)(params,tableName,type)
-    // }
-    const real_funs =  obj[api].beforFunction
+export const beforRunFun = async (params,tableName,root,api,funs) =>{
+    const real_funs =  funs[api].beforFunction
     if(real_funs){
         for(let i=0;i<real_funs.length;i++){
             const funName = real_funs[i].funName
@@ -24,19 +18,16 @@ const beforRunFun = async (params,tableName,root,api,obj) =>{
     }
     return params
 }
-const  afterRunFun= async(params,tableName,res,type,api,obj)=>{
-    // const comObj = this.tComFuns
-    // if(comObj[api] && comObj[api].type=='after'){
-    //     res =  await require(`../commonFun/${api}.js`)(params,tableName,type,res)
-    // }
-    if(obj[api] && obj[api].type==="after" ){
+export const  afterRunFun= async(params,tableName,res,type,api,funs)=>{
+
+    if(funs[api] && funs[api].type==="after" ){
         res=await require(`../functions/${tableName}/${api}.js`)(params,tableName,type,res)
 
     }else{         
         return res
     }
 }
-const  dbOper = async (operType,params,tableName,api,root,projectName,allData) =>{
+export const  dbOper = async (operType,params,tableName,api,root,projectName,allData) =>{
     let res
     params = await beforRunFun(params,tableName,root,api,allData.funs)
     if(operType === 'single'){
@@ -105,5 +96,3 @@ const  dbOper = async (operType,params,tableName,api,root,projectName,allData) =
                          
     return afterRunFun(params,tableName,res,root,api,allData.funs);
 }
-
-export default dbOper

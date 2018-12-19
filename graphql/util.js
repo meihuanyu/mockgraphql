@@ -10,7 +10,7 @@ import {
   
 import db from '../config/database'
 import {addData , updateData ,getData,deleteData,getOneData} from '../controllers/sql'
-import dbOper from '../util/dbOper'
+import {dbOper} from '../util/dbOper'
 import { GraphQLUpload } from 'apollo-upload-server'
 class Grouphqlquery{
     constructor (params){
