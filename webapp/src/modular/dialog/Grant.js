@@ -33,13 +33,25 @@ class Grant extends BaseModal {
     }
   }
   currentRows=[]
+  idFindParent = {}
   componentWillMount=async ()=>{
     let {systemmenu_list}=this.props
     const treeData=JSON.parse(JSON.stringify(systemmenu_list))
     const roleid=this.props.gData[0].id
     const {data}=await cFetch('/api/app/query_grant',{roleid})
-    const defaultIds = data.map(item=>JSON.stringify(item.mid))
-    this.currentRows = data.map(item=>({id:item.id,mid:item.mid,pid:item.pid,rid:this.props.gData[0].id}))
+    let  defaultIds = []
+    this.currentRows = []
+
+    for(let i =0;i<data.length;i++){
+      const {mid,id,pid} = data[i]
+      const rid = this.props.gData[0].id
+
+      this.idFindParent[mid]=data[i]
+      defaultIds.push(mid)
+      this.currentRows.push({id,mid,pid,rid})
+    }
+
+    
     this.setState({
       treeData:treeData,
       grantIds:defaultIds
@@ -56,27 +68,61 @@ class Grant extends BaseModal {
         resolve()
     });
   }
+  treeEach = (data, callback, field = 'children', parent, level = 0)=>{
+    for(let i = 0; i < data.length; i++){
+        let node = data[i];
+        if(callback.call(node, node, parent, i, level, data) === false){
+            return false;
+        }
+        if (node[field] && node[field].length) {
+            if(this.treeEach(node[field], callback, field, node, level+1) === false){
+                return false;
+            }
+        }
+    }
+}
+  treeCreateMap = (data, callback)=>{
+    let result = {},
+        isS = typeof(callback) === "string";
+    this.treeEach(data, (...args) => {
+        let item = args[0];
+        if(isS){
+            result[item[callback]] = item;
+        }else{
+            result[item[callback(...args)]] = item;
+        }
+    });
+    return result;
+}
   renderTreeNodes = (data) => {
     return data.map((item) => {
       if (item.children) {
         return (
-          <TreeNode title={item.displayname} key={item.key?item.key:item.mid} dataRef={item}>
+          <TreeNode title={item.displayname} key={item.mid} dataRef={item}>
             {this.renderTreeNodes(item.children)}
           </TreeNode>
         );
       }
-      return <TreeNode  title={item.displayname} key={item.key?item.key:item.mid} dataRef={item} />;
+      return <TreeNode  title={item.displayname} key={item.mid} dataRef={item} />;
     });
   }
   hindleOncheck=(keys,xx)=>{
     const checkedNodes = xx.checkedNodes    
     const ids = this.currentRows.map(item=>item.mid)
+    const arrayTreeData = this.treeCreateMap(this.state.treeData,'id')
     if(xx.checked){
       for(let i=0;i<checkedNodes.length;i++){
           if(ids.indexOf(checkedNodes[i].key)===-1){
             //新增一个
             const obj = checkedNodes[i].props.dataRef
-            this.currentRows.push({id:obj.id,mid:obj.mid,pid:obj.pid,rid:this.props.gData[0].id})
+            const pid = arrayTreeData[obj.id].pid
+            const pMid = arrayTreeData[pid].mid
+            const realPid = this.idFindParent[pMid].id
+            this.currentRows.push({id:obj.id,
+                                   mid:obj.mid,
+                                   pid:realPid,
+                                   rid:this.props.gData[0].id
+                                  })
           }
       }
     }else{
@@ -86,7 +132,6 @@ class Grant extends BaseModal {
           }
       }
     }
-    console.log(this.currentRows)
   }
   render() {
     return this.state?<Tree 
