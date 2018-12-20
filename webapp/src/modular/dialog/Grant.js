@@ -114,10 +114,15 @@ class Grant extends BaseModal {
       for(let i=0;i<checkedNodes.length;i++){
           if(ids.indexOf(checkedNodes[i].key)===-1){
             //新增一个
+            let realPid
             const obj = checkedNodes[i].props.dataRef
             const pid = arrayTreeData[obj.id].pid
-            const pMid = arrayTreeData[pid].mid
-            const realPid = this.idFindParent[pMid].id
+            if(pid==='top'){
+              realPid = 'top'
+            }else{
+              const pMid = arrayTreeData[pid].mid
+              realPid = this.idFindParent[pMid].id
+            }
             this.currentRows.push({id:obj.id,
                                    mid:obj.mid,
                                    pid:realPid,
@@ -132,6 +137,7 @@ class Grant extends BaseModal {
           }
       }
     }
+    console.log(this.currentRows)
   }
   render() {
     return this.state?<Tree 
