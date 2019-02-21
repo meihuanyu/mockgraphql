@@ -67,9 +67,9 @@ export const updateData = async function(table_name,object,where = '1=1'){
             newAtts.push(i + "=" + object[i]); //属性
         }
     }
-    const sql ="UPDATE " + table_name + " SET " + newAtts.join(',') + " WHERE " + where;
+    const sql ="UPDATE " + table_name + " SET " + newAtts.join(',') + " WHERE id=?";
     try {
-        let res=await db.query(sql);
+        let res=await db.query(sql,[object.id]);
         return res
     } catch (error) {
         console.error(error)
