@@ -43,15 +43,20 @@ class Grant extends BaseModal {
     this.currentRows = []
 
     for(let i =0;i<data.length;i++){
-      const {mid,id,pid} = data[i]
+      const {mid,id,pid,status} = data[i]
       const rid = this.props.gData[0].id
 
       this.idFindParent[mid]=data[i]
-      defaultIds.push(mid)
-      this.currentRows.push({id,mid,pid,rid})
+      if(status){
+        defaultIds.push(mid)
+      }
+      
+      this.currentRows.push({id,mid,pid,rid,status})
     }
 
-    
+    for(let i=0;i<treeData.length;i++){
+      this.idFindParent[treeData[i].mid] = this.idFindParent[i]
+    }
     this.setState({
       treeData:treeData,
       grantIds:defaultIds
@@ -114,26 +119,15 @@ class Grant extends BaseModal {
       for(let i=0;i<checkedNodes.length;i++){
           if(ids.indexOf(checkedNodes[i].key)===-1){
             //新增一个
-            let realPid
-            const obj = checkedNodes[i].props.dataRef
-            const pid = arrayTreeData[obj.id].pid
-            if(pid==='top'){
-              realPid = 'top'
-            }else{
-              const pMid = arrayTreeData[pid].mid
-              realPid = this.idFindParent[pMid].id
-            }
-            this.currentRows.push({id:obj.id,
-                                   mid:obj.mid,
-                                   pid:realPid,
-                                   rid:this.props.gData[0].id
-                                  })
+            alert('无法新增')
+          }else{
+            this.currentRows[ids.indexOf(checkedNodes[i].key)].status = 1
           }
       }
     }else{
       for(let i=0;i<ids.length;i++){
           if(keys.checked.indexOf(ids[i].toString())===-1){
-            this.currentRows.splice(i,1)
+            this.currentRows[i].status = 0
           }
       }
     }
