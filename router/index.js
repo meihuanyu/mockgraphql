@@ -27,7 +27,7 @@ async function isLogin(ctx,next){
   await next()
 }
 
-router.use('/mockReload',(ctx)=>{
+router.get('/mockReload',(ctx)=>{
   console.log(ctx)
 })
 
