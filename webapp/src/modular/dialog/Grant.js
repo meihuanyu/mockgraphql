@@ -1,8 +1,7 @@
 import React from 'react';
 import BaseModal from '../../common/BaseModal'
 import {  graphql, compose } from 'react-apollo'
-import { Tree } from 'antd';
-import getMenu from '../../graphql/getMenu'
+import { Tree,message } from 'antd';
 import gql from 'graphql-tag'
 import cFetch from '../../util/cFetch';
 const TreeNode = Tree.TreeNode;
@@ -26,18 +25,24 @@ class Grant extends BaseModal {
     onOk:async ()=>{
         const {grant}=this.props
         const roleid=this.props.gData[0].id
-        
-        grant({
+        if(this.isError){
+          message.error('菜单父节点未生成,请先添加此父节点')
+          return false
+        }
+        await grant({
             variables:{ids:JSON.stringify(this.currentRows),roleid}
         })
+        message.success('ok')
+        this.props.close('next')
+
     }
   }
+  isError = false
   currentRows=[]
   idFindParent = {}
   componentWillMount=async ()=>{
-    let {systemmenu_list}=this.props
-    const treeData=JSON.parse(JSON.stringify(systemmenu_list))
     const roleid=this.props.gData[0].id
+    const treeData= (await cFetch('/api/app/query_all_menu?roleid='+roleid)).data
     const {data}=await cFetch('/api/app/query_grant',{roleid})
     let  defaultIds = []
     this.currentRows = []
@@ -46,32 +51,20 @@ class Grant extends BaseModal {
       const {mid,id,pid,status} = data[i]
       const rid = this.props.gData[0].id
 
-      this.idFindParent[mid]=data[i]
       if(status){
         defaultIds.push(mid)
       }
       
       this.currentRows.push({id,mid,pid,rid,status})
     }
-
-    for(let i=0;i<treeData.length;i++){
-      this.idFindParent[treeData[i].mid] = this.idFindParent[i]
-    }
+    this.treeEach(treeData,item=>{
+      const lvlIndex = item.lvl.split('-')[0]
+      this.idFindParent[lvlIndex+'-'+item.id] = item.role_grant_id
+    })
     this.setState({
       treeData:treeData,
       grantIds:defaultIds
     })
-  }
-  onLoadData = async (treeNode) => {
-    
-    const resData=await this.props.loadMore(treeNode.props.dataRef.id)
-    return new Promise((resolve) => {
-        treeNode.props.dataRef.children = JSON.parse(JSON.stringify(resData.data.systemmenu_list));
-        this.setState({
-          treeData: [...this.state.treeData],
-        });
-        resolve()
-    });
   }
   treeEach = (data, callback, field = 'children', parent, level = 0)=>{
     for(let i = 0; i < data.length; i++){
@@ -86,19 +79,6 @@ class Grant extends BaseModal {
         }
     }
 }
-  treeCreateMap = (data, callback)=>{
-    let result = {},
-        isS = typeof(callback) === "string";
-    this.treeEach(data, (...args) => {
-        let item = args[0];
-        if(isS){
-            result[item[callback]] = item;
-        }else{
-            result[item[callback(...args)]] = item;
-        }
-    });
-    return result;
-}
   renderTreeNodes = (data) => {
     return data.map((item) => {
       if (item.children) {
@@ -112,26 +92,45 @@ class Grant extends BaseModal {
     });
   }
   hindleOncheck=(keys,xx)=>{
+    this.isError = false ;
     const checkedNodes = xx.checkedNodes    
     const ids = this.currentRows.map(item=>item.mid)
-    const arrayTreeData = this.treeCreateMap(this.state.treeData,'id')
     if(xx.checked){
       for(let i=0;i<checkedNodes.length;i++){
           if(ids.indexOf(checkedNodes[i].key)===-1){
             //新增一个
-            alert('无法新增')
+            const obj = checkedNodes[i].props.dataRef
+            const pLvlIndex = obj.lvl.split('-')[0]-1
+            const pLvl = pLvlIndex+'-'+obj.pid
+            if(!this.idFindParent[pLvl]){
+              // 菜单父节点未生成,请先添加此父节点
+              this.isError = true
+            }
+            this.currentRows.push({
+              mid:obj.mid,
+              pid:this.idFindParent[pLvl],
+              rid:this.props.gData[0].id,
+              status:1}
+            )
+            
           }else{
             this.currentRows[ids.indexOf(checkedNodes[i].key)].status = 1
           }
       }
     }else{
       for(let i=0;i<ids.length;i++){
-          if(keys.checked.indexOf(ids[i].toString())===-1){
-            this.currentRows[i].status = 0
+          const index = keys.checked.indexOf(ids[i].toString())
+          if(index === -1){
+            // 如果库里不存在 就删掉
+            if(this.currentRows[i].id){
+              this.currentRows[i].status = 0
+            }else{
+              this.currentRows.splice(i,1)
+            }
+            
           }
       }
     }
-    console.log(this.currentRows)
   }
   render() {
     return this.state?<Tree 
@@ -139,7 +138,6 @@ class Grant extends BaseModal {
                 checkStrictly={true}
                 checkable
                 multiple={true}
-                loadData={this.onLoadData}
                 onCheck={this.hindleOncheck}
                 >
             {this.renderTreeNodes(this.state.treeData)}
@@ -148,30 +146,5 @@ class Grant extends BaseModal {
 }
 
 export default compose(
-    graphql(getMenu,{
-        options:(props)=>({
-            variables:{
-                pid:'top'
-            }
-        }),
-        props({data}){
-          let {loading,systemmenu_list,fetchMore,refetch} =data
-          return {
-            loading,
-            systemmenu_list,
-            refetch,
-            loadMore(id){
-              return fetchMore({
-                variables: {
-                  pid: id,
-                },
-                updateQuery(previousResult, { fetchMoreResult }){
-                  return fetchMoreResult.systemmenu_list
-                }
-              })
-            }
-          }
-        }
-    }),
     graphql(grant,{name:"grant"})
 )(Grant)
