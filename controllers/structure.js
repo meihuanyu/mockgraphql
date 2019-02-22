@@ -12,15 +12,7 @@ export const getTables = async function(ctx,next){
         }
     }
 }
-export const query_grant= async function(ctx,query){
-    const res= await db.query(`select * from d_menugrant where rid=${ctx.query.roleid}`)
-    if(res){
-        ctx.body={
-            success:true,
-            data:res
-        }
-    }
-}
+
 export const getFields = async function(ctx,next){
     const sql='select f.*,t.tablename fieldrelationtablename from graphql_field f left join graphql_table t on f.graprelationid=t.id  where relationtableid='+ctx.query.id;
     const res=await db.query(sql);
