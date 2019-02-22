@@ -27,6 +27,9 @@ async function isLogin(ctx,next){
   await next()
 }
 
+router.use('/mockReload',(ctx)=>{
+  console.log(ctx)
+})
 
 router.get('/v2/:api/:function',functionOper)
 router.use('/app',isLogin)
