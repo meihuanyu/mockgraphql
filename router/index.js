@@ -1,9 +1,10 @@
 import { graphqlKoa, graphiqlKoa } from 'graphql-server-koa'
 // 引入 type 
-import {getTables,createField,createTable,getFields,updateFields,deleteFields,querySchme,query_grant} from '../controllers/structure'
+import {getTables,createField,createTable,getFields,updateFields,deleteFields,querySchme} from '../controllers/structure'
 import { create_funs , delete_funs , update_funs , query_funs ,query_project_funs} from '../controllers/funs'
 import { create_args , delete_args , update_args , query_args ,import_args} from '../controllers/args'
 import { create_comArgs , delete_comArgs , update_comArgs , query_comArgs,query_comArgsLinkFunction,delete_linkComArgs,create_link_com,importFunction} from '../controllers/comArgs'
+import { query_all_menu, query_grant, } from '../controllers/menu_grant'
 import redis from '../config/redis'
 import graphqlQuery from '../graphql/graphqlQuery';
 import { apolloUploadKoa } from 'apollo-upload-server'
@@ -35,7 +36,6 @@ router.get('/app/createField',createField);
 router.get('/app/getFields',getFields);
 router.get('/app/updateFields',updateFields);
 router.get('/app/deleteFields',deleteFields);
-router.get('/app/query_grant',query_grant);
 
 router.get('/app/query_funs',query_funs);
 router.get('/app/delete_funs',delete_funs);
@@ -57,6 +57,10 @@ router.get('/app/query_comArgsLinkFunction',query_comArgsLinkFunction);
 router.get('/app/delete_linkComArgs',delete_linkComArgs);
 router.get('/app/create_link_com',create_link_com);
 router.get('/app/importFunction',importFunction);
+
+router.get('/app/query_all_menu',query_all_menu);
+router.get('/app/query_grant',query_grant);
+
 
 
 router.get('/tt',function(ctx){

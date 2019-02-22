@@ -13,7 +13,7 @@ module.exports =async function(params,tableName,root){
     let updateGrantData = [] 
     //比对新增 修改的按钮权限
     for(let i=0;i<menus.length;i++){
-        if(grantDataObj[menus[i].id]){
+        if(menus[i].id){
             //修改
             if(grantDataObj[menus[i].id].status === menus[i].status){
                 //无需修改
