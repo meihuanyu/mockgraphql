@@ -5,12 +5,10 @@ import {
     GraphQLSchema,
     GraphQLObjectType,
     GraphQLString,
-    GraphQLID,
-    GraphQLList,
-    GraphQLNonNull,
-    GraphQLInt
+    GraphQLList
   } from 'graphql';
-  
+
+import { beforRunFun } from '../util/dbOper'
 class Grouphqlquery extends util{
     newApi(table,name,oper,api){
         let _objectType= this.toObjectType(table,api)
@@ -21,7 +19,7 @@ class Grouphqlquery extends util{
           args:args,
           async resolve(root,params,option){
               if(name){
-                params=await _this.beforRunFun(params,table,root,api)
+                params=await beforRunFun(params,table,root,api,_this.tFuns)
                 return require(`../commonFun/${name}.js`)(params,table,oper,root)
               }else{
                 return ()=>{}
@@ -31,14 +29,13 @@ class Grouphqlquery extends util{
         }
     }
     async startSchema (data){
-        console.log(data)
-        this.paramsObj=data.fields;
-        this.funs=data.tFuns;
+        this.fields=data.fields;
+        this.tFuns=data.tFuns;
         this.projectName=data.projectName
-        this.args=data.tArgs
-        const funNames = Object.keys(this.funs)
+        this.tArgs=data.tArgs
+        const funNames = Object.keys(this.tFuns)
         for(let i=0;i<funNames.length;i++){
-            const {oper,isNew,tablename,funName} = this.funs[funNames[i]]
+            const {oper,isNew,tablename,funName} = this.tFuns[funNames[i]]
             const api_name=funNames[i]
             if(isNew == 'original'){
               if(oper==='list'){
@@ -64,34 +61,6 @@ class Grouphqlquery extends util{
               }
             }
         }
-        this.mutation.testgg={
-          type:new GraphQLObjectType({
-            name:'testctype',
-            fields:{
-              aa:{
-                type:GraphQLString
-              },bb:{
-                type:GraphQLString
-              }
-            }
-          })  ,
-          args:{
-            ap:{
-              name:'ap',
-              type:new GraphQLList(new GraphQLInputObjectType({
-                name:"apxxx",
-                fields:{
-                  description: { type: GraphQLString }
-                }
-              }))
-            }
-          },
-          async resolve(root,params,option){
-              console.log(params)
-              return  {}
-          }
-      }
-
 
         return new GraphQLSchema({
             query: new GraphQLObjectType({

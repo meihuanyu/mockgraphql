@@ -62,22 +62,24 @@ export const import_args=async (ctx)=>{
   for(let i=0;i<fields.length;i++){
     const {name,type,tableid,relationid} = fields[i]
     if(argsName.indexOf(name)===-1){
-      _values.push(`('${name}','${type}',${tableid},${relationid})`)
+      _values.push(`('${name}','${type}',${tableid},${relationid},1,1,1,1,1)`)
     }
   }
-  if(_values.length){
+  if(!_values.length){
     ctx.body={
       success:false,
       data:[],
       msg:"没有需要添加的默认参数"
     }
+  }else{
+    _values.join(',')
+    const addArgsSql=`insert into graohql_arg (name,type,tableid,relationid,iscreate,isdelete,isupdate,issingle,islist) values ${_values}`
+    console.log(addArgsSql)
+    const res = await db.query(addArgsSql)
+    ctx.body={
+      success:true,
+      data:res
+    }
   }
-  _values.join(',')
-  const addArgsSql=`insert into graohql_arg (name,type,tableid,relationid) values ${_values}`
-  console.log(addArgsSql)
-  const res = await db.query(addArgsSql)
-  ctx.body={
-    success:true,
-    data:res
-  }
+ 
 }

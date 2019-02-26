@@ -1,20 +1,14 @@
 import { graphqlKoa, graphiqlKoa } from 'graphql-server-koa'
-import {
-  GraphQLSchema,
-  GraphQLObjectType
-} from 'graphql';
 // 引入 type 
-import {getTables,createField,createTable,getFields,updateFields,deleteFields,querySchme,query_grant} from '../controllers/structure'
+import {getTables,createField,createTable,getFields,updateFields,deleteFields,querySchme} from '../controllers/structure'
 import { create_funs , delete_funs , update_funs , query_funs ,query_project_funs} from '../controllers/funs'
 import { create_args , delete_args , update_args , query_args ,import_args} from '../controllers/args'
 import { create_comArgs , delete_comArgs , update_comArgs , query_comArgs,query_comArgsLinkFunction,delete_linkComArgs,create_link_com,importFunction} from '../controllers/comArgs'
-import {login} from '../controllers/login'
-import {permissions} from '../controllers/user'
+import { query_all_menu, query_grant, } from '../controllers/menu_grant'
 import redis from '../config/redis'
-import db from '../config/database'
-import {addData} from '../controllers/sql'
 import graphqlQuery from '../graphql/graphqlQuery';
 import { apolloUploadKoa } from 'apollo-upload-server'
+import {functionOper} from '../v2/index'
 var jwt = require('jsonwebtoken');
 const router = require('koa-router')()
 async function isLogin(ctx,next){
@@ -33,6 +27,11 @@ async function isLogin(ctx,next){
   await next()
 }
 
+router.get('/mockReload',(ctx)=>{
+  console.log(ctx)
+})
+
+router.get('/v2/:api/:function',functionOper)
 router.use('/app',isLogin)
 router.get('/app/getTables',getTables);
 router.get('/app/createTable',createTable);
@@ -40,7 +39,6 @@ router.get('/app/createField',createField);
 router.get('/app/getFields',getFields);
 router.get('/app/updateFields',updateFields);
 router.get('/app/deleteFields',deleteFields);
-router.get('/app/query_grant',query_grant);
 
 router.get('/app/query_funs',query_funs);
 router.get('/app/delete_funs',delete_funs);
@@ -62,6 +60,10 @@ router.get('/app/query_comArgsLinkFunction',query_comArgsLinkFunction);
 router.get('/app/delete_linkComArgs',delete_linkComArgs);
 router.get('/app/create_link_com',create_link_com);
 router.get('/app/importFunction',importFunction);
+
+router.get('/app/query_all_menu',query_all_menu);
+router.get('/app/query_grant',query_grant);
+
 
 
 router.get('/tt',function(ctx){
@@ -89,10 +91,6 @@ router.post('/graphql/:apikey', async (ctx, next,xx) => {
   let gQuery=new graphqlQuery()
   const _schema=await gQuery.startSchema(JSON.parse(schemaData))
   await graphqlKoa({schema: _schema,rootValue:{ctx:ctx}})(ctx, next) // 使用schema
-})
-.get('/graphql', async (ctx, next) => {
-  // const schema= await graphqlSchema
-  // await graphqlKoa({schema: schema})(ctx, next) // 使用schema
 })
 .get('/graphiql/:apikey', async (ctx, next) => {
   await graphiqlKoa({
