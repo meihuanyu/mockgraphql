@@ -7,7 +7,7 @@ trigger:
 - master
 
 pool:
-  vmImage: 'CentOS-6'
+  vmImage: 'CentOS-6.1'
 
 steps:
 - task: NodeTool@0
