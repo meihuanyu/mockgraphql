@@ -18,7 +18,7 @@ pipeline {
         }
         stage('react') {
             steps {
-                sh 'echo ccc'
+                sh './sh/startReact.sh'
             }
         }
     }
