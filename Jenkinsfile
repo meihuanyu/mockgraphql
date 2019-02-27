@@ -13,7 +13,7 @@ pipeline {
         stage('koa') { 
             steps {
                 sh 'yarn config set registry https://registry.npm.taobao.org'
-                sh 'startKoa.sh'
+                sh './sh/startKoa.sh'
             }
         }
         stage('react') {
