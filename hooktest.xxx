@@ -1,1 +1,4 @@
-xxxxx
+
+ docker run --name some-redis -d redis redis-server --appendonly yes -p 6688:6688
+
+ docker run -p 6379:6379 --name mock-redis  -d redis:5.0 redis-server --appendonly yes
