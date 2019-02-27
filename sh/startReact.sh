@@ -1,4 +1,5 @@
 #！/bin/sh
 cd ./webapp
-cnpm install
+rm -rf ./node_modules
+yarn install
 npm run build
