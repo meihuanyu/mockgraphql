@@ -27,8 +27,12 @@ async function isLogin(ctx,next){
   await next()
 }
 
-router.get('/mockReload',(ctx)=>{
-  console.log(ctx)
+router.get('/mockReload',(request, respons)=>{
+  const event_json = JSON.parse(request.body);
+  console.log(event_json)
+  // Do something with event_json
+
+  response.send(200);
 })
 
 router.get('/v2/:api/:function',functionOper)
