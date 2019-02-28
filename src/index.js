@@ -2,7 +2,6 @@ import Koa from 'koa';
 import KoaStatic from 'koa-static'
 import Router from 'koa-router'
 import bodyParser from 'koa-bodyparser'
-import {initSql} from './initSqlFunction'
 const GraphqlRouter = require('../router')
 
 const app = new Koa()
@@ -10,7 +9,6 @@ const router = new Router();
 
 const port = 4001
 
-initSql()
 app.use(bodyParser());
 app.use(KoaStatic(__dirname + '/public'));
 

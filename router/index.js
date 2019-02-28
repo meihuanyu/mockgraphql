@@ -35,13 +35,24 @@ router.get('/mockReload',(request, respons)=>{
 
   response.send(200);
 })
+const toAwait = (client,str)=>{
+  return new Promise(function(reslove){
+      client.get(str,function(err,v){
+         reslove(v)
+      })
+  })  
+}
 router.get('/r',async (ctx)=>{
-  // const redis=new ioRedis(6379,'47.100.103.106')
-  // redis.set('xx','设置xxxredis')
-  // const xx = await redis.get('xx')
-  // ctx.body = {
-  //   data:xx
-  // }
+
+  var redis = require('redis');
+
+  var client = redis.createClient(6379,'47.100.103.106');
+
+  client.set('hello','This is a value');
+  const xx = await toAwait(client,'hello')
+  ctx.body={
+    data:xx
+  }
 })
 router.get('/v2/:api/:function',functionOper)
 router.use('/app',isLogin)
