@@ -5,10 +5,10 @@ import { create_funs , delete_funs , update_funs , query_funs ,query_project_fun
 import { create_args , delete_args , update_args , query_args ,import_args} from '../controllers/args'
 import { create_comArgs , delete_comArgs , update_comArgs , query_comArgs,query_comArgsLinkFunction,delete_linkComArgs,create_link_com,importFunction} from '../controllers/comArgs'
 import { query_all_menu, query_grant, } from '../controllers/menu_grant'
-import redis from '../config/redis'
 import graphqlQuery from '../graphql/graphqlQuery';
 import { apolloUploadKoa } from 'apollo-upload-server'
 import {functionOper} from '../v2/index'
+import ioRedis from 'ioredis'
 
 var jwt = require('jsonwebtoken');
 const router = require('koa-router')()
@@ -36,6 +36,7 @@ router.get('/mockReload',(request, respons)=>{
   response.send(200);
 })
 router.get('/r',async (ctx)=>{
+  const redis=new ioRedis(6379,'47.100.103.106')
   redis.set('xx','设置xxxredis')
   const xx = await redis.get('xx')
   ctx.body = {
@@ -79,10 +80,6 @@ router.get('/app/query_grant',query_grant);
 
 router.get('/tt',function(ctx){
   
-  redis.del(ctx.query.apiKey); 
-  ctx.body={
-    success:true
-  }
 
 })
 // router.use('/graphql',permissions)
@@ -92,16 +89,16 @@ router.get('/tt',function(ctx){
 .use(apolloUploadKoa({ maxFileSize: 10000000, maxFiles: 10 }))
 
 router.post('/graphql/:apikey', async (ctx, next,xx) => {
-  let schemaData="" 
-  schemaData=await redis.get(ctx.captures[0])
-  if(!schemaData){
-    schemaData=await querySchme(ctx.captures[0])
-    schemaData=JSON.stringify(schemaData)
-    redis.set(ctx.captures[0],schemaData)
-  }
-  let gQuery=new graphqlQuery()
-  const _schema=await gQuery.startSchema(JSON.parse(schemaData))
-  await graphqlKoa({schema: _schema,rootValue:{ctx:ctx}})(ctx, next) // 使用schema
+  // let schemaData="" 
+  // schemaData=await redis.get(ctx.captures[0])
+  // if(!schemaData){
+  //   schemaData=await querySchme(ctx.captures[0])
+  //   schemaData=JSON.stringify(schemaData)
+  //   redis.set(ctx.captures[0],schemaData)
+  // }
+  // let gQuery=new graphqlQuery()
+  // const _schema=await gQuery.startSchema(JSON.parse(schemaData))
+  // await graphqlKoa({schema: _schema,rootValue:{ctx:ctx}})(ctx, next) // 使用schema
 })
 .get('/graphiql/:apikey', async (ctx, next) => {
   await graphiqlKoa({
