@@ -8,7 +8,7 @@ import { query_all_menu, query_grant, } from '../controllers/menu_grant'
 import graphqlQuery from '../graphql/graphqlQuery';
 import { apolloUploadKoa } from 'apollo-upload-server'
 import {functionOper} from '../v2/index'
-import ioRedis from 'ioredis'
+// import ioRedis from 'ioredis'
 
 var jwt = require('jsonwebtoken');
 const router = require('koa-router')()
@@ -36,12 +36,12 @@ router.get('/mockReload',(request, respons)=>{
   response.send(200);
 })
 router.get('/r',async (ctx)=>{
-  const redis=new ioRedis(6379,'47.100.103.106')
-  redis.set('xx','设置xxxredis')
-  const xx = await redis.get('xx')
-  ctx.body = {
-    data:xx
-  }
+  // const redis=new ioRedis(6379,'47.100.103.106')
+  // redis.set('xx','设置xxxredis')
+  // const xx = await redis.get('xx')
+  // ctx.body = {
+  //   data:xx
+  // }
 })
 router.get('/v2/:api/:function',functionOper)
 router.use('/app',isLogin)
