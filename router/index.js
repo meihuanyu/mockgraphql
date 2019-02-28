@@ -9,6 +9,7 @@ import redis from '../config/redis'
 import graphqlQuery from '../graphql/graphqlQuery';
 import { apolloUploadKoa } from 'apollo-upload-server'
 import {functionOper} from '../v2/index'
+
 var jwt = require('jsonwebtoken');
 const router = require('koa-router')()
 async function isLogin(ctx,next){
@@ -34,7 +35,13 @@ router.get('/mockReload',(request, respons)=>{
 
   response.send(200);
 })
-
+router.get('/r',async (ctx)=>{
+  redis.set('xx','设置xxxredis')
+  const xx = await redis.get('xx')
+  ctx.body = {
+    data:xx
+  }
+})
 router.get('/v2/:api/:function',functionOper)
 router.use('/app',isLogin)
 router.get('/app/getTables',getTables);
