@@ -1,10 +1,10 @@
 import Client from 'mysql-pro'
 const client = new Client({     
     mysql: {
-        host : '47.100.103.106',
+        host : '118.24.96.18',
         database : 'mock',
         user: 'root',
-        password : 'showrpassword'
+        password : 'KeYpZrZx'
     }
 }); 
 
