@@ -9,7 +9,7 @@
 # production
 ./build
 
-/config
+/config/redis.js
 # misc
 .DS_Store
 .env.local
