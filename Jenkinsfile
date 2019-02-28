@@ -5,8 +5,6 @@ pipeline {
             args '-p 4001:4001' 
         }
     }
-    environment {
-    }
     stages {
         stage('koa') { 
             steps {
