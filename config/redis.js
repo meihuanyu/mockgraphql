@@ -4,6 +4,7 @@ const redis=new ioRedis({
     port : 6379,　//端口
     prefix : 'sam:',//存诸前缀
     ttl : 60 * 60 * 23,//过期时间
-    db: 0
+    db: 0,
+    connectTimeout: 10000
 })
 export default redis
