@@ -1,6 +1,6 @@
 import ioRedis from 'ioredis'
 const redis=new ioRedis({
-    host : 'http://47.100.103.106',//安装好的redis服务器地址
+    host : '47.100.103.106',//安装好的redis服务器地址
     port : 6379,　//端口
     prefix : 'sam:',//存诸前缀
     ttl : 60 * 60 * 23,//过期时间
