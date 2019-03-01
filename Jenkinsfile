@@ -12,11 +12,6 @@ pipeline {
                 sh './sh/startKoa.sh'
             }
         }
-        stage('react') {
-            steps {
-                sh './sh/startReact.sh'
-            }
-        }
     }
 }
 
