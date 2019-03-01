@@ -9,3 +9,14 @@ free -h
  ps -aux | sort -k4nr | head -n 10
 
 
+docker run --name mockredis -p 6379:6379 -v $PWD/data:/data  -d redis:3.2 redis-server --requirepass "showrpasswordredis" --appendonly yes
+
+docker exec -it 5e6023cff510 redis-cli
+
+/usr/local/webserver/nginx/sbin/nginx -s reload            # 重新载入配置文件
+/usr/local/webserver/nginx/sbin/nginx -s reopen            # 重启 Nginx
+/usr/local/webserver/nginx/sbin/nginx -s stop              # 停止 Nginx
+
+
+
+docker run -d --name myredis -p 6379:6379 redis --requirepass "showrpasswordredis"
