@@ -1,4 +1,4 @@
 #！/bin/sh
 yarn install
-npm start &
+npm start 
 echo 'go go go go'
