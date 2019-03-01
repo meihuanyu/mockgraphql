@@ -8,8 +8,8 @@ pipeline {
     stages {
         stage('koa') { 
             steps {
-                sh 'yarn config set registry https://registry.npm.taobao.org'
-                sh './sh/startKoa.sh'
+                sh 'yarn install'
+                sh 'npm start'
             }
         }
     }
