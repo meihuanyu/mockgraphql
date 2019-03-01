@@ -38,10 +38,17 @@ router.get('/mockReload',(request, respons)=>{
 const toAwait = (client,str)=>{
   return new Promise(function(reslove){
       client.get(str,function(err,v){
+        console.log(err)
          reslove(v)
       })
   })  
 }
+router.get('/a',async (ctx)=>{
+
+  ctx.body={
+    data:'aaaa'
+  }
+})
 router.get('/r',async (ctx)=>{
 
   var redis = require('redis');
