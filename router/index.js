@@ -5,11 +5,10 @@ import { create_funs , delete_funs , update_funs , query_funs ,query_project_fun
 import { create_args , delete_args , update_args , query_args ,import_args} from '../controllers/args'
 import { create_comArgs , delete_comArgs , update_comArgs , query_comArgs,query_comArgsLinkFunction,delete_linkComArgs,create_link_com,importFunction} from '../controllers/comArgs'
 import { query_all_menu, query_grant, } from '../controllers/menu_grant'
+import redis from '../config/redis'
 import graphqlQuery from '../graphql/graphqlQuery';
 import { apolloUploadKoa } from 'apollo-upload-server'
 import {functionOper} from '../v2/index'
-// import ioRedis from 'ioredis'
-
 var jwt = require('jsonwebtoken');
 const router = require('koa-router')()
 async function isLogin(ctx,next){
@@ -28,39 +27,15 @@ async function isLogin(ctx,next){
   await next()
 }
 
-router.get('/mockReload',(request, respons)=>{
-  const event_json = JSON.parse(request.body);
-  console.log(event_json)
-  // Do something with event_json
-
-  response.send(200);
-})
-const toAwait = (client,str)=>{
-  return new Promise(function(reslove){
-      client.get(str,function(err,v){
-        console.log(err)
-         reslove(v)
-      })
-  })  
-}
-router.get('/a',async (ctx)=>{
-
-  ctx.body={
-    data:'xx'
+router.get('/test',(ctx)=>{
+  ctx.body = {
+    xx:'test'
   }
 })
-router.get('/r',async (ctx)=>{
-
-  var redis = require('redis');
-
-  var client = redis.createClient(6379,'47.100.103.106');
-
-  client.set('hello','This is a value');
-  const xx = await toAwait(client,'hello')
-  ctx.body={
-    data:xx
-  }
+router.get('/mockReload',(ctx)=>{
+  console.log(ctx)
 })
+
 router.get('/v2/:api/:function',functionOper)
 router.use('/app',isLogin)
 router.get('/app/getTables',getTables);
@@ -98,6 +73,10 @@ router.get('/app/query_grant',query_grant);
 
 router.get('/tt',function(ctx){
   
+  redis.del(ctx.query.apiKey); 
+  ctx.body={
+    success:true
+  }
 
 })
 // router.use('/graphql',permissions)
@@ -107,16 +86,16 @@ router.get('/tt',function(ctx){
 .use(apolloUploadKoa({ maxFileSize: 10000000, maxFiles: 10 }))
 
 router.post('/graphql/:apikey', async (ctx, next,xx) => {
-  // let schemaData="" 
-  // schemaData=await redis.get(ctx.captures[0])
-  // if(!schemaData){
-  //   schemaData=await querySchme(ctx.captures[0])
-  //   schemaData=JSON.stringify(schemaData)
-  //   redis.set(ctx.captures[0],schemaData)
-  // }
-  // let gQuery=new graphqlQuery()
-  // const _schema=await gQuery.startSchema(JSON.parse(schemaData))
-  // await graphqlKoa({schema: _schema,rootValue:{ctx:ctx}})(ctx, next) // 使用schema
+  let schemaData="" 
+  schemaData=await redis.get(ctx.captures[0])
+  if(!schemaData){
+    schemaData=await querySchme(ctx.captures[0])
+    schemaData=JSON.stringify(schemaData)
+    redis.set(ctx.captures[0],schemaData)
+  }
+  let gQuery=new graphqlQuery()
+  const _schema=await gQuery.startSchema(JSON.parse(schemaData))
+  await graphqlKoa({schema: _schema,rootValue:{ctx:ctx}})(ctx, next) // 使用schema
 })
 .get('/graphiql/:apikey', async (ctx, next) => {
   await graphiqlKoa({
