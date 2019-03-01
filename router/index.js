@@ -46,14 +46,14 @@ const toAwait = (client,str)=>{
 router.get('/a',async (ctx)=>{
 
   ctx.body={
-    data:'aaaa'
+    data:'xx'
   }
 })
 router.get('/r',async (ctx)=>{
 
   var redis = require('redis');
 
-  var client = redis.createClient();
+  var client = redis.createClient(6379,'47.100.103.106');
 
   client.set('hello','This is a value');
   const xx = await toAwait(client,'hello')
