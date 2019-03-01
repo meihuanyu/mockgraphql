@@ -46,7 +46,9 @@ router.get('/r',async (ctx)=>{
 
   var redis = require('redis');
 
-  var client = redis.createClient(6379,'47.100.103.106');
+  var client = redis.createClient({
+    host: 'redis'
+    });
 
   client.set('hello','This is a value');
   const xx = await toAwait(client,'hello')
