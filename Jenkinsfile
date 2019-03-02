@@ -9,7 +9,7 @@ pipeline {
         stage('koa') { 
             steps {
                 sh 'yarn install'
-                sh 'npm start'
+                sh 'npm start &'
             }
         }
     }
