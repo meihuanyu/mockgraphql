@@ -16,6 +16,33 @@
 > 完成度:0%
 
 ## 合并接口方案  自定义function 方案
+### 灵感Jenkins 管道式执行
+#### query
+``` 
+     stage('ckeck_token'){
+
+     }
+     stage('queryClass'){
+
+     }
+     stage('query_class_log'){
+          
+     }
+     
+```
+#### delete
+``` 
+     stage('ckeck_grant'){
+
+     }
+     stage('delete_class'){
+
+     }
+     stage('delte_student'){
+          
+     }
+     
+```
 + start 3.14
 + end 3.14
 - 完成度:0%
