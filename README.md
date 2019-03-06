@@ -1,20 +1,26 @@
-# mockgraphql
-## graphql_table 表结构解释
-     type=null 普通表  type=1 中转表  type=2 原始表
+# restful api 计划
 
-##  function 表结构解释
+## 前端解析 基础模板 合并模板
++ start 3.6
++ end 3.7
+> 完成度:0%
 
-     type        befor after on(替换) original(原始方法)
-     tableid
-     oper        create list...
-     isnew       1 mation 2 query
-     isOn        是否开启
-     alias       别名
+## 后端根据基础模板 add delete update表
++ start 3.7
++ end  3.9
+> 完成度:0%
 
-## 短期计划
-### 默认user表  默认的一些借口 jwt的登录方式
+## 根据表与模板生成接口 add delete update query(单个,多个)
++ start 3.11
++ end 3.14
+> 完成度:0%
 
-## 下一次迭代
-### 一表可关联多表 生成多表关联create接口
-### 可以运行的测试数据 可以定位到所在的错误
-## test1body-parserxxx
+## 合并接口方案  自定义function 方案
++ start 3.14
++ end 3.14
+- 完成度:0%
+
+## end 合并接口 自定义function
++ start 3.14
++ end 3.19
+> 完成度:0%
