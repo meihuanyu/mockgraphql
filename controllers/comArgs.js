@@ -1,5 +1,7 @@
 import db from '../config/database'
 import { updateData ,addData} from './sql'
+const router = require('koa-router')()
+
 export const query_comArgs=async (ctx)=>{
     let res
     if(ctx.query.projectId!='all'){
@@ -106,3 +108,13 @@ export const create_comArgs=async (ctx)=>{
       }
     }
   }
+  
+router.get('/app/query_comArgs',query_comArgs);
+router.get('/app/delete_comArgs',delete_comArgs);
+router.get('/app/update_comArgs',update_comArgs);
+router.get('/app/create_comArgs',create_comArgs);
+router.get('/app/query_comArgsLinkFunction',query_comArgsLinkFunction);
+router.get('/app/delete_linkComArgs',delete_linkComArgs);
+router.get('/app/create_link_com',create_link_com);
+router.get('/app/importFunction',importFunction);
+module.exports = router

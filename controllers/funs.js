@@ -1,6 +1,6 @@
 import db from '../config/database'
-
-export const query_funs=async (ctx)=>{
+const router = require('koa-router')()
+const query_funs=async (ctx)=>{
     const sql = `select * from d_api where tableid=? order by type DESC`
     const res = await db.query(sql,[ctx.query.id])
     if(res){
@@ -11,7 +11,7 @@ export const query_funs=async (ctx)=>{
     }
   }
 
-export const query_project_funs=async (ctx)=>{
+const query_project_funs=async (ctx)=>{
     const projectId = ctx.query.pid
     const resTable = await db.query(`select * from graphql_table where projectid=?`,[projectId])
     
@@ -37,7 +37,7 @@ export const query_project_funs=async (ctx)=>{
 
 
 
-export const delete_funs=async (ctx)=>{
+const delete_funs=async (ctx)=>{
     const sql = `delete from d_api where id=?`
     const res = await db.query(sql,[ctx.query.id])
     if(res){
@@ -48,7 +48,7 @@ export const delete_funs=async (ctx)=>{
     }
   }
 
-export const update_funs=async (ctx)=>{
+const update_funs=async (ctx)=>{
     const { id, alias, oper, type } = ctx.query
     const sql = `update d_api set alias=? ,oper=? ,type=?   where id=?`
     const res = await db.query(sql,[alias , oper , type , id])
@@ -60,7 +60,7 @@ export const update_funs=async (ctx)=>{
     }
   }
 
-export const create_funs=async (ctx)=>{
+const create_funs=async (ctx)=>{
     const { alias, oper, type ,tableid} = ctx.query
     const sql = `insert into  d_api(alias , oper ,type ,tableid) values (? , ? , ? ,?)`
     const res = await db.query(sql,[alias , oper , type , tableid])
@@ -71,3 +71,12 @@ export const create_funs=async (ctx)=>{
       }
     }
   }
+
+
+  router.get('/app/query_funs',query_funs);
+  router.get('/app/delete_funs',delete_funs);
+  router.get('/app/update_funs',update_funs);
+  router.get('/app/create_funs',create_funs);
+  router.get('/app/query_project_funs',query_project_funs);
+  
+  module.exports = router

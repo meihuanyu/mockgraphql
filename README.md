@@ -19,14 +19,17 @@
 ### 灵感Jenkins 管道式执行
 #### query
 ``` 
-     stage('ckeck_token'){
-
-     }
-     stage('queryClass'){
-
-     }
-     stage('query_class_log'){
-          
+     formal_query_class {
+          ckeck_token {
+               token:ctx.tonken
+          }
+          queryClass {
+               currentUser:ckeck_token.user
+          }
+          query_class_log {
+               querytUser:ckeck_token.user
+               query:queryClass.data
+          }
      }
      
 ```

@@ -1,5 +1,7 @@
 
 import db from '../config/database'
+const router = require('koa-router')()
+
 export const query_grant= async function(ctx,query){
     const res= await db.query(`select * from d_menugrant where rid=${ctx.query.roleid}`)
     if(res){
@@ -106,3 +108,7 @@ const listToTree = (data, options) =>{
 
     return tree;
 }
+
+router.get('/app/query_all_menu',query_all_menu);
+router.get('/app/query_grant',query_grant);
+module.exports = router

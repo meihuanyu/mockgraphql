@@ -1,6 +1,7 @@
 import db from '../config/database'
 import {addData,getOneData, getData} from '../controllers/sql'
 var jwt = require('jsonwebtoken');
+const router = require('koa-router')()
 
 export const getTables = async function(ctx,next){
     const sql='select id,tablename,descinfo from graphql_table where  projectid=?';
@@ -304,3 +305,11 @@ const orToSql=function (arr,key="id"){
     }
     return _where
 }
+
+router.get('/app/getTables',getTables);
+router.get('/app/createTable',createTable);
+router.get('/app/createField',createField);
+router.get('/app/getFields',getFields);
+router.get('/app/updateFields',updateFields);
+router.get('/app/deleteFields',deleteFields);
+module.exports = router

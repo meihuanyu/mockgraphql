@@ -1,6 +1,8 @@
 import db from '../config/database'
 import { updateData ,addData} from './sql'
-export const query_args=async (ctx)=>{
+const router = require('koa-router')()
+
+ const query_args=async (ctx)=>{
     const sql = `select * from graohql_arg where tableid=? order by type DESC`
     const res = await db.query(sql,[ctx.query.id])
     if(res){
@@ -12,7 +14,7 @@ export const query_args=async (ctx)=>{
   }
 
 
-export const delete_args=async (ctx)=>{
+ const delete_args=async (ctx)=>{
     const sql = `delete from graohql_arg where id=?`
     const res = await db.query(sql,[ctx.query.id])
     if(res){
@@ -23,7 +25,7 @@ export const delete_args=async (ctx)=>{
     }
   }
 
-export const update_args=async (ctx)=>{
+ const update_args=async (ctx)=>{
     const { name, type ,relationid,id,isupdate,isdelete,iscreate,issingle,islist,isindex} = ctx.query
     
     const res = await updateData('graohql_arg',{
@@ -38,7 +40,7 @@ export const update_args=async (ctx)=>{
     }
   }
 
-export const create_args=async (ctx)=>{
+ const create_args=async (ctx)=>{
     const {  name, type ,relationid,tableid,isupdate,isdelete,iscreate,issingle,islist,isindex} = ctx.query
     
     const res = await addData('graohql_arg',{
@@ -51,7 +53,7 @@ export const create_args=async (ctx)=>{
       }
     }
   }
-export const import_args=async (ctx)=>{
+ const import_args=async (ctx)=>{
   const { id } = ctx.query
   const fieldsSql = `select fieldname name,fieldtype type,relationtableid tableid,graprelationid relationid from graphql_field where relationtableid=?`
   const argsSql = `select name from graohql_arg where tableid=${id}`
@@ -83,3 +85,11 @@ export const import_args=async (ctx)=>{
   }
  
 }
+
+router.get('/app/query_args',query_args);
+router.get('/app/delete_args',delete_args);
+router.get('/app/update_args',update_args);
+router.get('/app/create_args',create_args);
+router.get('/app/import_args',import_args);
+
+module.exports = router
