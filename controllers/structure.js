@@ -1,5 +1,5 @@
 import db from '../config/database'
-import {addData,getOneData, getData} from '../controllers/sql'
+import {addData,getOneData, getData} from '../util/sql'
 var jwt = require('jsonwebtoken');
 const router = require('koa-router')()
 

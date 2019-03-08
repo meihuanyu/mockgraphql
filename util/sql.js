@@ -1,4 +1,6 @@
 import db from '../config/database'
+import shortid from 'shortid'
+
 //增
 //object: 增加的数据，传 对象
 export const addData = async function(table_name,object){
@@ -56,20 +58,21 @@ export const deleteData = async function(table_name,object){
 //改
 //object: 需要修改的属性，传 对象
 //where: 查询条件，传 字符串
-export const updateData = async function(table_name,object,where = '1=1'){
+export const updateData = async function(table_name,object,indexObject){
     var newAtts = []
+    var where = []
+    var values = []
     for (var i in object) {
-        //临时措施
-        if(i!=='id' && object[i]!=="null"){
-            if(typeof(object[i])=='string'){
-                object[i] = "'" + object[i] + "'"
-            }
-            newAtts.push(i + "=" + object[i]); //属性
-        }
+        values.push(object[i])
+        newAtts.push(i + " =? "); 
     }
-    const sql ="UPDATE " + table_name + " SET " + newAtts.join(',') + " WHERE id=?";
+    for (var i in indexObject) {
+        values.push(indexObject[i])
+        where.push(i + " =? "); 
+    }
+    const sql =`UPDATE ${table_name} SET  ${newAtts.join(',')} WHERE ${where.join(',')}`;
     try {
-        let res=await db.query(sql,[object.id]);
+        let res=await db.query(sql,values);
         return res
     } catch (error) {
         console.error(error)

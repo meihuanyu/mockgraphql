@@ -1,5 +1,5 @@
 import db from '../config/database'
-import { updateData ,addData} from './sql'
+import { updateData ,addData} from '../util/sql'
 const router = require('koa-router')()
 
 export const query_comArgs=async (ctx)=>{

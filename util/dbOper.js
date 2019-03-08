@@ -1,5 +1,5 @@
 
-import {addData , updateData ,getData,deleteData,getOneData} from '../controllers/sql'
+import {addData , updateData ,getData,deleteData,getOneData} from './sql'
 const clearRequire = (_path)=>{
     var path = require('path');
     var pwd = path.resolve();

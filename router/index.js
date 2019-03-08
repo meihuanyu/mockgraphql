@@ -17,6 +17,7 @@ async function isLogin(ctx,next){
 }
 
 router.get('/test',(ctx)=>{
+
   ctx.body = {
     xx:'test'
   }
@@ -30,12 +31,13 @@ router.get('/tt',function(ctx){
 
 })
 router.get('/v2/:api/:function',functionOper)
-router.use('/app',isLogin)
+// router.use('/app',isLogin)
 router.use('',require('../controllers/args').routes())
 router.use('',require('../controllers/funs').routes())
 router.use('',require('../controllers/comArgs').routes())
 router.use('',require('../controllers/structure').routes())
 router.use('',require('../controllers/menu_grant').routes())
+router.use('',require('../controllers/template_analysis').routes())
 
 
 module.exports = router
