@@ -23,12 +23,17 @@
           ckeck_token {
                token:ctx.tonken
           }
-          queryClass {
-               currentUser:ckeck_token.user
+          class_query {
+               params:{class_name,desc}
+               re:{id,class_name,desc}
           }
-          query_class_log {
-               querytUser:ckeck_token.user
-               query:queryClass.data
+
+          class_query_list {
+               params:{
+                    class:[class_name,desc]
+                    id:ctx.token
+               }
+               re:{id,class_name,desc}
           }
      }
      
