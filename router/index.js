@@ -16,13 +16,6 @@ async function isLogin(ctx,next){
   await next()
 }
 
-router.get('/test',(ctx)=>{
-
-  ctx.body = {
-    xx:'test'
-  }
-})
-
 router.get('/tt',function(ctx){
   redis.del(ctx.query.apiKey); 
   ctx.body={
@@ -30,14 +23,15 @@ router.get('/tt',function(ctx){
   }
 
 })
-router.get('/v2/:api/:function',functionOper)
+router.get('/v2/:apiKey/:function',functionOper)
 // router.use('/app',isLogin)
-router.use('',require('../controllers/args').routes())
-router.use('',require('../controllers/funs').routes())
-router.use('',require('../controllers/comArgs').routes())
-router.use('',require('../controllers/structure').routes())
-router.use('',require('../controllers/menu_grant').routes())
 router.use('',require('../controllers/template_analysis').routes())
+router.use('',require('../controllers/menu').routes())
+router.use('',require('../controllers/table').routes())
+router.use('',require('../controllers/field').routes())
+router.use('',require('../controllers/structure').routes())
+router.use('',require('../controllers/function').routes())
+router.use('',require('../controllers/arg').routes())
 
 
 module.exports = router

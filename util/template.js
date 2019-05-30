@@ -1,21 +1,36 @@
 import db from '../config/database'
 import { updateData ,addData,getOneData, deleteData, getData} from './sql'
-export const formartJson = (data)=>{
-    let str = removeJsComments(data)
-    str = str.replace(/:(.*?)\s+/g, ":\"$1\",");
-    str = str.replace(/{/g, ":{");
-    str = str.replace(/}/g, "},");
-    str =  "{"+str+"}"
-    let Json = null
-    try {
-      Json = eval('(' + str + ')');
-    }catch(e){
-      console.log(e)
-      return false
+
+/* 解析
+{
+	class:{
+        class_name:"varchar",
+        student:"link(student)"
+    },
+    student:{
+        name:"int",
+        info:"int"
     }
-    return Json
-  }
-     
+}*/
+// export const formartJson = (data)=>{
+//     let str = removeJsComments(data)
+//     str = str.replace(/:(.*?)\s+/g, ":\"$1\",");
+//     str = str.replace(/{/g, ":{");
+//     str = str.replace(/}/g, "},");
+//     str =  "{"+str+"}"
+//     let Json = null
+//     try {
+//       Json = eval('(' + str + ')');
+//     }catch(e){
+//       console.log(e)
+//       return false
+//     }
+//     return Json
+//   }
+export const formartJson = (str)=> {
+    str   =   str.replace(/\s+/g,"");    
+    return eval('(' + str + ')'); 
+}  
 //比对两个对象
 export const comparisonTemplate =(newData,oldData)=> {
     var addObj={},updateObj={},

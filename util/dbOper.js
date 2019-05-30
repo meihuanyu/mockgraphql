@@ -27,72 +27,30 @@ export const  afterRunFun= async(params,tableName,res,type,api,funs)=>{
         return res
     }
 }
-export const  dbOper = async (operType,params,tableName,api,root,projectName,allData) =>{
+export const  dbOper = async (operType,params,tableName,api,root,apiKey,allData) =>{
     let res
-    params = await beforRunFun(params,tableName,root,api,allData.tFuns)
+    params = await beforRunFun(params,tableName,root,api,allData.apiMap)
     if(operType === 'single'){
-        res = await getOneData(projectName+"_"+tableName,params)   
+        res = await getOneData(apiKey+"_"+tableName,params)   
     }else if(operType === 'list'){
-        res = await getData(projectName+"_"+tableName,params)   
+        res = await getData(apiKey+"_"+tableName,params)   
     }else if(operType === 'delete'){  
-        res = await deleteData(projectName+"_"+tableName,params)
+        res = await deleteData(apiKey+"_"+tableName,params)
     }else if(operType === 'update'){
+        const tableName_project=apiKey+"_"+tableName
+        const indexS = allData.argMap[tableName].filter(item=>item.isindex)
 
-        const tableName_project=projectName+"_"+tableName
-        const ids = allData.tArgs[tableName].filter(item=>item.isindex)
-        const whereIndexSql = ids.map(item=>` ${item.name}=${params[item.name]} `)
-        res = await updateData(tableName_project,params,whereIndexSql.join('and'))   
+        let temp = {}
+        for(let i=0;i<indexS.length;i++){
+            temp[indexS[i].name] = params[indexS[i].name]
+        }
+        console.log(temp)
+        res = await updateData(tableName_project,params,temp)   
           
     }else if(operType === 'create'){
-        let resTable = {}
-        const argNames=allData.tArgs[tableName].map(item=>item.name)
-        const gObjs= allData.fields[tableName].filter(item=>{return item.fieldtype==='graphqlObj' && argNames.indexOf(item.fieldname)!==-1})
-        
-        //graphql类型的字段会根据自己的create
-        for(let i=0; i<gObjs.length;i++){
-            const thisFieldName = gObjs[i].fieldname
-            const viceTable=gObjs[i].fieldrelationtablename
-            const graphqlObjTableName = projectName+'_'+viceTable
-            //判断grap字段 有没有关联表
-            if(gObjs[i].issingleorlist){
-                //多个个创建
-
-                /*创建原始表的数据  */
-                resTable=await addData(projectName+"_"+tableName,params)
-                /** 没有传值 则不去创建graphqlObj 也无需关联中间表 */
-                if(params[thisFieldName]){
-                    let transferParams = []
-                    const transferTableName = projectName+'_'+tableName+'_'+viceTable
-
-                    /** 创建grapqlObj 数据 */
-                    const grapObjRes = await addData(graphqlObjTableName,params[thisFieldName])
-                    /** 返回的insertId 去叠加取id */
-                    for(let i=0;i<grapObjRes.affectedRows;i++){
-                        let tempT = {}
-                        tempT[viceTable+'id'] = grapObjRes.insertId+i
-                        tempT[tableName+'id'] = resTable.insertId
-                        transferParams.push(tempT)
-                    }
-                    /** insert 中间表关联数据 */
-                    addData(transferTableName,transferParams)
-                }
-                
-            }else{
-                //单个创建
-                const resCur=await await addData(graphqlObjTableName,params[thisFieldName])
-                params[viceTable+'id'] = resCur.insertId
-
-                /*创建原始表的数据  */
-                resTable=await addData(projectName+"_"+tableName,params)
-            }
-        }
-        // 正常create  无graphqlObj字段
-        if(!gObjs.length){
-            /*创建原始表的数据  */
-            resTable=await addData(projectName+"_"+tableName,params)
-        }
+        /*创建原始表的数据  */
+        let resTable=await addData(apiKey+"_"+tableName,params)
         res = resTable
-    }
-                         
-    return afterRunFun(params,tableName,res,root,api,allData.tFuns);
+    }                    
+    return afterRunFun(params,tableName,res,root,api,allData.apiMap);
 }

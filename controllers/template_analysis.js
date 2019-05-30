@@ -19,7 +19,8 @@ const modify_template=async (ctx)=>{
         res = await addData('system_template',{
             id:shortid.generate(),
             projectId:_ProjectId,
-            template:ctx.query.template
+            template:ctx.query.template,
+            type:ctx.query.type
         })
         oldData = {}
     }else{
@@ -46,7 +47,8 @@ const modify_template=async (ctx)=>{
 
 const query_template=async (ctx)=>{
     const res = await getOneData('system_template',{
-        projectId:_ProjectId
+        projectId:_ProjectId,
+        type:ctx.query.type
     })
     ctx.body = {
         data:res,
