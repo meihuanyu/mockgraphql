@@ -3,7 +3,7 @@ import {addData,getOneData, getData , updateData} from '../util/sql'
 const router = require('koa-router')()
 
 const query_args=async (ctx)=>{
-    const sql = `select * from system_arg where tableId=? order by type DESC`
+    const sql = `select * from system_arg where tableId=?`
     const res = await db.query(sql,[ctx.query.id])
     if(res){
       ctx.body={

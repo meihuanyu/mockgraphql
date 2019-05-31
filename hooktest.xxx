@@ -20,3 +20,7 @@ docker exec -it 5e6023cff510 redis-cli
 
 
 docker run -d --name myredis -p 6379:6379 redis --requirepass "showrpasswordredis"
+
+SELECT * from data_form_dataView f 
+where 
+f.id in (select df.fieldId from data_form_dataView_field df where df.xxId=1)

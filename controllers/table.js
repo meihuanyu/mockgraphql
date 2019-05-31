@@ -26,10 +26,14 @@ const createTable=async function(ctx,next){
         }
     }
 }
-const _createTable=async function(tablename,tableid){
+export const _createTable=async function(tablename,tableid , type = 1 , fields = []){
+    const fieldsSql = fields.map(item => {
+        return `${item.name} ${item.type}(${item.length})`
+    }).join(' , ')
     const  sql="CREATE TABLE IF NOT EXISTS `"+tablename+"`("+
-        "`id` INT UNSIGNED AUTO_INCREMENT,`createdAt` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,`updatedAt` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,PRIMARY KEY ( `id` )"+
-        ")ENGINE=InnoDB DEFAULT CHARSET=utf8;"
+        "`id` INT UNSIGNED AUTO_INCREMENT,`createdAt` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,`updatedAt` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,PRIMARY KEY ( `id` ) "+
+        fieldsSql +
+        " )ENGINE=InnoDB DEFAULT CHARSET=utf8;"
     db.query(sql);  
     //默认id状态
     const res = await addData('system_field',{

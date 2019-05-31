@@ -1,6 +1,6 @@
 import db from '../config/database'
 import {addData,getOneData, getData , updateData} from '../util/sql'
-
+import  { _createTable } from './table'
 const router = require('koa-router')()
 
 const getFields = async function(ctx,next){
@@ -13,8 +13,8 @@ const getFields = async function(ctx,next){
     }
 }
 const updateFields = async function(ctx,next){
-    const {name , type , isRes , tableId , id}=ctx.query;    
-    const res=await updateData('system_field',{name , type , isRes , tableId} , {id})
+    const {name , type , isRes , tableId , id , relationTableId}=ctx.query;    
+    const res=await updateData('system_field',{name , type , isRes , tableId , relationTableId} , {id})
     //  没有修改表里面 field
     if(res){
         ctx.body={
@@ -24,16 +24,29 @@ const updateFields = async function(ctx,next){
     }
 }
 const createField=async function(ctx,next){    
-    const {name , type , isRes , tableId}=ctx.query;
-    const relationTable =  await getOneData('system_table',{
+    const {name , type , isRes , tableId , relationTableId}=ctx.query;
+    const table =  await getOneData('system_table',{
         id:tableId
     }) 
-    const projectId                = relationTable.projectId
+    const projectId                = table.projectId
     const resProject               = await getOneData('system_project',{id:projectId})
     const projectName              = resProject.apiKey
-    const mainTableName            = relationTable.name
+    const mainTableName            = table.name
     const projectAndMainTableName  = projectName+"_"+mainTableName
-    await _addField(name,type,projectAndMainTableName)
+    if(relationTableId){
+        //建立中间表
+        const relationTable =  await getOneData('system_table',{
+            id:relationTableId
+        }) 
+        const fields = [
+            {name:name+"Id" , type:'int' , length:64},
+            {name:relationTable.name+"Id" , type:'int' , length:64},
+        ]
+        const midll = projectAndMainTableName + "_" +relationTable.name
+        await _createMildderTable(midll , fields)
+    }else{
+        await _addField(name,type,projectAndMainTableName)
+    }
     let res=await addData('system_field',{name , type , isRes , tableId})
     
     if(res){
@@ -68,6 +81,16 @@ const _addField = async function(field,type,tableName){
     }
     const sql="alter table "+tableName+" add "+field+" "+type+"("+num+");"
     return db.query(sql)
+}
+const _createMildderTable=async function(tablename , fields = []){
+    const fieldsSql = fields.map(item => {
+        return `${item.name} ${item.type}(${item.length})`
+    }).join(' , ')
+    const  sql="CREATE TABLE IF NOT EXISTS `"+tablename+"`("+
+        fieldsSql +
+        " )ENGINE=InnoDB DEFAULT CHARSET=utf8;"
+    
+    return db.query(sql);  
 }
 router.get('/app/getFields',getFields);
 router.get('/app/deleteField',deleteField);
