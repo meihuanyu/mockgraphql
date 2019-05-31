@@ -18,13 +18,14 @@ export const functionOper = async (ctx)=>{
 
   let apiMap = {};
   for(let i=0;i<apis.length;i++){
-    const path = tableMap[apis[i].tableId].name + "_" + apis[i].oper
+    const path = apis[i].alias ? apis[i].alias : tableMap[apis[i].tableId].name + "_" + apis[i].oper
     apiMap[path] = {...apis[i] , tableName:tableMap[apis[i].tableId].name}
   }
 
   if(apiMap[functionName]){
-      const { tableName , oper} = apiMap[functionName]
+      const { tableName , oper , tableId} = apiMap[functionName]
       const args = await db.query("SELECT * from system_arg where " + ids.join(" or "))
+      const fields = await db.query("SELECT * from system_field where tableId = " + tableId)
       let argMap = {};
       for(let i=0;i<tables.length;i++){
         argMap[tables[i].name] = args.filter(item => item.tableId === tables[i].id)
@@ -32,9 +33,10 @@ export const functionOper = async (ctx)=>{
       params = matchingParams(params,oper,tableName,argMap)
       const allData = {
         apiMap,
-        argMap
+        argMap,
+        fields,
+        tableMap
       }
-      console.log(params)
       const res = await dbOper(oper,params,tableName,functionName,ctx,project.apiKey,allData)
       ctx.body = {
           data:res,

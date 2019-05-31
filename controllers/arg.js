@@ -41,10 +41,10 @@ const update_args=async (ctx)=>{
   }
 
 const create_args=async (ctx)=>{
-    const {  name, type ,relationid,tableId,isupdate,isdelete,iscreate,issingle,islist,isindex} = ctx.query
+    const {  name, type ,tableid,tableId,isupdate,isdelete,iscreate,issingle,islist,isindex} = ctx.query
     
     const res = await addData('system_arg',{
-      name, type ,relationid,isupdate,isdelete,iscreate,issingle,islist,isindex,tableId
+      name, type ,tableid,isupdate,isdelete,iscreate,issingle,islist,isindex,tableId
     })
     if(res){
       ctx.body={
